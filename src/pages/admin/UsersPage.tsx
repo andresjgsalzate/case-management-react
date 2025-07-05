@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import {
-  PlusIcon,
   PencilIcon,
   TrashIcon,
   UserIcon,
   MagnifyingGlassIcon,
+  CheckCircleIcon,
+  ClockIcon,
 } from '@heroicons/react/24/outline';
-import { useUsers, useCreateUser, useUpdateUser, useDeleteUser } from '@/hooks/useUsers';
+import { useUsers, useUpdateUser, useDeleteUser } from '@/hooks/useUsers';
 import { useRoles } from '@/hooks/useRoles';
 import { usePermissions } from '@/hooks/useUserProfile';
 import { UserProfile, UserFormData } from '@/types';
@@ -15,17 +16,16 @@ import { Button } from '@/components/Button';
 import { Input } from '@/components/Input';
 import { Select } from '@/components/Select';
 import { PageWrapper } from '@/components/PageWrapper';
+import toast from 'react-hot-toast';
 
 interface UserModalProps {
   isOpen: boolean;
   onClose: () => void;
   user?: UserProfile;
-  isEdit?: boolean;
 }
 
-const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose, user, isEdit = false }) => {
+const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose, user }) => {
   const { data: roles } = useRoles();
-  const createUser = useCreateUser();
   const updateUser = useUpdateUser();
 
   const [formData, setFormData] = useState<UserFormData>({
@@ -43,12 +43,10 @@ const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose, user, isEdit = f
     }
 
     try {
-      if (isEdit && user) {
+      if (user) {
         await updateUser.mutateAsync({ id: user.id, userData: formData });
-      } else {
-        await createUser.mutateAsync(formData);
+        onClose();
       }
-      onClose();
     } catch (error) {
       console.error('Error saving user:', error);
     }
@@ -73,7 +71,7 @@ const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose, user, isEdit = f
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={isEdit ? 'Editar Usuario' : 'Crear Usuario'}
+      title="Editar Usuario"
     >
       <form onSubmit={handleSubmit} className="space-y-4">
         <Input
@@ -82,7 +80,7 @@ const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose, user, isEdit = f
           value={formData.email}
           onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, email: e.target.value })}
           required
-          disabled={isEdit} // No permitir cambiar email en edición
+          disabled={true} // No permitir cambiar email en edición
         />
 
         <Input
@@ -128,9 +126,9 @@ const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose, user, isEdit = f
           </Button>
           <Button
             type="submit"
-            loading={createUser.isPending || updateUser.isPending}
+            loading={updateUser.isPending}
           >
-            {isEdit ? 'Actualizar' : 'Crear'}
+            Actualizar
           </Button>
         </div>
       </form>
@@ -141,12 +139,38 @@ const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose, user, isEdit = f
 export const UsersPage: React.FC = () => {
   const { canManageUsers } = usePermissions();
   const { data: users, isLoading, error } = useUsers();
+  const { data: roles } = useRoles();
   const deleteUser = useDeleteUser();
+  const updateUser = useUpdateUser();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<UserProfile | undefined>();
-  const [isEdit, setIsEdit] = useState(false);
+
+  // Función para activar usuario rápidamente (cambiar de 'user' a otro rol)
+  const handleQuickActivate = async (user: UserProfile, newRoleName: string) => {
+    const targetRole = roles?.find(role => role.name === newRoleName);
+    if (!targetRole) {
+      toast.error(`No se encontró el rol ${newRoleName}`);
+      return;
+    }
+
+    try {
+      await updateUser.mutateAsync({
+        id: user.id,
+        userData: {
+          email: user.email,
+          fullName: user.fullName,
+          roleId: targetRole.id,
+          isActive: true
+        }
+      });
+      toast.success(`Usuario activado como ${newRoleName}`);
+    } catch (error) {
+      console.error('Error activating user:', error);
+      toast.error('Error al activar usuario');
+    }
+  };
 
   // Verificar permisos
   if (!canManageUsers()) {
@@ -171,13 +195,6 @@ export const UsersPage: React.FC = () => {
 
   const handleEdit = (user: UserProfile) => {
     setSelectedUser(user);
-    setIsEdit(true);
-    setIsModalOpen(true);
-  };
-
-  const handleCreate = () => {
-    setSelectedUser(undefined);
-    setIsEdit(false);
     setIsModalOpen(true);
   };
 
@@ -218,16 +235,9 @@ export const UsersPage: React.FC = () => {
             Gestión de Usuarios
           </h1>
           <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-            Administra los usuarios del sistema y sus roles
+            Administra los usuarios registrados y sus roles. Los usuarios se registran por su cuenta y tú los activas.
           </p>
         </div>
-        <Button
-          onClick={handleCreate}
-          className="flex items-center"
-        >
-          <PlusIcon className="h-5 w-5 mr-2" />
-          Nuevo Usuario
-        </Button>
       </div>
 
       {/* Search */}
@@ -260,6 +270,9 @@ export const UsersPage: React.FC = () => {
                 Estado
               </th>
               <th className="px-4 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                Activación
+              </th>
+              <th className="px-4 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                 Creado
               </th>
               <th className="px-4 lg:px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
@@ -288,9 +301,24 @@ export const UsersPage: React.FC = () => {
                   </div>
                 </td>
                 <td className="px-4 lg:px-6 py-4 whitespace-nowrap">
-                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
-                    {user.role?.name || 'Sin rol'}
-                  </span>
+                  <div className="flex items-center">
+                    {user.role?.name === 'user' && (
+                      <ClockIcon className="h-4 w-4 text-amber-500 mr-2" />
+                    )}
+                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                      user.role?.name === 'user' 
+                        ? 'bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200'
+                        : user.role?.name === 'admin'
+                        ? 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200'
+                        : user.role?.name === 'supervisor'
+                        ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                        : user.role?.name === 'analista'
+                        ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
+                        : 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200'
+                    }`}>
+                      {user.role?.name === 'user' ? 'Pendiente' : user.role?.name || 'Sin rol'}
+                    </span>
+                  </div>
                 </td>
                 <td className="px-4 lg:px-6 py-4 whitespace-nowrap">
                   <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
@@ -300,6 +328,33 @@ export const UsersPage: React.FC = () => {
                   }`}>
                     {user.isActive ? 'Activo' : 'Inactivo'}
                   </span>
+                </td>
+                <td className="px-4 lg:px-6 py-4 whitespace-nowrap">
+                  {user.role?.name === 'user' ? (
+                    <div className="flex space-x-2">
+                      <button
+                        onClick={() => handleQuickActivate(user, 'analista')}
+                        className="inline-flex items-center px-2 py-1 text-xs font-medium text-blue-700 bg-blue-100 rounded-md hover:bg-blue-200 dark:bg-blue-900 dark:text-blue-200 dark:hover:bg-blue-800 transition-colors"
+                        disabled={updateUser.isPending}
+                      >
+                        <CheckCircleIcon className="h-3 w-3 mr-1" />
+                        Analista
+                      </button>
+                      <button
+                        onClick={() => handleQuickActivate(user, 'supervisor')}
+                        className="inline-flex items-center px-2 py-1 text-xs font-medium text-green-700 bg-green-100 rounded-md hover:bg-green-200 dark:bg-green-900 dark:text-green-200 dark:hover:bg-green-800 transition-colors"
+                        disabled={updateUser.isPending}
+                      >
+                        <CheckCircleIcon className="h-3 w-3 mr-1" />
+                        Supervisor
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex items-center text-xs text-gray-500 dark:text-gray-400">
+                      <CheckCircleIcon className="h-3 w-3 mr-1" />
+                      Activado
+                    </div>
+                  )}
                 </td>
                 <td className="px-4 lg:px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                   {new Date(user.createdAt).toLocaleDateString()}
@@ -330,10 +385,10 @@ export const UsersPage: React.FC = () => {
           <div className="text-center py-12">
             <UserIcon className="mx-auto h-12 w-12 text-gray-400" />
             <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-gray-300">
-              No hay usuarios
+              No hay usuarios registrados
             </h3>
             <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-              {searchTerm ? 'No se encontraron usuarios que coincidan con tu búsqueda.' : 'Comienza creando un nuevo usuario.'}
+              {searchTerm ? 'No se encontraron usuarios que coincidan con tu búsqueda.' : 'Los usuarios deben registrarse por su cuenta y luego tú los activarás.'}
             </p>
           </div>
         )}
@@ -344,7 +399,6 @@ export const UsersPage: React.FC = () => {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         user={selectedUser}
-        isEdit={isEdit}
       />
     </PageWrapper>
   );

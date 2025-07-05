@@ -78,11 +78,14 @@ export const useAuth = () => {
           error: null,
         });
 
-        // Invalidar queries cuando cambie el estado de auth
-        queryClient.invalidateQueries({ queryKey: ['auth'] });
-        queryClient.invalidateQueries({ queryKey: ['cases'] });
-        queryClient.invalidateQueries({ queryKey: ['origenes'] });
-        queryClient.invalidateQueries({ queryKey: ['aplicaciones'] });
+        // Solo invalidar queries específicas, no todas
+        if (event === 'SIGNED_IN') {
+          queryClient.invalidateQueries({ queryKey: ['auth'] });
+          queryClient.invalidateQueries({ queryKey: ['systemAccess'] });
+        } else if (event === 'SIGNED_OUT') {
+          // No invalidar queries aquí, ya se limpian en onSuccess del signOut
+          console.log('✅ Usuario deslogueado, queries se limpiarán automáticamente');
+        }
       }
     );
 
@@ -171,7 +174,9 @@ export const useAuth = () => {
     mutationFn: async () => {
       console.log('🚪 Cerrando sesión...');
       
-      const { error } = await supabase.auth.signOut();
+      const { error } = await supabase.auth.signOut({
+        scope: 'local' // Cerrar sesión solo localmente
+      });
 
       if (error) {
         console.error('❌ Error sign out:', error);
@@ -181,8 +186,19 @@ export const useAuth = () => {
       console.log('✅ Sign out exitoso');
     },
     onSuccess: () => {
+      // Limpiar el estado local inmediatamente
+      setAuthState({
+        user: null,
+        loading: false,
+        error: null,
+      });
+      
+      // Limpiar todas las queries después de un pequeño delay
+      setTimeout(() => {
+        queryClient.clear();
+      }, 100);
+      
       toast.success('Sesión cerrada correctamente');
-      queryClient.clear(); // Limpiar todas las queries
     },
     onError: (error: AuthError) => {
       console.error('❌ Error en sign out:', error);

@@ -11,6 +11,44 @@ export interface VersionInfo {
 
 export const changelog: VersionInfo[] = [
   {
+    version: "2.0.0",
+    date: "2025-07-05",
+    changes: [
+      {
+        type: "breaking",
+        description: "🔥 BREAKING: Eliminación completa del sistema de invitaciones por email"
+      },
+      {
+        type: "feature",
+        description: "✨ Nuevo Flujo Simplificado: Usuario se registra → Admin activa → Usuario accede"
+      },
+      {
+        type: "improvement",
+        description: "🎯 Panel de Administración Simplificado: Solo edición y activación de usuarios existentes"
+      },
+      {
+        type: "improvement",
+        description: "⚡ Eliminación de Dependencias: No requiere configuración SMTP ni emails"
+      },
+      {
+        type: "improvement",
+        description: "🚀 UX Mejorada: Flujo más directo e intuitivo para usuarios y administradores"
+      },
+      {
+        type: "improvement",
+        description: "🔧 Código Simplificado: Eliminación de hooks, páginas y rutas innecesarias"
+      },
+      {
+        type: "improvement",
+        description: "📱 Interfaz Actualizada: Textos explicativos del nuevo flujo en panel admin"
+      },
+      {
+        type: "bugfix",
+        description: "🛡️ Mayor Confiabilidad: Eliminación de puntos de falla relacionados con emails"
+      }
+    ]
+  },
+  {
     version: "1.6.0",
     date: "2025-07-05",
     changes: [

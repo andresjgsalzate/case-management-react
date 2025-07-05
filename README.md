@@ -1,4 +1,4 @@
-# 🚀 Sistema de Gestión de Casos - React v1.6.0
+# 🚀 Sistema de Gestión de Casos - React v2.0.0
 
 Una aplicación moderna para la gestión integral de casos con control de tiempo, basada en React, TypeScript y Supabase.
 
@@ -17,6 +17,15 @@ Una aplicación moderna para la gestión integral de casos con control de tiempo
 - **Estados de Control**: Seguimiento del progreso (Pendiente, En Curso, Escalada, Terminada)
 - **Reportes Detallados**: Exportación Excel con datos agrupados por caso y día
 - **Gestión de Permisos**: Control granular de acceso a funcionalidades
+
+### 👥 **Gestión de Usuarios Simplificada** (RENOVADO en v2.0.0)
+- **Registro Directo**: Usuarios se registran por su cuenta en el sistema
+- **Activación por Admin**: Administradores activan usuarios registrados
+- **Control de Roles**: Asignación y cambio de roles por administradores
+- **Activación Rápida**: Botones para promover usuarios pendientes
+- **Flujo Ultra-Simple**: Registro → Activación → Acceso (solo 3 pasos)
+- **Sin Dependencias**: No requiere configuración de email ni SMTP
+- **Mayor Confiabilidad**: Eliminación completa de sistemas de invitación complejos
 
 ### 📊 **Dashboard Optimizado** (RENOVADO en v1.6.0)
 - **Layout 100% Ancho**: Aprovechamiento total del espacio horizontal disponible
@@ -125,6 +134,26 @@ src/
 ```
 
 ## 🎯 Funcionalidades Principales
+
+### Gestión de Usuarios Simplificada
+
+El sistema incluye un **flujo directo de registro y activación**:
+
+#### **Para Usuarios:**
+- **Registro Directo**: Creación de cuenta con email y contraseña
+- **Acceso Condicional**: Acceso al sistema solo después de activación por admin
+- **Roles Asignados**: Permisos definidos por el administrador
+
+#### **Para Administradores:**
+- **Panel de Gestión**: Vista completa de usuarios registrados
+- **Activación Simple**: Botones de activación rápida por rol
+- **Control Total**: Edición de datos, roles y estados
+- **Sin Complicaciones**: No requiere configuración de email
+
+#### **Flujo de Usuario:**
+```
+Usuario se Registra → Admin Activa → Usuario Accede
+```
 
 ### Clasificación de Casos
 

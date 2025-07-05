@@ -5,6 +5,9 @@ import { useThemeStore } from '@/stores/themeStore';
 import { Layout } from '@/components/Layout';
 import { ConfigurationRequired } from '@/components/ConfigurationRequired';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
+import { AccessDenied } from '@/components/AccessDenied';
+import { LoadingSpinner } from '@/components/LoadingSpinner';
+import { useSystemAccess } from '@/hooks/useSystemAccess';
 import { Dashboard } from '@/pages/Dashboard';
 import { CasesPage } from '@/pages/Cases';
 import { NewCasePage } from '@/pages/NewCase';
@@ -63,30 +66,7 @@ function App() {
 
   return (
     <ProtectedRoute>
-      <Layout>
-        <Routes>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/cases" element={<CasesPage />} />
-          <Route path="/cases/new" element={<NewCasePage />} />
-          <Route path="/cases/edit/:id" element={<NewCasePage />} />
-          
-          {/* Case Control Module */}
-          <Route path="/case-control" element={<CaseControlPage />} />
-          
-          {/* Admin Routes */}
-          <Route path="/admin/users" element={<UsersPage />} />
-          <Route path="/admin/roles" element={<RolesPage />} />
-          <Route path="/admin/permissions" element={<PermissionsPage />} />
-          <Route path="/admin/config" element={<ConfigurationPage />} />
-          
-          {/* Test Routes */}
-          <Route path="/auth-test" element={<AuthTestPage />} />
-          <Route path="/data-test" element={<DataTestPage />} />
-          <Route path="/debug" element={<DebugPage />} />
-          
-          <Route path="*" element={<NotFoundPage />} />
-        </Routes>
-      </Layout>
+      <AppContent />
       <Toaster 
         position="bottom-right"
         toastOptions={{
@@ -95,6 +75,69 @@ function App() {
         }}
       />
     </ProtectedRoute>
+  );
+}
+
+// Componente separado para manejar el contenido principal después de la autenticación
+function AppContent() {
+  const { hasAccess, userRole, userEmail, isLoading, error } = useSystemAccess();
+
+  // Mostrar spinner mientras se verifica el acceso
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+        <LoadingSpinner size="lg" />
+      </div>
+    );
+  }
+
+  // Mostrar error si hay problemas al verificar el acceso
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+        <div className="text-center">
+          <h2 className="text-xl font-semibold text-red-600 dark:text-red-400 mb-2">
+            Error al verificar acceso
+          </h2>
+          <p className="text-gray-600 dark:text-gray-400">
+            {error.message || 'Ocurrió un error inesperado'}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // Si no tiene acceso, mostrar la pantalla de acceso denegado
+  if (!hasAccess) {
+    return <AccessDenied userEmail={userEmail || undefined} userRole={userRole || undefined} />;
+  }
+
+  // Si tiene acceso, mostrar la aplicación normal
+  return (
+    <Layout>
+      <Routes>
+        <Route path="/" element={<Dashboard />} />
+        <Route path="/cases" element={<CasesPage />} />
+        <Route path="/cases/new" element={<NewCasePage />} />
+        <Route path="/cases/edit/:id" element={<NewCasePage />} />
+        
+        {/* Case Control Module */}
+        <Route path="/case-control" element={<CaseControlPage />} />
+        
+        {/* Admin Routes */}
+        <Route path="/admin/users" element={<UsersPage />} />
+        <Route path="/admin/roles" element={<RolesPage />} />
+        <Route path="/admin/permissions" element={<PermissionsPage />} />
+        <Route path="/admin/config" element={<ConfigurationPage />} />
+        
+        {/* Test Routes */}
+        <Route path="/auth-test" element={<AuthTestPage />} />
+        <Route path="/data-test" element={<DataTestPage />} />
+        <Route path="/debug" element={<DebugPage />} />
+        
+        <Route path="*" element={<NotFoundPage />} />
+      </Routes>
+    </Layout>
   );
 }
 
