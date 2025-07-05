@@ -1,4 +1,4 @@
-# 🚀 Sistema de Gestión de Casos - React
+# 🚀 Sistema de Gestión de Casos - React v1.6.0
 
 Una aplicación moderna para la gestión integral de casos con control de tiempo, basada en React, TypeScript y Supabase.
 
@@ -10,13 +10,19 @@ Una aplicación moderna para la gestión integral de casos con control de tiempo
 - **Filtros avanzados** y búsqueda en tiempo real
 - **Exportación** a Excel/CSV
 
-### ⏱️ **Control de Casos y Tiempo** (NUEVO en v1.3.0)
+### ⏱️ **Control de Casos y Tiempo**
 - **Sistema de Control de Casos**: Asignación y seguimiento del tiempo de trabajo
 - **Timer Integrado**: Cronómetro en tiempo real con inicio, pausa y detención
 - **Registro de Tiempo Manual**: Adición de tiempo trabajado con descripción y fecha
 - **Estados de Control**: Seguimiento del progreso (Pendiente, En Curso, Escalada, Terminada)
 - **Reportes Detallados**: Exportación Excel con datos agrupados por caso y día
 - **Gestión de Permisos**: Control granular de acceso a funcionalidades
+
+### 📊 **Dashboard Optimizado** (RENOVADO en v1.6.0)
+- **Layout 100% Ancho**: Aprovechamiento total del espacio horizontal disponible
+- **Métricas en Tiempo Real**: Dashboard completamente reescrito con datos precisos
+- **Vista Unificada**: Uso exclusivo de `case_control_detailed` para consistencia
+- **Performance Mejorada**: Consultas optimizadas y carga más rápida
 
 ### 🔐 **Seguridad y Autenticación**
 - **Autenticación segura** con Supabase Auth

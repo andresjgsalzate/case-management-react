@@ -169,18 +169,19 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex">
-      {/* Sidebar */}
-      <div className="w-64 bg-white dark:bg-gray-800 shadow-lg border-r border-gray-200 dark:border-gray-700 flex flex-col">
+      {/* Sidebar - Fixed */}
+      <div className="fixed top-0 left-0 w-64 bg-white dark:bg-gray-800 shadow-lg border-r border-gray-200 dark:border-gray-700 flex flex-col h-screen z-10">
         {/* Logo/Header */}
-        <div className="flex items-center px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+        <div className="flex-shrink-0 flex items-center px-6 py-4 border-b border-gray-200 dark:border-gray-700">
           <ChartBarIcon className="h-8 w-8 text-primary-600" />
           <h1 className="ml-3 text-lg font-bold text-gray-900 dark:text-white">
             Gestión de Casos
           </h1>
         </div>
 
-        {/* Navigation */}
-        <nav className="flex-1 px-4 py-4 space-y-2 overflow-y-auto" ref={navRef}>
+        {/* Navigation - Scrollable Area */}
+        <div className="flex-1 overflow-y-auto">
+          <nav className="px-4 py-4 space-y-2" ref={navRef}>
           {/* Navegación básica */}
           {navigation.map((item) => {
             const Icon = item.icon;
@@ -299,10 +300,11 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
               </div>
             </>
           )}
-        </nav>
+          </nav>
+        </div>
 
-        {/* User Menu en la parte inferior */}
-        <div className="border-t border-gray-200 dark:border-gray-700 p-4 space-y-2">
+        {/* User Menu en la parte inferior - Fixed Footer */}
+        <div className="flex-shrink-0 border-t border-gray-200 dark:border-gray-700 p-4 space-y-2">
           {/* Version Display */}
           <div className="flex justify-center">
             <VersionDisplay onClick={() => setShowVersionModal(true)} />
@@ -368,7 +370,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
       </div>
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="ml-64 flex-1 flex flex-col min-h-screen w-full">
         {/* Top Header (opcional, para breadcrumbs o acciones) */}
         <header className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 px-6 py-4">
           <div className="flex items-center justify-between">
@@ -381,9 +383,11 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
           </div>
         </header>
 
-        {/* Main Content */}
-        <main className="flex-1 overflow-y-auto p-6">
-          {children}
+        {/* Main Content - Scrollable */}
+        <main className="flex-1 overflow-y-auto w-full">
+          <div className="w-full max-w-none py-6">
+            {children}
+          </div>
         </main>
       </div>
 

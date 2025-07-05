@@ -14,6 +14,7 @@ import { Modal } from '@/components/Modal';
 import { Button } from '@/components/Button';
 import { Input } from '@/components/Input';
 import { Select } from '@/components/Select';
+import { PageWrapper } from '@/components/PageWrapper';
 
 interface UserModalProps {
   isOpen: boolean;
@@ -209,7 +210,7 @@ export const UsersPage: React.FC = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <PageWrapper>
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
@@ -230,7 +231,7 @@ export const UsersPage: React.FC = () => {
       </div>
 
       {/* Search */}
-      <div className="relative">
+      <div className="relative max-w-md">
         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
           <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" />
         </div>
@@ -244,23 +245,24 @@ export const UsersPage: React.FC = () => {
       </div>
 
       {/* Users Table */}
-      <div className="bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden">
-        <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+      <div className="table-card">
+        <div className="table-overflow-container">
+          <table className="full-width-table">
           <thead className="bg-gray-50 dark:bg-gray-700">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+              <th className="px-4 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                 Usuario
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+              <th className="px-4 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                 Rol
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+              <th className="px-4 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                 Estado
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+              <th className="px-4 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                 Creado
               </th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+              <th className="px-4 lg:px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                 Acciones
               </th>
             </tr>
@@ -268,7 +270,7 @@ export const UsersPage: React.FC = () => {
           <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
             {filteredUsers.map((user) => (
               <tr key={user.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
-                <td className="px-6 py-4 whitespace-nowrap">
+                <td className="px-4 lg:px-6 py-4 whitespace-nowrap">
                   <div className="flex items-center">
                     <div className="flex-shrink-0 h-10 w-10">
                       <div className="h-10 w-10 rounded-full bg-primary-100 dark:bg-primary-900 flex items-center justify-center">
@@ -285,12 +287,12 @@ export const UsersPage: React.FC = () => {
                     </div>
                   </div>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap">
+                <td className="px-4 lg:px-6 py-4 whitespace-nowrap">
                   <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
                     {user.role?.name || 'Sin rol'}
                   </span>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap">
+                <td className="px-4 lg:px-6 py-4 whitespace-nowrap">
                   <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                     user.isActive
                       ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
@@ -299,10 +301,10 @@ export const UsersPage: React.FC = () => {
                     {user.isActive ? 'Activo' : 'Inactivo'}
                   </span>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                <td className="px-4 lg:px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                   {new Date(user.createdAt).toLocaleDateString()}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                <td className="px-4 lg:px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                   <div className="flex justify-end space-x-2">
                     <button
                       onClick={() => handleEdit(user)}
@@ -322,6 +324,7 @@ export const UsersPage: React.FC = () => {
             ))}
           </tbody>
         </table>
+        </div>
 
         {filteredUsers.length === 0 && (
           <div className="text-center py-12">
@@ -343,6 +346,6 @@ export const UsersPage: React.FC = () => {
         user={selectedUser}
         isEdit={isEdit}
       />
-    </div>
+    </PageWrapper>
   );
 };

@@ -20,6 +20,7 @@ import { Origen, Aplicacion, OrigenFormData, AplicacionFormData, CaseStatusContr
 import { Modal } from '@/components/Modal';
 import { Button } from '@/components/Button';
 import { Input } from '@/components/Input';
+import { PageWrapper } from '@/components/PageWrapper';
 
 // Modal para Orígenes
 interface OrigenModalProps {
@@ -564,7 +565,7 @@ export const ConfigurationPage: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <PageWrapper>
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
@@ -644,20 +645,21 @@ export const ConfigurationPage: React.FC = () => {
 
       {/* Content - Orígenes */}
       {activeTab === 'origenes' && canManageOrigenes() && (
-        <div className="bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden">
-          <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+        <div className="table-card">
+          <div className="table-overflow-container">
+            <table className="full-width-table">
             <thead className="bg-gray-50 dark:bg-gray-700">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                <th className="px-4 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                   Origen
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                <th className="px-4 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                   Estado
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                <th className="px-4 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                   Creado
                 </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                <th className="px-4 lg:px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                   Acciones
                 </th>
               </tr>
@@ -665,7 +667,7 @@ export const ConfigurationPage: React.FC = () => {
             <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
               {filteredOrigenes.map((origen) => (
                 <tr key={origen.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className="px-4 lg:px-6 py-4 whitespace-nowrap">
                     <div>
                       <div className="text-sm font-medium text-gray-900 dark:text-white">
                         {origen.nombre}
@@ -675,7 +677,7 @@ export const ConfigurationPage: React.FC = () => {
                       </div>
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className="px-4 lg:px-6 py-4 whitespace-nowrap">
                     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                       origen.activo
                         ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
@@ -684,10 +686,10 @@ export const ConfigurationPage: React.FC = () => {
                       {origen.activo ? 'Activo' : 'Inactivo'}
                     </span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                  <td className="px-4 lg:px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                     {new Date(origen.createdAt).toLocaleDateString()}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                  <td className="px-4 lg:px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <div className="flex justify-end space-x-2">
                       <button
                         onClick={() => handleEditOrigen(origen)}
@@ -707,6 +709,7 @@ export const ConfigurationPage: React.FC = () => {
               ))}
             </tbody>
           </table>
+          </div>
 
           {filteredOrigenes.length === 0 && (
             <div className="text-center py-12">
@@ -724,20 +727,21 @@ export const ConfigurationPage: React.FC = () => {
 
       {/* Content - Aplicaciones */}
       {activeTab === 'aplicaciones' && canManageAplicaciones() && (
-        <div className="bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden">
-          <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+        <div className="table-card">
+          <div className="table-overflow-container">
+            <table className="full-width-table">
             <thead className="bg-gray-50 dark:bg-gray-700">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                <th className="px-4 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                   Aplicación
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                <th className="px-4 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                   Estado
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                <th className="px-4 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                   Creado
                 </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                <th className="px-4 lg:px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                   Acciones
                 </th>
               </tr>
@@ -745,7 +749,7 @@ export const ConfigurationPage: React.FC = () => {
             <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
               {filteredAplicaciones.map((aplicacion) => (
                 <tr key={aplicacion.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className="px-4 lg:px-6 py-4 whitespace-nowrap">
                     <div>
                       <div className="text-sm font-medium text-gray-900 dark:text-white">
                         {aplicacion.nombre}
@@ -755,7 +759,7 @@ export const ConfigurationPage: React.FC = () => {
                       </div>
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className="px-4 lg:px-6 py-4 whitespace-nowrap">
                     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                       aplicacion.activo
                         ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
@@ -764,10 +768,10 @@ export const ConfigurationPage: React.FC = () => {
                       {aplicacion.activo ? 'Activo' : 'Inactivo'}
                     </span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                  <td className="px-4 lg:px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                     {new Date(aplicacion.createdAt).toLocaleDateString()}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                  <td className="px-4 lg:px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <div className="flex justify-end space-x-2">
                       <button
                         onClick={() => handleEditAplicacion(aplicacion)}
@@ -787,6 +791,7 @@ export const ConfigurationPage: React.FC = () => {
               ))}
             </tbody>
           </table>
+          </div>
 
           {filteredAplicaciones.length === 0 && (
             <div className="text-center py-12">
@@ -804,23 +809,24 @@ export const ConfigurationPage: React.FC = () => {
 
       {/* Content - Estados de Control */}
       {activeTab === 'case-statuses' && canManageCaseStatuses() && (
-        <div className="bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden">
-          <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+        <div className="table-card">
+          <div className="table-overflow-container">
+            <table className="full-width-table">
             <thead className="bg-gray-50 dark:bg-gray-700">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                <th className="px-4 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                   Estado
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                <th className="px-4 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                   Color
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                <th className="px-4 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                   Orden
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                <th className="px-4 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                   Estado
                 </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                <th className="px-4 lg:px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                   Acciones
                 </th>
               </tr>
@@ -828,7 +834,7 @@ export const ConfigurationPage: React.FC = () => {
             <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
               {filteredCaseStatuses.map((status) => (
                 <tr key={status.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className="px-4 lg:px-6 py-4 whitespace-nowrap">
                     <div>
                       <div className="text-sm font-medium text-gray-900 dark:text-white">
                         {status.name}
@@ -838,7 +844,7 @@ export const ConfigurationPage: React.FC = () => {
                       </div>
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className="px-4 lg:px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center space-x-2">
                       <div 
                         className="w-4 h-4 rounded-full border border-gray-300"
@@ -849,10 +855,10 @@ export const ConfigurationPage: React.FC = () => {
                       </span>
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                  <td className="px-4 lg:px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
                     {status.displayOrder}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className="px-4 lg:px-6 py-4 whitespace-nowrap">
                     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                       status.isActive
                         ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
@@ -861,7 +867,7 @@ export const ConfigurationPage: React.FC = () => {
                       {status.isActive ? 'Activo' : 'Inactivo'}
                     </span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                  <td className="px-4 lg:px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <div className="flex justify-end space-x-2">
                       <button
                         onClick={() => handleEditCaseStatus(status)}
@@ -881,6 +887,7 @@ export const ConfigurationPage: React.FC = () => {
               ))}
             </tbody>
           </table>
+          </div>
 
           {filteredCaseStatuses.length === 0 && (
             <div className="text-center py-12">
@@ -917,6 +924,6 @@ export const ConfigurationPage: React.FC = () => {
         caseStatus={selectedCaseStatus}
         isEdit={isEdit}
       />
-    </div>
+    </PageWrapper>
   );
 };

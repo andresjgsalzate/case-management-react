@@ -4,6 +4,7 @@ import { CaseForm } from '@/components/CaseForm';
 import { CaseFormSchema } from '@/lib/validations';
 import { useCreateCase, useUpdateCase, useCase } from '@/hooks/useCases';
 import { LoadingSpinner, ErrorMessage } from '@/components/LoadingSpinner';
+import { PageWrapper } from '@/components/PageWrapper';
 
 export const NewCasePage: React.FC = () => {
   const navigate = useNavigate();
@@ -70,7 +71,7 @@ export const NewCasePage: React.FC = () => {
   } : undefined;
 
   return (
-    <div>
+    <PageWrapper>
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
           {isEditing ? 'Editar Caso' : 'Nuevo Caso'}
@@ -80,7 +81,7 @@ export const NewCasePage: React.FC = () => {
         </p>
       </div>
 
-      <div className="card p-8">
+      <div className="card p-8 w-full">
         <CaseForm 
           onSubmit={handleSubmit}
           defaultValues={defaultValues}
@@ -88,6 +89,6 @@ export const NewCasePage: React.FC = () => {
           submitText={isEditing ? 'Actualizar Caso' : 'Registrar Caso'}
         />
       </div>
-    </div>
+    </PageWrapper>
   );
 };

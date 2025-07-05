@@ -12,6 +12,7 @@ import { Case } from '@/types';
 import { useOrigenes, useAplicaciones } from '@/hooks/useOrigenesAplicaciones';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { exportCasesToExcel, exportCasesToCSV } from '@/utils/exportUtils';
+import { PageWrapper } from '@/components/PageWrapper';
 
 export const CasesPage: React.FC = () => {
   const { data: cases, isLoading, error, refetch } = useCases();
@@ -104,7 +105,7 @@ export const CasesPage: React.FC = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <PageWrapper>
       {/* Header */}
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
@@ -236,9 +237,9 @@ export const CasesPage: React.FC = () => {
       </div>
 
       {/* Tabla de casos */}
-      <div className="card overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+      <div className="table-card">
+        <div className="table-overflow-container">
+          <table className="full-width-table">
             <thead className="bg-gray-50 dark:bg-gray-800">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
@@ -329,6 +330,6 @@ export const CasesPage: React.FC = () => {
           </table>
         </div>
       </div>
-    </div>
+    </PageWrapper>
   );
 };

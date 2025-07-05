@@ -13,6 +13,7 @@ import { Modal } from '@/components/Modal';
 import { Button } from '@/components/Button';
 import { Input } from '@/components/Input';
 import { Select } from '@/components/Select';
+import { PageWrapper } from '@/components/PageWrapper';
 
 // Opciones predefinidas para recursos y acciones
 const RESOURCE_OPTIONS = [
@@ -262,7 +263,7 @@ export const PermissionsPage: React.FC = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <PageWrapper>
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
@@ -283,8 +284,8 @@ export const PermissionsPage: React.FC = () => {
       </div>
 
       {/* Filters */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="relative">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 max-w-4xl">
+        <div className="search-container">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
             <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" />
           </div>
@@ -311,23 +312,24 @@ export const PermissionsPage: React.FC = () => {
       </div>
 
       {/* Permissions Table */}
-      <div className="bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden">
-        <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+      <div className="table-card">
+        <div className="table-overflow-container">
+          <table className="full-width-table">
           <thead className="bg-gray-50 dark:bg-gray-700">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+              <th className="px-4 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                 Permiso
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+              <th className="px-4 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                 Recurso
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+              <th className="px-4 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                 Acción
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+              <th className="px-4 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                 Estado
               </th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+              <th className="px-4 lg:px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                 Acciones
               </th>
             </tr>
@@ -335,7 +337,7 @@ export const PermissionsPage: React.FC = () => {
           <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
             {filteredPermissions.map((permission) => (
               <tr key={permission.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
-                <td className="px-6 py-4 whitespace-nowrap">
+                <td className="px-4 lg:px-6 py-4 whitespace-nowrap">
                   <div className="flex items-center">
                     <div className="flex-shrink-0 h-10 w-10">
                       <div className="h-10 w-10 rounded-full bg-primary-100 dark:bg-primary-900 flex items-center justify-center">
@@ -352,17 +354,17 @@ export const PermissionsPage: React.FC = () => {
                     </div>
                   </div>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap">
+                <td className="px-4 lg:px-6 py-4 whitespace-nowrap">
                   <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
                     {permission.resource}
                   </span>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap">
+                <td className="px-4 lg:px-6 py-4 whitespace-nowrap">
                   <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200">
                     {permission.action}
                   </span>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap">
+                <td className="px-4 lg:px-6 py-4 whitespace-nowrap">
                   <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                     permission.isActive
                       ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
@@ -371,7 +373,7 @@ export const PermissionsPage: React.FC = () => {
                     {permission.isActive ? 'Activo' : 'Inactivo'}
                   </span>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                <td className="px-4 lg:px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                   <div className="flex justify-end space-x-2">
                     <button
                       onClick={() => handleEdit(permission)}
@@ -391,6 +393,7 @@ export const PermissionsPage: React.FC = () => {
             ))}
           </tbody>
         </table>
+        </div>
 
         {filteredPermissions.length === 0 && (
           <div className="text-center py-12">
@@ -412,6 +415,6 @@ export const PermissionsPage: React.FC = () => {
         permission={selectedPermission}
         isEdit={isEdit}
       />
-    </div>
+    </PageWrapper>
   );
 };

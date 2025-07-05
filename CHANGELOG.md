@@ -1,5 +1,48 @@
 # 📋 Control de Casos - Historial de Cambios
 
+## [1.6.0] - 2025-07-05
+
+### 🚀 **OPTIMIZACIÓN MAYOR: Layout Global y Dashboard Completamente Renovado**
+
+#### 🎨 **Layout Optimizado al 100%**
+- **Ancho Completo**: Eliminación total de espacios laterales en toda la aplicación
+- **Tablas Responsive**: Implementación de tablas que ocupan el 100% del ancho disponible
+- **Clases CSS Optimizadas**: Nuevas clases `table-card`, `table-overflow-container`, `full-width-table`
+- **PageWrapper Mejorado**: Componente wrapper sin restricciones de ancho
+- **Diseño Escalable**: Layout preparado para pantallas ultra-anchas
+
+#### 📊 **Dashboard Completamente Reescrito**
+- **Vista Única de Datos**: Migración completa a `case_control_detailed` como fuente única
+- **Hooks Optimizados**: Reescritura total de todos los hooks de métricas
+- **Performance Mejorada**: Eliminación de consultas complejas con múltiples joins
+- **Datos Consistentes**: Métricas coherentes y sincronizadas en todas las secciones
+
+#### 🔧 **Mejoras Técnicas Críticas**
+- **Eliminación de Errores NaN**: Manejo robusto de valores indefinidos o nulos
+- **Consultas Simplificadas**: Uso exclusivo de la vista desnormalizada
+- **Caching Eficiente**: Optimización de React Query para mejor rendimiento
+- **Validación de Datos**: Funciones utilitarias para formateo seguro de tiempo
+
+#### 🎯 **Funcionalidades Renovadas**
+- **Tiempo por Usuario**: Métricas precisas con datos reales de tiempo invertido
+- **Métricas por Estado**: Visualización mejorada con colores dinámicos
+- **Tiempo por Aplicación**: Análisis detallado por aplicación de origen
+- **Casos con Mayor Tiempo**: Rankings automáticos ordenados por tiempo invertido
+
+### 🛠️ **Arquitectura y Mantenibilidad**
+- **Código Limpio**: Eliminación de archivos temporales y documentación obsoleta
+- **Estructura Simplificada**: Hooks más simples y fáciles de mantener
+- **Escalabilidad**: Preparado para futuras expansiones del dashboard
+- **Documentación Actualizada**: Guías técnicas renovadas
+
+### ⚡ **Performance y UX**
+- **Carga Más Rápida**: Consultas optimizadas reducen tiempo de respuesta
+- **Interface Consistente**: Experiencia unificada en toda la aplicación
+- **Responsive Mejorado**: Mejor adaptación a diferentes tamaños de pantalla
+- **Estados de Carga**: Indicadores mejorados durante la carga de datos
+
+---
+
 ## [1.5.0] - 2025-07-05
 
 ### ⚙️ **NUEVA FUNCIONALIDAD: Gestión de Estados de Control en Configuración**
@@ -11,7 +54,36 @@
 - **Orden Personalizable**: Campo de orden para controlar la secuencia de visualización
 - **Validaciones Inteligentes**: Prevención de eliminación de estados en uso por casos activos
 
-#### 🔧 **Funcionalidades Implementadas**
+### 📊 **NUEVA FUNCIONALIDAD: Dashboard Enriquecido con Métricas Avanzadas**
+
+#### ⏰ **Métricas de Tiempo Completas**
+- **Tiempo Total**: Visualización del tiempo total procesado en el sistema
+- **Promedio por Caso**: Cálculo automático del tiempo promedio por caso
+- **Usuarios Activos**: Contador de usuarios que han trabajado en casos
+- **Aplicaciones**: Número de aplicaciones de origen registradas
+
+#### � **Análisis por Usuario**
+- **Tabla de Tiempo por Usuario**: Tiempo total, casos trabajados y promedio por usuario
+- **Métricas Individuales**: Rendimiento personalizado por cada usuario del sistema
+- **Casos Trabajados**: Contador de casos únicos por usuario
+
+#### 📈 **Métricas por Estado**
+- **Cards Visuales**: Tarjetas con colores dinámicos para cada estado
+- **Tiempo por Estado**: Tiempo total invertido en cada estado de caso
+- **Casos por Estado**: Número de casos en cada estado
+- **Promedio por Estado**: Tiempo promedio que se invierte en cada estado
+
+#### 💻 **Análisis por Aplicación**
+- **Tiempo por Aplicación**: Métricas de tiempo por aplicación de origen
+- **Casos por Aplicación**: Distribución de casos por aplicación
+- **Rendimiento por Aplicación**: Tiempo promedio por caso según aplicación
+
+#### 🏆 **Top de Casos**
+- **Mayor Tiempo Invertido**: Top 5 de casos con más tiempo de trabajo
+- **Estados Dinámicos**: Visualización de estados con colores personalizados
+- **Información Detallada**: Número de caso, descripción, estado y tiempo total
+
+#### �🔧 **Funcionalidades Implementadas**
 - **CRUD Completo**: 
   - ✅ Crear nuevos estados de control
   - ✅ Editar estados existentes (nombre, descripción, color, orden)
@@ -26,6 +98,7 @@
 - **Vista de Tabla**: Visualización clara con color, orden y estado de activación
 - **Formulario Intuitivo**: Modal con todos los campos organizados y validados
 - **Feedback Visual**: Indicadores de color y estado en la tabla de gestión
+- **Dashboard Reorganizado**: Secciones claramente diferenciadas para mejor navegación
 
 #### 🛡️ **Seguridad y Validaciones**
 - **Protección de Integridad**: Validación antes de eliminación si el estado está en uso

@@ -101,4 +101,82 @@
   .stat-label {
     @apply text-sm text-gray-600 dark:text-gray-400 mt-1;
   }
+
+  /* ===== LAYOUT GLOBAL OPTIMIZATION - SOLUCIÓN DEFINITIVA ===== */
+  .page-container {
+    @apply w-full max-w-none mx-0 px-0;
+  }
+
+  .page-content {
+    @apply w-full max-w-none space-y-6 px-4 lg:px-6 xl:px-8;
+  }
+
+  .page-content-full {
+    @apply w-full max-w-none space-y-6 px-0;
+  }
+
+  .responsive-padding {
+    @apply px-4 lg:px-6 xl:px-8;
+  }
+
+  .no-horizontal-padding {
+    @apply px-0;
+  }
+
+  .search-container {
+    @apply relative max-w-md;
+  }
+
+  .filters-container {
+    @apply w-full max-w-none;
+  }
+
+  .table-wrapper {
+    @apply w-full max-w-none bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden;
+  }
+
+  .data-table {
+    @apply w-full min-w-full divide-y divide-gray-200 dark:divide-gray-700;
+  }
+
+  .responsive-padding {
+    @apply px-4 lg:px-6;
+  }
+
+  .grid-responsive {
+    @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4;
+  }
+
+  .grid-metrics {
+    @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 2xl:grid-cols-6 gap-4 lg:gap-6;
+  }
+
+  .full-width-container {
+    @apply w-full max-w-none mx-0;
+  }
+
+  /* ===== CLASES ESPECÍFICAS PARA TABLAS DE ANCHO COMPLETO ===== */
+  .full-width-table {
+    @apply w-full min-w-full divide-y divide-gray-200 dark:divide-gray-700;
+  }
+
+  .table-card {
+    @apply bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden p-0;
+  }
+
+  .table-card-with-padding {
+    @apply bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden;
+  }
+
+  .table-card-header {
+    @apply px-6 py-4 border-b border-gray-200 dark:border-gray-700;
+  }
+
+  .table-overflow-container {
+    @apply overflow-x-auto w-full;
+  }
+
+  .no-padding-card {
+    @apply card p-0;
+  }
 }

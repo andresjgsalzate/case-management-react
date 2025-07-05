@@ -4,6 +4,7 @@ import { useCases } from '@/hooks/useCases';
 import { useOrigenes, useAplicaciones } from '@/hooks/useOrigenesAplicaciones';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { supabase } from '@/lib/supabase';
+import { PageWrapper } from '@/components/PageWrapper';
 
 export const DataTestPage: React.FC = () => {
   const { data: cases, isLoading: casesLoading, refetch: refetchCases } = useCases();
@@ -40,7 +41,7 @@ export const DataTestPage: React.FC = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto p-6 space-y-6">
+    <PageWrapper>
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
@@ -296,6 +297,6 @@ export const DataTestPage: React.FC = () => {
           </div>
         </div>
       </div>
-    </div>
+    </PageWrapper>
   );
 };

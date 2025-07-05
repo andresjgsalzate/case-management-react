@@ -2,6 +2,7 @@ import React from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useUserProfile, usePermissions } from '@/hooks/useUserProfile';
 import { useCases } from '@/hooks/useCases';
+import { PageWrapper } from '@/components/PageWrapper';
 
 export const DebugPage: React.FC = () => {
   const { user } = useAuth();
@@ -10,7 +11,7 @@ export const DebugPage: React.FC = () => {
   const { data: cases, isLoading: casesLoading, error: casesError } = useCases();
 
   return (
-    <div className="max-w-4xl mx-auto p-6 space-y-8">
+    <PageWrapper>
       <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Debug Information</h1>
       
       {/* Auth User */}
@@ -70,6 +71,6 @@ export const DebugPage: React.FC = () => {
           {JSON.stringify(cases?.slice(0, 3) || [], null, 2)}
         </pre>
       </div>
-    </div>
+    </PageWrapper>
   );
 };

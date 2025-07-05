@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { CheckCircleIcon, XCircleIcon, UsersIcon } from '@heroicons/react/24/outline';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/lib/supabase';
+import { PageWrapper } from '@/components/PageWrapper';
 
 interface UserData {
   id: string;
@@ -58,7 +59,7 @@ export const AuthTestPage: React.FC = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-6 space-y-6">
+    <PageWrapper>
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
           <UsersIcon className="h-8 w-8" />
@@ -184,6 +185,6 @@ export const AuthTestPage: React.FC = () => {
           )}
         </div>
       </div>
-    </div>
+    </PageWrapper>
   );
 };

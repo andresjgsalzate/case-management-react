@@ -18,6 +18,7 @@ import { CaseControlDetailsModal } from '@/components/CaseControlDetailsModal';
 import { CaseAssignmentModal } from '@/components/CaseAssignmentModal';
 import { CaseControl } from '@/types';
 import { formatDistanceToNow } from 'date-fns';
+import { PageWrapper } from '@/components/PageWrapper';
 import { es } from 'date-fns/locale';
 import { exportCaseControlReport } from '@/utils/exportUtils';
 import toast from 'react-hot-toast';
@@ -149,7 +150,7 @@ const CaseControlPage: React.FC = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <PageWrapper>
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -197,7 +198,7 @@ const CaseControlPage: React.FC = () => {
           </div>
           
           {/* Búsqueda por número de caso */}
-          <div className="relative">
+          <div className="search-container">
             <MagnifyingGlassIcon className="h-5 w-5 absolute left-3 top-3 text-gray-400" />
             <Input
               value={searchTerm}
@@ -396,7 +397,7 @@ const CaseControlPage: React.FC = () => {
           // Los queries se refrescarán automáticamente
         }}
       />
-    </div>
+    </PageWrapper>
   );
 };
 
