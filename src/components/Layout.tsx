@@ -17,6 +17,8 @@ import {
   MoonIcon
 } from '@heroicons/react/24/outline';
 import { FloatingActionButton } from './FloatingActionButton';
+import { VersionDisplay } from './VersionDisplay';
+import { VersionModal } from './VersionModal';
 import { useAuth } from '@/hooks/useAuth';
 import { usePermissions } from '@/hooks/useUserProfile';
 import { RLSError } from './RLSError';
@@ -32,6 +34,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
   const { userProfile, canAccessAdmin, canManageUsers, canManageRoles, canManagePermissions, canManageOrigenes, canManageAplicaciones, hasRLSError } = usePermissions();
   const { isDarkMode, toggleTheme } = useThemeStore();
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [showVersionModal, setShowVersionModal] = useState(false);
   const [openDropdowns, setOpenDropdowns] = useState<Set<string>>(new Set());
   const menuRef = useRef<HTMLDivElement>(null);
   const navRef = useRef<HTMLDivElement>(null);
@@ -288,6 +291,11 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
 
         {/* User Menu en la parte inferior */}
         <div className="border-t border-gray-200 dark:border-gray-700 p-4 space-y-2">
+          {/* Version Display */}
+          <div className="flex justify-center">
+            <VersionDisplay onClick={() => setShowVersionModal(true)} />
+          </div>
+
           {/* Theme Toggle Button */}
           <button
             onClick={toggleTheme}
@@ -369,6 +377,12 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
 
       {/* Floating Action Button */}
       <FloatingActionButton />
+
+      {/* Version Modal */}
+      <VersionModal 
+        isOpen={showVersionModal} 
+        onClose={() => setShowVersionModal(false)} 
+      />
     </div>
   );
 };
