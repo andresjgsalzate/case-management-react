@@ -13,7 +13,6 @@ import { Modal } from '@/components/Modal';
 import { Button } from '@/components/Button';
 import { Input } from '@/components/Input';
 import { Select } from '@/components/Select';
-import toast from 'react-hot-toast';
 
 // Opciones predefinidas para recursos y acciones
 const RESOURCE_OPTIONS = [
@@ -59,8 +58,7 @@ const PermissionModal: React.FC<PermissionModalProps> = ({ isOpen, onClose, perm
     e.preventDefault();
     
     if (!formData.name || !formData.resource || !formData.action) {
-      toast.error('Todos los campos son requeridos');
-      return;
+      return; // Simplemente no continuar si faltan campos requeridos
     }
 
     try {

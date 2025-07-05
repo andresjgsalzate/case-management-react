@@ -13,7 +13,6 @@ import { Role, RoleFormData } from '@/types';
 import { Modal } from '@/components/Modal';
 import { Button } from '@/components/Button';
 import { Input } from '@/components/Input';
-import toast from 'react-hot-toast';
 
 interface RoleModalProps {
   isOpen: boolean;
@@ -38,8 +37,7 @@ const RoleModal: React.FC<RoleModalProps> = ({ isOpen, onClose, role, isEdit = f
     e.preventDefault();
     
     if (!formData.name) {
-      toast.error('El nombre del rol es requerido');
-      return;
+      return; // Simplemente no continuar si falta el nombre
     }
 
     try {

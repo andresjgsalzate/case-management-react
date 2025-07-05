@@ -1,18 +1,35 @@
 # 🚀 Sistema de Gestión de Casos - React
 
-Una aplicación moderna para la gestión y clasificación de casos basada en React, TypeScript y Supabase.
+Una aplicación moderna para la gestión integral de casos con control de tiempo, basada en React, TypeScript y Supabase.
 
-## ✨ Características
+## ✨ Características Principales
 
-- **🔐 Autenticación segura** con Supabase Auth
-- **📝 CRUD completo** de casos con validación robusta
-- **🎯 Clasificación automática** basada en puntuación (Baja/Media/Alta complejidad)
-- **🔍 Filtros avanzados** y búsqueda en tiempo real
-- **📊 Dashboard** con métricas y estadísticas
-- **📁 Exportación** a Excel/CSV
-- **🌙 Modo oscuro/claro**
-- **📱 Diseño responsivo**
-- **⚡ Performance optimizada** con React Query
+### 📝 **Gestión de Casos**
+- **CRUD completo** de casos con validación robusta
+- **Clasificación automática** basada en puntuación (Baja/Media/Alta complejidad)
+- **Filtros avanzados** y búsqueda en tiempo real
+- **Exportación** a Excel/CSV
+
+### ⏱️ **Control de Casos y Tiempo** (NUEVO en v1.3.0)
+- **Sistema de Control de Casos**: Asignación y seguimiento del tiempo de trabajo
+- **Timer Integrado**: Cronómetro en tiempo real con inicio, pausa y detención
+- **Registro de Tiempo Manual**: Adición de tiempo trabajado con descripción y fecha
+- **Estados de Control**: Seguimiento del progreso (Pendiente, En Curso, Escalada, Terminada)
+- **Reportes Detallados**: Exportación Excel con datos agrupados por caso y día
+- **Gestión de Permisos**: Control granular de acceso a funcionalidades
+
+### 🔐 **Seguridad y Autenticación**
+- **Autenticación segura** con Supabase Auth
+- **Sistema de roles y permisos** granular
+- **RLS (Row Level Security)** implementado
+- **Validaciones en tiempo real**
+
+### 🎨 **Experiencia de Usuario**
+- **Dashboard** con métricas y estadísticas
+- **Modo oscuro/claro**
+- **Diseño responsivo**
+- **Notificaciones optimizadas** (sin duplicados)
+- **Performance optimizada** con React Query
 
 ## 🛠️ Stack Tecnológico
 
@@ -71,16 +88,26 @@ Una aplicación moderna para la gestión y clasificación de casos basada en Rea
 
 ```
 src/
-├── components/          # Componentes reutilizables
-│   ├── CaseForm.tsx    # Formulario de casos
-│   ├── Layout.tsx      # Layout principal
-│   └── ThemeToggle.tsx # Toggle de tema
-├── pages/              # Páginas principales
-│   ├── Dashboard.tsx   # Panel principal
-│   ├── Cases.tsx       # Lista de casos
-│   └── NewCase.tsx     # Crear/editar caso
-├── lib/                # Configuraciones
-│   ├── supabase.ts     # Cliente de Supabase
+├── components/              # Componentes reutilizables
+│   ├── CaseForm.tsx        # Formulario de casos
+│   ├── CaseControlDetailsModal.tsx  # Modal de detalles de control
+│   ├── CaseAssignmentModal.tsx      # Modal de asignación de casos
+│   ├── TimerControl.tsx    # Control de timer
+│   ├── Layout.tsx          # Layout principal
+│   └── ThemeToggle.tsx     # Toggle de tema
+├── pages/                  # Páginas principales
+│   ├── Dashboard.tsx       # Panel principal
+│   ├── Cases.tsx           # Lista de casos
+│   ├── NewCase.tsx         # Crear/editar caso
+│   ├── CaseControl.tsx     # Control de casos (NUEVO)
+│   └── admin/              # Páginas de administración
+├── hooks/                  # Hooks personalizados
+│   ├── useCases.ts         # Gestión de casos
+│   ├── useCaseControl.ts   # Control de casos (NUEVO)
+│   ├── useTimerCounter.ts  # Contador de timer (NUEVO)
+│   └── useAuth.ts          # Autenticación
+├── lib/                    # Configuraciones
+│   ├── supabase.ts         # Cliente de Supabase
 │   └── validations.ts  # Esquemas de validación
 ├── stores/             # Estado global
 │   └── themeStore.ts   # Estado del tema

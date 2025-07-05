@@ -4,7 +4,6 @@ import { CaseForm } from '@/components/CaseForm';
 import { CaseFormSchema } from '@/lib/validations';
 import { useCreateCase, useUpdateCase, useCase } from '@/hooks/useCases';
 import { LoadingSpinner, ErrorMessage } from '@/components/LoadingSpinner';
-import toast from 'react-hot-toast';
 
 export const NewCasePage: React.FC = () => {
   const navigate = useNavigate();
@@ -26,14 +25,15 @@ export const NewCasePage: React.FC = () => {
 
       if (isEditing && id) {
         await updateCase.mutateAsync({ ...formData, id });
-        toast.success('Caso actualizado exitosamente');
+        // El hook useUpdateCase ya maneja las notificaciones
       } else {
         await createCase.mutateAsync(formData);
-        toast.success('Caso registrado exitosamente');
+        // El hook useCreateCase ya maneja las notificaciones
       }
       navigate('/cases');
     } catch (error) {
-      toast.error(isEditing ? 'Error al actualizar el caso' : 'Error al crear el caso');
+      // Los hooks ya manejan las notificaciones de error
+      console.error('Error submitting case:', error);
     }
   };
 

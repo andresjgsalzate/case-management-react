@@ -13,7 +13,6 @@ import { Origen, Aplicacion, OrigenFormData, AplicacionFormData } from '@/types'
 import { Modal } from '@/components/Modal';
 import { Button } from '@/components/Button';
 import { Input } from '@/components/Input';
-import toast from 'react-hot-toast';
 
 // Modal para Orígenes
 interface OrigenModalProps {
@@ -37,8 +36,7 @@ const OrigenModal: React.FC<OrigenModalProps> = ({ isOpen, onClose, origen, isEd
     e.preventDefault();
     
     if (!formData.nombre.trim()) {
-      toast.error('El nombre es requerido');
-      return;
+      return; // Simplemente no continuar si falta el nombre
     }
 
     try {
@@ -150,8 +148,7 @@ const AplicacionModal: React.FC<AplicacionModalProps> = ({ isOpen, onClose, apli
     e.preventDefault();
     
     if (!formData.nombre.trim()) {
-      toast.error('El nombre es requerido');
-      return;
+      return; // Simplemente no continuar si falta el nombre
     }
 
     try {

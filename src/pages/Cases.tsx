@@ -12,7 +12,6 @@ import { Case } from '@/types';
 import { useOrigenes, useAplicaciones } from '@/hooks/useOrigenesAplicaciones';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { exportCasesToExcel, exportCasesToCSV } from '@/utils/exportUtils';
-import toast from 'react-hot-toast';
 
 export const CasesPage: React.FC = () => {
   const { data: cases, isLoading, error, refetch } = useCases();
@@ -56,31 +55,25 @@ export const CasesPage: React.FC = () => {
 
   const handleDelete = async (id: string, numeroCaso: string) => {
     if (confirm(`¿Estás seguro de que quieres eliminar el caso ${numeroCaso}?`)) {
-      try {
-        await deleteCase.mutateAsync(id);
-        toast.success('Caso eliminado exitosamente');
-      } catch (error) {
-        toast.error('Error al eliminar el caso');
-      }
+      await deleteCase.mutateAsync(id);
+      // El hook useDeleteCase ya maneja las notificaciones
     }
   };
 
   const handleExportExcel = () => {
     if (filteredCases.length === 0) {
-      toast.error('No hay casos para exportar');
-      return;
+      return; // No hacer nada si no hay casos
     }
     exportCasesToExcel(filteredCases as Case[]);
-    toast.success('Casos exportados a Excel');
+    // exportCasesToExcel ya maneja la notificación de éxito
   };
 
   const handleExportCSV = () => {
     if (filteredCases.length === 0) {
-      toast.error('No hay casos para exportar');
-      return;
+      return; // No hacer nada si no hay casos
     }
     exportCasesToCSV(filteredCases as Case[]);
-    toast.success('Casos exportados a CSV');
+    // exportCasesToCSV ya maneja la notificación de éxito
   };
 
   if (isLoading) {

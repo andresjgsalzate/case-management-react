@@ -14,13 +14,15 @@ import {
   WrenchScrewdriverIcon,
   ChevronDownIcon,
   SunIcon,
-  MoonIcon
+  MoonIcon,
+  ClockIcon
 } from '@heroicons/react/24/outline';
 import { FloatingActionButton } from './FloatingActionButton';
 import { VersionDisplay } from './VersionDisplay';
 import { VersionModal } from './VersionModal';
 import { useAuth } from '@/hooks/useAuth';
 import { usePermissions } from '@/hooks/useUserProfile';
+import { useCaseControlPermissions } from '@/hooks/useCaseControlPermissions';
 import { RLSError } from './RLSError';
 import { useThemeStore } from '@/stores/themeStore';
 
@@ -32,6 +34,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
   const location = useLocation();
   const { user, signOut } = useAuth();
   const { userProfile, canAccessAdmin, canManageUsers, canManageRoles, canManagePermissions, canManageOrigenes, canManageAplicaciones, hasRLSError } = usePermissions();
+  const { canAccessModule: canAccessCaseControl } = useCaseControlPermissions();
   const { isDarkMode, toggleTheme } = useThemeStore();
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showVersionModal, setShowVersionModal] = useState(false);
@@ -40,11 +43,20 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
   const navRef = useRef<HTMLDivElement>(null);
 
   // Navegación básica
-  const navigation = React.useMemo(() => [
-    { name: 'Dashboard', href: '/', icon: HomeIcon },
-    { name: 'Casos', href: '/cases', icon: DocumentTextIcon },
-    { name: 'Nuevo Caso', href: '/cases/new', icon: PlusIcon },
-  ], []);
+  const navigation = React.useMemo(() => {
+    const baseNavigation = [
+      { name: 'Dashboard', href: '/', icon: HomeIcon },
+      { name: 'Casos', href: '/cases', icon: DocumentTextIcon },
+      { name: 'Nuevo Caso', href: '/cases/new', icon: PlusIcon },
+    ];
+
+    // Agregar Control de Casos si tiene permisos
+    if (canAccessCaseControl()) {
+      baseNavigation.push({ name: 'Control de Casos', href: '/case-control', icon: ClockIcon });
+    }
+
+    return baseNavigation;
+  }, [canAccessCaseControl]);
 
   // Navegación de administración agrupada por secciones
   const adminSections = React.useMemo(() => {

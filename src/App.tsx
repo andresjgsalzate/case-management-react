@@ -16,6 +16,7 @@ import { PermissionsPage } from '@/pages/admin/PermissionsPage';
 import { ConfigurationPage } from '@/pages/admin/ConfigurationPage';
 import { DebugPage } from '@/pages/DebugPage';
 import { NotFoundPage } from '@/pages/NotFound';
+import CaseControlPage from '@/pages/CaseControl';
 
 function App() {
   const { isDarkMode } = useThemeStore();
@@ -68,6 +69,9 @@ function App() {
           <Route path="/cases" element={<CasesPage />} />
           <Route path="/cases/new" element={<NewCasePage />} />
           <Route path="/cases/edit/:id" element={<NewCasePage />} />
+          
+          {/* Case Control Module */}
+          <Route path="/case-control" element={<CaseControlPage />} />
           
           {/* Admin Routes */}
           <Route path="/admin/users" element={<UsersPage />} />

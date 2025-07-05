@@ -11,6 +11,74 @@ export interface VersionInfo {
 
 export const changelog: VersionInfo[] = [
   {
+    version: "1.4.0",
+    date: "2025-07-05",
+    changes: [
+      {
+        type: "feature",
+        description: "🎉 Nuevo Módulo: Control de Casos completo con timer en tiempo real"
+      },
+      {
+        type: "feature",
+        description: "⏱️ Sistema de Timer integrado con inicio, pausa y detención automática"
+      },
+      {
+        type: "feature",
+        description: "📝 Registro de tiempo manual por día con descripción y validaciones"
+      },
+      {
+        type: "feature",
+        description: "📊 Sistema de estados de casos (Pendiente, En Curso, Escalada, Terminada)"
+      },
+      {
+        type: "feature",
+        description: "📈 Generación de reportes Excel detallados agrupados por caso y día"
+      },
+      {
+        type: "feature",
+        description: "🔍 Filtros avanzados por estado y búsqueda por número de caso"
+      },
+      {
+        type: "feature",
+        description: "🛡️ Sistema de permisos granular para todas las acciones del módulo"
+      },
+      {
+        type: "improvement",
+        description: "🔔 Eliminación definitiva de mensajes toast duplicados en toda la app"
+      },
+      {
+        type: "improvement",
+        description: "⚡ Optimización de queries SQL con vistas especializadas"
+      },
+      {
+        type: "improvement",
+        description: "🎨 Interfaz mejorada con feedback visual y animaciones"
+      }
+    ]
+  },
+  {
+    version: "1.3.0",
+    date: "2025-07-05",
+    changes: [
+      {
+        type: "feature",
+        description: "🗄️ Base de datos: 6 nuevas migraciones para Control de Casos"
+      },
+      {
+        type: "feature",
+        description: "📋 Componentes React: CaseControl, TimerControl, modales especializados"
+      },
+      {
+        type: "feature",
+        description: "🔗 Integración completa con sistema de casos existente"
+      },
+      {
+        type: "improvement",
+        description: "🔒 Implementación de RLS (Row Level Security) para nuevas tablas"
+      }
+    ]
+  },
+  {
     version: "1.2.3",
     date: "2025-07-05",
     changes: [

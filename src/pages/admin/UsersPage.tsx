@@ -14,7 +14,6 @@ import { Modal } from '@/components/Modal';
 import { Button } from '@/components/Button';
 import { Input } from '@/components/Input';
 import { Select } from '@/components/Select';
-import toast from 'react-hot-toast';
 
 interface UserModalProps {
   isOpen: boolean;
@@ -39,8 +38,7 @@ const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose, user, isEdit = f
     e.preventDefault();
     
     if (!formData.email || !formData.roleId) {
-      toast.error('Por favor completa todos los campos requeridos');
-      return;
+      return; // Simplemente no continuar si faltan campos requeridos
     }
 
     try {

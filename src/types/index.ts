@@ -197,3 +197,217 @@ export const CAUSA_FALLO_OPTIONS: SelectOption[] = [
   { value: 2, label: 'Falla puntual, requiere pruebas' },
   { value: 3, label: 'Falla compleja, pruebas adicionales' },
 ];
+
+// ====================================
+// TIPOS PARA CONTROL DE CASOS
+// ====================================
+
+export interface CaseStatusControl {
+  id: string;
+  name: string;
+  description?: string;
+  color: string;
+  isActive: boolean;
+  displayOrder: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// Tipos para entradas de tiempo
+export interface TimeEntry {
+  id: string;
+  caseControlId: string;
+  userId: string;
+  startTime: string;
+  endTime?: string;
+  durationMinutes?: number;
+  entryType: 'automatic' | 'manual';
+  description?: string;
+  createdAt: string;
+  updatedAt: string;
+  
+  // Relación poblada
+  user?: UserProfile;
+}
+
+export interface ManualTimeEntry {
+  id: string;
+  caseControlId: string;
+  userId: string;
+  date: string;
+  durationMinutes: number;
+  description: string;
+  createdAt: string;
+  createdBy: string;
+  
+  // Relaciones pobladas
+  user?: UserProfile;
+  creator?: UserProfile;
+}
+
+export interface CaseControl {
+  id: string;
+  caseId: string;
+  userId: string;
+  statusId: string;
+  
+  // Tiempos
+  totalTimeMinutes: number;
+  timerStartAt?: string;
+  isTimerActive: boolean;
+  
+  // Metadatos
+  assignedAt: string;
+  startedAt?: string;
+  completedAt?: string;
+  createdAt: string;
+  updatedAt: string;
+  
+  // Relaciones pobladas
+  case?: Case;
+  user?: UserProfile;
+  status?: CaseStatusControl;
+  timeEntries?: TimeEntry[];
+  manualTimeEntries?: ManualTimeEntry[];
+}
+
+// Tipo para la vista detallada de case_control_detailed
+export interface CaseControlDetailed {
+  id: string;
+  case_id: string;
+  user_id: string;
+  status_id: string;
+  total_time_minutes: number;
+  timer_start_at?: string;
+  is_timer_active: boolean;
+  assigned_at: string;
+  started_at?: string;
+  completed_at?: string;
+  created_at: string;
+  updated_at: string;
+  
+  // Información del usuario asignado (desde la vista)
+  assigned_user_name?: string;
+  assigned_user_email?: string;
+  
+  // Información del caso (desde la vista)
+  case_number?: string;
+  case_description?: string;
+  case_classification?: string;
+  case_score?: number;
+  
+  // Información de la aplicación (desde la vista)
+  application_name?: string;
+  application_description?: string;
+  
+  // Información del estado (desde la vista)
+  status_name?: string;
+  status_description?: string;
+  status_color?: string;
+}
+
+// ====================================
+// TIPOS PARA REPORTES Y ESTADÍSTICAS
+// ====================================
+
+export interface TimeReportData {
+  date: string;
+  totalMinutes: number;
+  caseCount: number;
+  entries: {
+    caseId: string;
+    caseNumber: string;
+    totalMinutes: number;
+    status: string;
+    user: string;
+  }[];
+}
+
+export interface CaseControlStats {
+  totalCases: number;
+  activeCases: number;
+  completedCases: number;
+  totalTimeMinutes: number;
+  averageTimePerCase: number;
+  
+  // Por estado
+  byStatus: {
+    [statusName: string]: {
+      count: number;
+      totalMinutes: number;
+    };
+  };
+  
+  // Por usuario
+  byUser: {
+    userId: string;
+    userName: string;
+    caseCount: number;
+    totalMinutes: number;
+  }[];
+  
+  // Por día (últimos 30 días)
+  dailyStats: {
+    date: string;
+    caseCount: number;
+    totalMinutes: number;
+  }[];
+}
+
+export interface UserTimeStats {
+  userId: string;
+  userName: string;
+  totalMinutes: number;
+  caseCount: number;
+  averageTimePerCase: number;
+  activeCases: number;
+  completedCases: number;
+}
+
+// ====================================
+// TIPOS PARA FORMULARIOS
+// ====================================
+
+export interface StartCaseControlForm {
+  caseId: string;
+  userId?: string; // Si no se especifica, usa el usuario actual
+  statusId?: string; // Si no se especifica, usa PENDIENTE
+}
+
+export interface UpdateCaseStatusForm {
+  statusId: string;
+}
+
+export interface AddManualTimeForm {
+  date: string;
+  durationMinutes: number;
+  description: string;
+}
+
+export interface TimeReportFilters {
+  startDate: string;
+  endDate: string;
+  userId?: string;
+  statusId?: string;
+  caseId?: string;
+}
+
+// ====================================
+// ENUMS Y CONSTANTES
+// ====================================
+
+export const CASE_CONTROL_STATUS = {
+  PENDIENTE: 'PENDIENTE',
+  EN_CURSO: 'EN CURSO',
+  ESCALADA: 'ESCALADA',
+  TERMINADA: 'TERMINADA'
+} as const;
+
+export type CaseControlStatusType = typeof CASE_CONTROL_STATUS[keyof typeof CASE_CONTROL_STATUS];
+
+export const TIME_ENTRY_TYPE = {
+  AUTOMATIC: 'automatic',
+  MANUAL: 'manual'
+} as const;
+
+export type TimeEntryType = typeof TIME_ENTRY_TYPE[keyof typeof TIME_ENTRY_TYPE];

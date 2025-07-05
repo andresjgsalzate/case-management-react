@@ -41,12 +41,30 @@ export function getComplexityColor(clasificacion: CaseComplexity): string {
 /**
  * Formatea una fecha para mostrar
  */
-export function formatDate(date: string): string {
-  return new Date(date).toLocaleDateString('es-ES', {
+export function formatDate(date: string | Date | null | undefined): string {
+  if (!date) return 'Fecha no disponible';
+  
+  const dateObj = typeof date === 'string' ? new Date(date) : date;
+  
+  // Verificar si la fecha es válida
+  if (isNaN(dateObj.getTime())) {
+    return 'Fecha inválida';
+  }
+  
+  return dateObj.toLocaleDateString('es-ES', {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
   });
+}
+
+/**
+ * Formatea minutos en formato de tiempo HH:mm
+ */
+export function formatTime(minutes: number): string {
+  const hours = Math.floor(minutes / 60);
+  const mins = minutes % 60;
+  return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
 }
 
 /**
@@ -63,4 +81,26 @@ export function isUniqueCase(numeroCaso: string, cases: any[], currentCaseId?: s
   return !cases.some(caso => 
     caso.numeroCaso === numeroCaso && caso.id !== currentCaseId
   );
+}
+
+/**
+ * Formatea una fecha en formato YYYY-MM-DD sin problemas de zona horaria
+ */
+export function formatDateLocal(dateString: string): string {
+  if (!dateString) return 'Fecha no disponible';
+  
+  // Para fechas en formato YYYY-MM-DD, crearlas como fechas locales
+  const [year, month, day] = dateString.split('-').map(Number);
+  const dateObj = new Date(year, month - 1, day); // month - 1 porque los meses empiezan en 0
+  
+  // Verificar si la fecha es válida
+  if (isNaN(dateObj.getTime())) {
+    return 'Fecha inválida';
+  }
+  
+  return dateObj.toLocaleDateString('es-ES', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
 }
