@@ -11,6 +11,56 @@ export interface VersionInfo {
 
 export const changelog: VersionInfo[] = [
   {
+    version: "1.5.0",
+    date: "2025-07-05",
+    changes: [
+      {
+        type: "feature",
+        description: "⚙️ Gestión de Estados de Control de Casos en Configuración"
+      },
+      {
+        type: "feature",
+        description: "🎨 Editor de estados con selección de colores y orden personalizable"
+      },
+      {
+        type: "feature",
+        description: "🔧 CRUD completo para estados: crear, editar, eliminar y reordenar"
+      },
+      {
+        type: "feature",
+        description: "🛡️ Validaciones para evitar eliminar estados en uso por casos activos"
+      },
+      {
+        type: "improvement",
+        description: "📋 Interfaz unificada de configuración con pestañas mejoradas"
+      },
+      {
+        type: "improvement",
+        description: "🎯 Tabla parametrizable agregada al módulo de configuración"
+      },
+      {
+        type: "bugfix",
+        description: "🐛 Corregido error PATCH 406 al actualizar estados de control"
+      },
+      {
+        type: "bugfix",
+        description: "🔧 Solucionado el uso de display_order vs displayOrder en consultas SQL"
+      },
+      {
+        type: "bugfix",
+        description: "⚡ Mejorado el manejo de respuestas en mutaciones de actualización"
+      },
+      {
+        type: "bugfix",
+        description: "🛡️ Agregadas políticas RLS faltantes para operaciones de escritura"
+      },
+      {
+        type: "bugfix",
+        description: "🎨 Corregido sistema de colores dinámicos en Control de Casos"
+      }
+    ]
+  },
+  {
     version: "1.4.0",
     date: "2025-07-05",
     changes: [

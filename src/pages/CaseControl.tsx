@@ -72,6 +72,14 @@ const CaseControlPage: React.FC = () => {
   };
 
   const getStatusColor = (statusName: string): string => {
+    // Buscar el estado en los datos cargados para obtener su color dinámico
+    const status = statuses.find(s => s.name === statusName);
+    if (status && status.color) {
+      // Convertir el color hex a clases de Tailwind usando style inline
+      return `text-white text-xs`;
+    }
+    
+    // Fallback a colores por defecto si no se encuentra el estado
     switch (statusName) {
       case 'PENDIENTE': return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200';
       case 'EN CURSO': return 'bg-blue-100 text-blue-800 dark:bg-blue-800 dark:text-blue-200';
@@ -79,6 +87,17 @@ const CaseControlPage: React.FC = () => {
       case 'TERMINADA': return 'bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-200';
       default: return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200';
     }
+  };
+
+  const getStatusStyle = (statusName: string): React.CSSProperties => {
+    const status = statuses.find(s => s.name === statusName);
+    if (status && status.color) {
+      return {
+        backgroundColor: status.color,
+        color: 'white'
+      };
+    }
+    return {};
   };
 
   const handleStartTimer = async (control: CaseControl) => {
@@ -273,7 +292,10 @@ const CaseControlPage: React.FC = () => {
                     <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
                       {control.case?.numeroCaso || 'Caso sin número'}
                     </h3>
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(control.status?.name || '')}`}>
+                    <span 
+                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(control.status?.name || '')}`}
+                      style={getStatusStyle(control.status?.name || '')}
+                    >
                       {control.status?.name}
                     </span>
                     {control.isTimerActive && (

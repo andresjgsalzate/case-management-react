@@ -198,6 +198,18 @@ export const useCaseStatuses = () => {
 
       return data || [];
     },
+    select: (data: any[]) => {
+      return data.map((row: any) => ({
+        id: row.id,
+        name: row.name,
+        description: row.description,
+        color: row.color,
+        isActive: row.is_active,
+        displayOrder: row.display_order,
+        createdAt: row.created_at,
+        updatedAt: row.updated_at,
+      }));
+    },
   });
 };
 

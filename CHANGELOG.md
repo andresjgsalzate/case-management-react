@@ -1,5 +1,64 @@
 # 📋 Control de Casos - Historial de Cambios
 
+## [1.5.0] - 2025-07-05
+
+### ⚙️ **NUEVA FUNCIONALIDAD: Gestión de Estados de Control en Configuración**
+
+#### 🎯 **Configuración Parametrizable Completa**
+- **Estados de Control**: Gestión completa de estados de control de casos desde configuración
+- **Editor Visual**: Interfaz intuitiva para crear, editar y eliminar estados personalizados
+- **Selección de Colores**: Paleta de colores predefinida para identificación visual de estados
+- **Orden Personalizable**: Campo de orden para controlar la secuencia de visualización
+- **Validaciones Inteligentes**: Prevención de eliminación de estados en uso por casos activos
+
+#### 🔧 **Funcionalidades Implementadas**
+- **CRUD Completo**: 
+  - ✅ Crear nuevos estados de control
+  - ✅ Editar estados existentes (nombre, descripción, color, orden)
+  - ✅ Eliminar estados (con validación de uso)
+  - ✅ Activar/desactivar estados
+- **Interfaz Unificada**: Pestaña dedicada en el módulo de configuración
+- **Filtros y Búsqueda**: Búsqueda por nombre y descripción de estados
+- **Persistencia**: Almacenamiento en base de datos con relaciones validadas
+
+#### 🎨 **Mejoras de UX/UI**
+- **Editor de Color**: Selección visual de colores con preview en tiempo real
+- **Vista de Tabla**: Visualización clara con color, orden y estado de activación
+- **Formulario Intuitivo**: Modal con todos los campos organizados y validados
+- **Feedback Visual**: Indicadores de color y estado en la tabla de gestión
+
+#### 🛡️ **Seguridad y Validaciones**
+- **Protección de Integridad**: Validación antes de eliminación si el estado está en uso
+- **Manejo de Errores**: Sistema robusto de gestión de errores con mensajes específicos
+- **Validación de Datos**: Campos requeridos y formato de colores
+- **Corrección PATCH 406**: Solucionado el error de actualización que devolvía 406 al editar estados
+
+#### 🐛 **Correcciones Técnicas**
+- **Query SQL**: Corregido el uso de `display_order` vs `displayOrder` en consultas
+- **Mutación de Actualización**: Eliminado `.single()` innecesario que causaba error 406
+- **Manejo de Respuestas**: Mejorado el procesamiento de arrays vs objetos únicos
+- **Tipos TypeScript**: Corregidos los tipos de retorno en las mutaciones
+- **Políticas RLS**: Agregadas políticas faltantes para INSERT, UPDATE y DELETE en `case_status_control`
+- **Colores Dinámicos**: Corregido el sistema para usar colores dinámicos de la BD en lugar de colores hardcodeados
+- **Validación de Uso**: Verificación antes de eliminar estados utilizados por casos
+- **Permisos**: Control de acceso basado en roles de usuario
+- **Validación de Campos**: Verificación de campos obligatorios y formato
+- **Transacciones Seguras**: Operaciones atómicas para mantener integridad
+
+#### 📋 **Integración con Sistema Existente**
+- **Hook Especializado**: `useCaseStatusControl` para gestión completa de estados
+- **Tipos TypeScript**: Interfaces actualizadas para formularios y datos
+- **Base de Datos**: Consultas optimizadas con validación de relaciones
+- **React Query**: Cache inteligente con invalidación automática
+
+#### 🎯 **Impacto en Control de Casos**
+- **Estados Dinámicos**: Los estados creados están disponibles inmediatamente en Control de Casos
+- **Personalización**: Organizaciones pueden definir sus propios workflows
+- **Escalabilidad**: Sistema preparado para estados adicionales sin modificar código
+- **Consistencia**: Mismos estados disponibles en todo el sistema
+
+---
+
 ## [1.4.0] - 2025-07-05
 
 ### 🎉 **MÓDULO COMPLETADO: Control de Casos**
