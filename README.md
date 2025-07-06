@@ -1,6 +1,15 @@
-# 🚀 Sistema de Gestión de Casos - React v2.0.0
+# 🚀 Sistema de Gestión de Casos - React v2.1.0
 
 Una aplicación moderna para la gestión integral de casos con control de tiempo, basada en React, TypeScript y Supabase.
+
+## 🌐 Acceso al Sistema
+
+**🚀 Aplicación en Producción**: https://case-management-ctl.netlify.app
+
+### URLs del Proyecto:
+- **Producción**: https://case-management-ctl.netlify.app
+- **Admin Panel**: https://app.netlify.com/projects/case-management-ctl
+- **Repositorio**: https://github.com/andresjgsalzate/case-management-react
 
 ## ✨ Características Principales
 

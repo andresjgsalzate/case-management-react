@@ -24,9 +24,9 @@
 ## 🔧 Pre-Requisitos para Netlify
 
 ### **1. Repositorio Git**
-- [ ] Código subido a GitHub/GitLab/Bitbucket
-- [ ] Branch principal actualizada
-- [ ] Commits limpios y documentados
+- [x] Código subido a GitHub/GitLab/Bitbucket
+- [x] Branch principal actualizada
+- [x] Commits limpios y documentados
 
 ### **2. Configuración Supabase**
 - [ ] Proyecto Supabase activo
@@ -42,12 +42,12 @@
 ## 🚀 Pasos de Despliegue
 
 ### **Netlify Dashboard**
-1. [ ] Cuenta de Netlify creada/accesible
-2. [ ] "New site from Git" seleccionado
-3. [ ] Repositorio conectado y seleccionado
-4. [ ] Build settings configurados:
-   - [ ] Build command: `npm run build`
-   - [ ] Publish directory: `dist`
+1. [x] Cuenta de Netlify creada/accesible
+2. [x] "New site from Git" seleccionado
+3. [x] Repositorio conectado y seleccionado
+4. [x] Build settings configurados:
+   - [x] Build command: `npm run build`
+   - [x] Publish directory: `dist`
 5. [ ] Variables de entorno añadidas en Site Settings
 
 ### **Configuración Post-Despliegue**
