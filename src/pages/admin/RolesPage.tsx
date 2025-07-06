@@ -185,7 +185,7 @@ const RoleModal: React.FC<RoleModalProps> = ({ isOpen, onClose, role, isEdit = f
 };
 
 export const RolesPage: React.FC = () => {
-  const { canManageRoles } = usePermissions();
+  const { canManageRoles, canViewRoles } = usePermissions();
   const { data: roles, isLoading, error } = useRoles();
   const deleteRole = useDeleteRole();
 
@@ -195,7 +195,7 @@ export const RolesPage: React.FC = () => {
   const [isEdit, setIsEdit] = useState(false);
 
   // Verificar permisos
-  if (!canManageRoles()) {
+  if (!canViewRoles() && !canManageRoles()) {
     return (
       <div className="text-center py-12">
         <ShieldCheckIcon className="mx-auto h-12 w-12 text-gray-400" />
@@ -203,7 +203,7 @@ export const RolesPage: React.FC = () => {
           Acceso denegado
         </h3>
         <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-          No tienes permisos para gestionar roles.
+          No tienes permisos para ver roles.
         </p>
       </div>
     );

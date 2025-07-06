@@ -5,12 +5,14 @@ import { useThemeStore } from '@/stores/themeStore';
 import { Layout } from '@/components/Layout';
 import { ConfigurationRequired } from '@/components/ConfigurationRequired';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
+import { AdminOnlyRoute } from '@/components/AdminOnlyRoute';
 import { AccessDenied } from '@/components/AccessDenied';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { useSystemAccess } from '@/hooks/useSystemAccess';
 import { Dashboard } from '@/pages/Dashboard';
 import { CasesPage } from '@/pages/Cases';
 import { NewCasePage } from '@/pages/NewCase';
+import { ResetPasswordPage } from '@/pages/ResetPassword';
 import { AuthTestPage } from '@/pages/AuthTestPage';
 import { DataTestPage } from '@/pages/DataTestPage';
 import { UsersPage } from '@/pages/admin/UsersPage';
@@ -65,8 +67,19 @@ function App() {
   }
 
   return (
-    <ProtectedRoute>
-      <AppContent />
+    <>
+      <Routes>
+        {/* Rutas públicas (sin autenticación) */}
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
+        
+        {/* Rutas protegidas */}
+        <Route path="/*" element={
+          <ProtectedRoute>
+            <AppContent />
+          </ProtectedRoute>
+        } />
+      </Routes>
+      
       <Toaster 
         position="bottom-right"
         toastOptions={{
@@ -74,7 +87,7 @@ function App() {
           className: 'dark:bg-gray-800 dark:text-white',
         }}
       />
-    </ProtectedRoute>
+    </>
   );
 }
 
@@ -130,10 +143,10 @@ function AppContent() {
         <Route path="/admin/permissions" element={<PermissionsPage />} />
         <Route path="/admin/config" element={<ConfigurationPage />} />
         
-        {/* Test Routes */}
-        <Route path="/auth-test" element={<AuthTestPage />} />
-        <Route path="/data-test" element={<DataTestPage />} />
-        <Route path="/debug" element={<DebugPage />} />
+        {/* Test Routes - SOLO PARA ADMINS */}
+        <Route path="/auth-test" element={<AdminOnlyRoute><AuthTestPage /></AdminOnlyRoute>} />
+        <Route path="/data-test" element={<AdminOnlyRoute><DataTestPage /></AdminOnlyRoute>} />
+        <Route path="/debug" element={<AdminOnlyRoute><DebugPage /></AdminOnlyRoute>} />
         
         <Route path="*" element={<NotFoundPage />} />
       </Routes>

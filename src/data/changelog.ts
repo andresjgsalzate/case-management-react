@@ -11,6 +11,48 @@ export interface VersionInfo {
 
 export const changelog: VersionInfo[] = [
   {
+    version: "2.1.0",
+    date: "2025-07-05",
+    changes: [
+      {
+        type: "feature",
+        description: "🔐 Sistema de Permisos Granular: Separación entre permisos de visualización y gestión"
+      },
+      {
+        type: "feature",
+        description: "👁️ Acceso de Solo Lectura: Supervisores pueden ver todas las secciones administrativas"
+      },
+      {
+        type: "feature",
+        description: "🛡️ Módulo Desarrollo Exclusivo: Acceso restringido únicamente para administradores"
+      },
+      {
+        type: "feature",
+        description: "🚧 Componente AdminOnlyRoute: Protección específica para rutas de desarrollo"
+      },
+      {
+        type: "improvement",
+        description: "🎯 Permisos Optimizados: Funciones canView* para acceso de lectura en administración"
+      },
+      {
+        type: "improvement",
+        description: "📋 UI Adaptativa: Interfaz que se ajusta según permisos del usuario (lectura vs gestión)"
+      },
+      {
+        type: "improvement",
+        description: "⚡ Corrección canViewAllCases(): Uso directo de permiso cases.read.all"
+      },
+      {
+        type: "bugfix",
+        description: "🐛 Supervisor Administración: Acceso corregido a módulos de usuarios, roles y permisos"
+      },
+      {
+        type: "bugfix",
+        description: "🔒 Seguridad Mejorada: Rutas de desarrollo protegidas incluso con acceso directo URL"
+      }
+    ]
+  },
+  {
     version: "2.0.0",
     date: "2025-07-05",
     changes: [

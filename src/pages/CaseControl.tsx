@@ -5,7 +5,8 @@ import {
   DocumentChartBarIcon,
   EyeIcon,
   AdjustmentsHorizontalIcon,
-  MagnifyingGlassIcon
+  MagnifyingGlassIcon,
+  UserIcon
 } from '@heroicons/react/24/outline';
 import { Button } from '@/components/Button';
 import { Select } from '@/components/Select';
@@ -315,6 +316,11 @@ const CaseControlPage: React.FC = () => {
                     <div className="flex items-center">
                       <ClockIcon className="h-4 w-4 mr-1" />
                       <span>Total: {formatTime(control.totalTimeMinutes)}</span>
+                    </div>
+                    
+                    <div className="flex items-center">
+                      <UserIcon className="h-4 w-4 mr-1" />
+                      <span>Asignado a: {control.user?.fullName || 'Usuario desconocido'}</span>
                     </div>
                     
                     <div>

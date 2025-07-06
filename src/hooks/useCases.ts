@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { Case, CaseFormData } from '@/types';
 import { calcularPuntuacion, clasificarCaso } from '@/utils/caseUtils';
+import { usePermissions } from '@/hooks/useUserProfile';
 
 // Función para mapear datos de DB a formato frontend
 const mapCaseFromDB = (dbCase: any): Case => {
@@ -27,16 +28,17 @@ const mapCaseFromDB = (dbCase: any): Case => {
   };
 };
 
-// Hook para obtener todos los casos (RLS automáticamente filtra por usuario)
+// Hook para obtener todos los casos (filtrado según permisos del usuario)
 export const useCases = () => {
+  const { canViewAllCases, userProfile } = usePermissions();
+  
   return useQuery({
     queryKey: ['cases'],
     queryFn: async () => {
       console.log('🔍 Fetching cases...');
       
       try {
-        // Try with the joins again now that we've fixed the user profile issue
-        const { data, error } = await supabase
+        let query = supabase
           .from('cases')
           .select(`
             *,
@@ -44,6 +46,16 @@ export const useCases = () => {
             aplicacion:aplicaciones(*)
           `)
           .order('created_at', { ascending: false });
+
+        // Si el usuario NO puede ver todos los casos, filtrar solo los suyos
+        if (!canViewAllCases() && userProfile?.id) {
+          console.log('🔒 Filtering cases for user:', userProfile.email);
+          query = query.eq('user_id', userProfile.id);
+        } else {
+          console.log('🌐 User can view all cases');
+        }
+        
+        const { data, error } = await query;
         
         if (error) {
           console.error('❌ Error fetching cases:', error);
@@ -65,6 +77,7 @@ export const useCases = () => {
         throw error;
       }
     },
+    enabled: !!userProfile, // Solo ejecutar cuando tengamos el perfil del usuario
   });
 };
 

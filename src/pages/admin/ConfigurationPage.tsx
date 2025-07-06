@@ -410,7 +410,7 @@ const CaseStatusModal: React.FC<CaseStatusModalProps> = ({ isOpen, onClose, case
 };
 
 export const ConfigurationPage: React.FC = () => {
-  const { canManageOrigenes, canManageAplicaciones } = usePermissions();
+  const { canManageOrigenes, canManageAplicaciones, canViewOrigenes, canViewAplicaciones } = usePermissions();
   
   const { data: origenes } = useOrigenes();
   const { data: aplicaciones } = useAplicaciones();
@@ -435,10 +435,14 @@ export const ConfigurationPage: React.FC = () => {
   // Verificar permisos - agregar verificación para control de casos
   const canManageCaseStatuses = () => {
     // Por ahora usamos el mismo permiso que aplicaciones, pero se puede cambiar
-    return canManageAplicaciones();
+    return canManageAplicaciones() || canViewAplicaciones();
   };
 
-  if (!canManageOrigenes() && !canManageAplicaciones() && !canManageCaseStatuses()) {
+  const canViewCaseStatuses = () => {
+    return canViewAplicaciones() || canManageAplicaciones();
+  };
+
+  if (!canViewOrigenes() && !canManageOrigenes() && !canViewAplicaciones() && !canManageAplicaciones() && !canManageCaseStatuses()) {
     return (
       <div className="text-center py-12">
         <CogIcon className="mx-auto h-12 w-12 text-gray-400" />
@@ -446,7 +450,7 @@ export const ConfigurationPage: React.FC = () => {
           Acceso denegado
         </h3>
         <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-          No tienes permisos para gestionar la configuración.
+          No tienes permisos para ver la configuración.
         </p>
       </div>
     );
@@ -557,9 +561,9 @@ export const ConfigurationPage: React.FC = () => {
 
   const canAccessCurrentTab = () => {
     switch (activeTab) {
-      case 'origenes': return canManageOrigenes();
-      case 'aplicaciones': return canManageAplicaciones();
-      case 'case-statuses': return canManageCaseStatuses();
+      case 'origenes': return canViewOrigenes() || canManageOrigenes();
+      case 'aplicaciones': return canViewAplicaciones() || canManageAplicaciones();
+      case 'case-statuses': return canViewCaseStatuses() || canManageCaseStatuses();
       default: return false;
     }
   };
@@ -579,7 +583,7 @@ export const ConfigurationPage: React.FC = () => {
       {/* Tabs */}
       <div className="border-b border-gray-200 dark:border-gray-700">
         <nav className="-mb-px flex space-x-8">
-          {canManageOrigenes() && (
+          {(canViewOrigenes() || canManageOrigenes()) && (
             <button
               onClick={() => setActiveTab('origenes')}
               className={`py-2 px-1 border-b-2 font-medium text-sm ${
@@ -591,7 +595,7 @@ export const ConfigurationPage: React.FC = () => {
               Orígenes
             </button>
           )}
-          {canManageAplicaciones() && (
+          {(canViewAplicaciones() || canManageAplicaciones()) && (
             <button
               onClick={() => setActiveTab('aplicaciones')}
               className={`py-2 px-1 border-b-2 font-medium text-sm ${
@@ -603,7 +607,7 @@ export const ConfigurationPage: React.FC = () => {
               Aplicaciones
             </button>
           )}
-          {canManageCaseStatuses() && (
+          {(canViewCaseStatuses() || canManageCaseStatuses()) && (
             <button
               onClick={() => setActiveTab('case-statuses')}
               className={`py-2 px-1 border-b-2 font-medium text-sm ${
@@ -644,7 +648,7 @@ export const ConfigurationPage: React.FC = () => {
       </div>
 
       {/* Content - Orígenes */}
-      {activeTab === 'origenes' && canManageOrigenes() && (
+      {activeTab === 'origenes' && (canViewOrigenes() || canManageOrigenes()) && (
         <div className="table-card">
           <div className="table-overflow-container">
             <table className="full-width-table">
@@ -726,7 +730,7 @@ export const ConfigurationPage: React.FC = () => {
       )}
 
       {/* Content - Aplicaciones */}
-      {activeTab === 'aplicaciones' && canManageAplicaciones() && (
+      {activeTab === 'aplicaciones' && (canViewAplicaciones() || canManageAplicaciones()) && (
         <div className="table-card">
           <div className="table-overflow-container">
             <table className="full-width-table">
@@ -808,7 +812,7 @@ export const ConfigurationPage: React.FC = () => {
       )}
 
       {/* Content - Estados de Control */}
-      {activeTab === 'case-statuses' && canManageCaseStatuses() && (
+      {activeTab === 'case-statuses' && (canViewCaseStatuses() || canManageCaseStatuses()) && (
         <div className="table-card">
           <div className="table-overflow-container">
             <table className="full-width-table">

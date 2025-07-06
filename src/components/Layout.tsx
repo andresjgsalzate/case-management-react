@@ -25,6 +25,7 @@ import { usePermissions } from '@/hooks/useUserProfile';
 import { useCaseControlPermissions } from '@/hooks/useCaseControlPermissions';
 import { RLSError } from './RLSError';
 import { useThemeStore } from '@/stores/themeStore';
+import { mapRoleToDisplayName } from '@/utils/roleUtils';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -33,7 +34,7 @@ interface LayoutProps {
 export const Layout: React.FC<LayoutProps> = ({ children }) => {
   const location = useLocation();
   const { user, signOut } = useAuth();
-  const { userProfile, canAccessAdmin, canManageUsers, canManageRoles, canManagePermissions, canManageOrigenes, canManageAplicaciones, hasRLSError } = usePermissions();
+  const { userProfile, canManageUsers, canManageRoles, canManagePermissions, canManageOrigenes, canManageAplicaciones, canViewUsers, canViewRoles, canViewPermissions, canViewOrigenes, canViewAplicaciones, hasRLSError, isAdmin } = usePermissions();
   const { canAccessModule: canAccessCaseControl } = useCaseControlPermissions();
   const { isDarkMode, toggleTheme } = useThemeStore();
   const [showUserMenu, setShowUserMenu] = useState(false);
@@ -66,9 +67,9 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
 
     // Sección: Gestión de Usuarios
     const userManagement = [];
-    if (canManageUsers()) userManagement.push({ name: 'Usuarios', href: '/admin/users', icon: UsersIcon });
-    if (canManageRoles()) userManagement.push({ name: 'Roles', href: '/admin/roles', icon: ShieldCheckIcon });
-    if (canManagePermissions()) userManagement.push({ name: 'Permisos', href: '/admin/permissions', icon: KeyIcon });
+    if (canViewUsers() || canManageUsers()) userManagement.push({ name: 'Usuarios', href: '/admin/users', icon: UsersIcon });
+    if (canViewRoles() || canManageRoles()) userManagement.push({ name: 'Roles', href: '/admin/roles', icon: ShieldCheckIcon });
+    if (canViewPermissions() || canManagePermissions()) userManagement.push({ name: 'Permisos', href: '/admin/permissions', icon: KeyIcon });
     
     if (userManagement.length > 0) {
       sections.push({
@@ -81,7 +82,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
 
     // Sección: Configuración del Sistema
     const systemConfig = [];
-    if (canManageOrigenes() || canManageAplicaciones()) {
+    if (canViewOrigenes() || canManageOrigenes() || canViewAplicaciones() || canManageAplicaciones()) {
       systemConfig.push({ name: 'Orígenes y Aplicaciones', href: '/admin/config', icon: CogIcon });
     }
 
@@ -95,11 +96,11 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
     }
 
     return sections;
-  }, [userProfile, canManageUsers, canManageRoles, canManagePermissions, canManageOrigenes, canManageAplicaciones]);
+  }, [userProfile, canViewUsers, canManageUsers, canViewRoles, canManageRoles, canViewPermissions, canManagePermissions, canViewOrigenes, canManageOrigenes, canViewAplicaciones, canManageAplicaciones]);
 
-  // Navegación de desarrollo/test agrupada
+  // Navegación de desarrollo/test agrupada - SOLO PARA ADMINS
   const devSection = React.useMemo(() => {
-    if (!userProfile || !canAccessAdmin()) return null;
+    if (!userProfile || !isAdmin()) return null;
     
     return {
       id: 'development',
@@ -111,7 +112,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
         { name: 'Debug', href: '/debug', icon: CogIcon },
       ]
     };
-  }, [userProfile, canAccessAdmin]);
+  }, [userProfile, isAdmin]);
 
   const isActive = React.useCallback((path: string) => {
     if (path === '/' && location.pathname === '/') return true;
@@ -342,7 +343,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
                     {userProfile?.fullName || user?.user_metadata?.name || 'Usuario'}
                   </div>
                   <div className="text-xs text-gray-500 dark:text-gray-400">
-                    {userProfile?.role?.name === 'admin' ? 'Administrador' : 'Usuario'}
+                    {mapRoleToDisplayName(userProfile?.role?.name)}
                   </div>
                 </div>
               </div>

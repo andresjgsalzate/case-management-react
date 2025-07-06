@@ -183,7 +183,7 @@ const PermissionModal: React.FC<PermissionModalProps> = ({ isOpen, onClose, perm
 };
 
 export const PermissionsPage: React.FC = () => {
-  const { canManagePermissions } = usePermissions();
+  const { canManagePermissions, canViewPermissions } = usePermissions();
   const { data: permissions, isLoading, error } = usePermissionsData();
   const deletePermission = useDeletePermission();
 
@@ -194,7 +194,7 @@ export const PermissionsPage: React.FC = () => {
   const [isEdit, setIsEdit] = useState(false);
 
   // Verificar permisos
-  if (!canManagePermissions()) {
+  if (!canViewPermissions() && !canManagePermissions()) {
     return (
       <div className="text-center py-12">
         <KeyIcon className="mx-auto h-12 w-12 text-gray-400" />
@@ -202,7 +202,7 @@ export const PermissionsPage: React.FC = () => {
           Acceso denegado
         </h3>
         <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-          No tienes permisos para gestionar permisos.
+          No tienes permisos para ver permisos.
         </p>
       </div>
     );

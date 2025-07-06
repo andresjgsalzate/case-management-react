@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
+import { usePermissions } from '@/hooks/useUserProfile';
 import { 
   CaseControl, 
   CaseStatusControl, 
@@ -59,7 +60,7 @@ const adaptDetailedToCaseControl = (detailed: CaseControlDetailed): CaseControl 
     
     user: (detailed.assigned_user_name || detailed.user_id) ? {
       id: detailed.user_id,
-      full_name: detailed.assigned_user_name || 'Usuario desconocido',
+      fullName: detailed.assigned_user_name || 'Usuario desconocido',
       email: detailed.assigned_user_email || '',
       created_at: '',
       updated_at: ''
@@ -83,21 +84,39 @@ const adaptDetailedToCaseControl = (detailed: CaseControlDetailed): CaseControl 
 // ==========================================
 
 export const useCaseControls = () => {
+  const { canViewAllCases, userProfile } = usePermissions();
+  
   return useQuery({
-    queryKey: ['caseControls'],
+    queryKey: ['caseControls', userProfile?.id],
     queryFn: async (): Promise<CaseControl[]> => {
       // Usar la vista que creamos en la migración 013
-      const { data, error } = await supabase
+      let query = supabase
         .from('case_control_detailed')
-        .select('*')
-        .order('created_at', { ascending: false });
+        .select('*');
+
+      // Si el usuario NO puede ver todos los casos, filtrar solo los suyos
+      if (!canViewAllCases() && userProfile?.id) {
+        console.log('🔒 Filtering case controls for user:', userProfile.email);
+        query = query.eq('user_id', userProfile.id);
+      } else {
+        console.log('🌐 User can view all case controls');
+      }
+
+      const { data, error } = await query.order('created_at', { ascending: false });
 
       if (error) {
         console.error('❌ Error con vista detallada, usando fallback:', error);
         // Fallback a consulta manual si la vista falla
-        const { data: fallbackData, error: fallbackError } = await supabase
+        let fallbackQuery = supabase
           .from('case_control')
-          .select('*')
+          .select('*');
+
+        // Aplicar el mismo filtrado al fallback
+        if (!canViewAllCases() && userProfile?.id) {
+          fallbackQuery = fallbackQuery.eq('user_id', userProfile.id);
+        }
+
+        const { data: fallbackData, error: fallbackError } = await fallbackQuery
           .order('created_at', { ascending: false });
 
         if (fallbackError) {
@@ -110,6 +129,7 @@ export const useCaseControls = () => {
       // Convertir datos de la vista al formato esperado
       return (data || []).map(adaptDetailedToCaseControl);
     },
+    enabled: !!userProfile, // Solo ejecutar cuando tengamos el perfil del usuario
   });
 };
 

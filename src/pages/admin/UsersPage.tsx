@@ -9,6 +9,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { useUsers, useUpdateUser, useDeleteUser } from '@/hooks/useUsers';
 import { useRoles } from '@/hooks/useRoles';
+import { mapRoleToDisplayName } from '@/utils/roleUtils';
 import { usePermissions } from '@/hooks/useUserProfile';
 import { UserProfile, UserFormData } from '@/types';
 import { Modal } from '@/components/Modal';
@@ -137,7 +138,7 @@ const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose, user }) => {
 };
 
 export const UsersPage: React.FC = () => {
-  const { canManageUsers } = usePermissions();
+  const { canManageUsers, canViewUsers } = usePermissions();
   const { data: users, isLoading, error } = useUsers();
   const { data: roles } = useRoles();
   const deleteUser = useDeleteUser();
@@ -173,7 +174,7 @@ export const UsersPage: React.FC = () => {
   };
 
   // Verificar permisos
-  if (!canManageUsers()) {
+  if (!canViewUsers() && !canManageUsers()) {
     return (
       <div className="text-center py-12">
         <UserIcon className="mx-auto h-12 w-12 text-gray-400" />
@@ -181,7 +182,7 @@ export const UsersPage: React.FC = () => {
           Acceso denegado
         </h3>
         <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-          No tienes permisos para gestionar usuarios.
+          No tienes permisos para ver usuarios.
         </p>
       </div>
     );
@@ -316,7 +317,7 @@ export const UsersPage: React.FC = () => {
                         ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
                         : 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200'
                     }`}>
-                      {user.role?.name === 'user' ? 'Pendiente' : user.role?.name || 'Sin rol'}
+                      {user.role?.name === 'user' ? 'Pendiente' : mapRoleToDisplayName(user.role?.name) || 'Sin rol'}
                     </span>
                   </div>
                 </td>
@@ -361,18 +362,25 @@ export const UsersPage: React.FC = () => {
                 </td>
                 <td className="px-4 lg:px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                   <div className="flex justify-end space-x-2">
-                    <button
-                      onClick={() => handleEdit(user)}
-                      className="text-primary-600 hover:text-primary-900 dark:text-primary-400 dark:hover:text-primary-300"
-                    >
-                      <PencilIcon className="h-5 w-5" />
-                    </button>
-                    <button
-                      onClick={() => handleDelete(user)}
-                      className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
-                    >
-                      <TrashIcon className="h-5 w-5" />
-                    </button>
+                    {canManageUsers() && (
+                      <>
+                        <button
+                          onClick={() => handleEdit(user)}
+                          className="text-primary-600 hover:text-primary-900 dark:text-primary-400 dark:hover:text-primary-300"
+                        >
+                          <PencilIcon className="h-5 w-5" />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(user)}
+                          className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
+                        >
+                          <TrashIcon className="h-5 w-5" />
+                        </button>
+                      </>
+                    )}
+                    {!canManageUsers() && canViewUsers() && (
+                      <span className="text-gray-400 text-sm">Solo lectura</span>
+                    )}
                   </div>
                 </td>
               </tr>

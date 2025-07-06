@@ -159,10 +159,37 @@ export const usePermissions = () => {
     return userProfile?.role?.name === 'admin' || false;
   };
 
-  const canAccessAdmin = (): boolean => {
-    return hasPermission('admin', 'access') || isAdmin();
+  const isSupervisor = (): boolean => {
+    if (hasRLSError) return false;
+    return userProfile?.role?.name === 'supervisor' || false;
   };
 
+  const canAccessAdmin = (): boolean => {
+    return hasPermission('admin', 'access') || isAdmin() || isSupervisor();
+  };
+
+  // Funciones para "ver" secciones (solo lectura)
+  const canViewUsers = (): boolean => {
+    return hasPermission('users', 'read') || hasPermission('users', 'manage') || isAdmin();
+  };
+
+  const canViewRoles = (): boolean => {
+    return hasPermission('roles', 'read') || hasPermission('roles', 'manage') || isAdmin();
+  };
+
+  const canViewPermissions = (): boolean => {
+    return hasPermission('permissions', 'read') || hasPermission('permissions', 'manage') || isAdmin();
+  };
+
+  const canViewOrigenes = (): boolean => {
+    return hasPermission('origenes', 'read') || hasPermission('origenes', 'manage') || isAdmin();
+  };
+
+  const canViewAplicaciones = (): boolean => {
+    return hasPermission('aplicaciones', 'read') || hasPermission('aplicaciones', 'manage') || isAdmin();
+  };
+
+  // Funciones para "administrar" (crear/editar/eliminar)
   const canManageUsers = (): boolean => {
     return hasPermission('users', 'manage') || isAdmin();
   };
@@ -184,14 +211,28 @@ export const usePermissions = () => {
   };
 
   const canViewAllCases = (): boolean => {
-    return hasPermission('cases', 'view_all') || isAdmin();
+    // Verificar directamente por el nombre del permiso completo
+    if (hasRLSError || !userProfile?.role?.permissions) return false;
+    
+    return userProfile.role.permissions.some(
+      permission => 
+        permission.name === 'cases.read.all' && permission.isActive
+    ) || isAdmin();
   };
 
   return {
     userProfile,
     hasPermission,
     isAdmin,
+    isSupervisor,
     canAccessAdmin,
+    // Funciones de visualización
+    canViewUsers,
+    canViewRoles,
+    canViewPermissions,
+    canViewOrigenes,
+    canViewAplicaciones,
+    // Funciones de administración
     canManageUsers,
     canManageRoles,
     canManagePermissions,

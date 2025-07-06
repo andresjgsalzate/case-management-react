@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
+import { usePermissions } from '@/hooks/useUserProfile';
 
 // Interfaces para las métricas
 export interface TimeMetrics {
@@ -42,13 +43,22 @@ export interface ApplicationTimeMetrics {
 
 // Hook para métricas generales de tiempo
 export const useTimeMetrics = () => {
+  const { canViewAllCases, userProfile } = usePermissions();
+  
   return useQuery({
-    queryKey: ['timeMetrics'],
+    queryKey: ['timeMetrics', userProfile?.id],
     queryFn: async (): Promise<TimeMetrics> => {
       // Usar la vista case_control_detailed como fuente única de datos
-      const { data: caseData, error } = await supabase
+      let query = supabase
         .from('case_control_detailed')
         .select('total_time_minutes, is_timer_active, case_id');
+
+      // Si el usuario NO puede ver todos los casos, filtrar solo los suyos
+      if (!canViewAllCases() && userProfile?.id) {
+        query = query.eq('user_id', userProfile.id);
+      }
+
+      const { data: caseData, error } = await query;
 
       if (error) {
         console.error('Error fetching case control data:', error);
@@ -72,20 +82,30 @@ export const useTimeMetrics = () => {
         activeTimers,
       };
     },
+    enabled: !!userProfile, // Solo ejecutar cuando tengamos el perfil del usuario
     staleTime: 1000 * 60 * 5, // 5 minutos
   });
 };
 
 // Hook para tiempo por usuario
 export const useUserTimeMetrics = () => {
+  const { canViewAllCases, userProfile } = usePermissions();
+  
   return useQuery({
-    queryKey: ['userTimeMetrics'],
+    queryKey: ['userTimeMetrics', userProfile?.id],
     queryFn: async (): Promise<UserTimeMetrics[]> => {
       // Usar la vista case_control_detailed para obtener datos de usuarios
-      const { data: caseData, error } = await supabase
+      let query = supabase
         .from('case_control_detailed')
         .select('user_id, assigned_user_name, total_time_minutes, case_id')
         .not('user_id', 'is', null);
+
+      // Si el usuario NO puede ver todos los casos, filtrar solo los suyos
+      if (!canViewAllCases() && userProfile?.id) {
+        query = query.eq('user_id', userProfile.id);
+      }
+
+      const { data: caseData, error } = await query;
 
       if (error) {
         console.error('Error fetching user time metrics:', error);
@@ -129,19 +149,29 @@ export const useUserTimeMetrics = () => {
         casesWorked: metric.casesWorked.size,
       })).sort((a, b) => b.totalTimeMinutes - a.totalTimeMinutes);
     },
+    enabled: !!userProfile, // Solo ejecutar cuando tengamos el perfil del usuario
     staleTime: 1000 * 60 * 5,
   });
 };
 
 // Hook para tiempo por caso
 export const useCaseTimeMetrics = () => {
+  const { canViewAllCases, userProfile } = usePermissions();
+  
   return useQuery({
-    queryKey: ['caseTimeMetrics'],
+    queryKey: ['caseTimeMetrics', userProfile?.id],
     queryFn: async (): Promise<CaseTimeMetrics[]> => {
       // Usar la vista case_control_detailed para obtener datos de casos
-      const { data: caseData, error } = await supabase
+      let query = supabase
         .from('case_control_detailed')
         .select('case_id, case_number, case_description, total_time_minutes, status_name, status_color');
+
+      // Si el usuario NO puede ver todos los casos, filtrar solo los suyos
+      if (!canViewAllCases() && userProfile?.id) {
+        query = query.eq('user_id', userProfile.id);
+      }
+
+      const { data: caseData, error } = await query;
 
       if (error) {
         console.error('Error fetching case time metrics:', error);
@@ -181,19 +211,29 @@ export const useCaseTimeMetrics = () => {
       return Array.from(caseMetrics.values())
         .sort((a, b) => b.totalTimeMinutes - a.totalTimeMinutes);
     },
+    enabled: !!userProfile, // Solo ejecutar cuando tengamos el perfil del usuario
     staleTime: 1000 * 60 * 5,
   });
 };
 
 // Hook para métricas por estado
 export const useStatusMetrics = () => {
+  const { canViewAllCases, userProfile } = usePermissions();
+  
   return useQuery({
-    queryKey: ['statusMetrics'],
+    queryKey: ['statusMetrics', userProfile?.id],
     queryFn: async (): Promise<StatusMetrics[]> => {
       // Usar la vista case_control_detailed para obtener datos de estados
-      const { data: caseData, error } = await supabase
+      let query = supabase
         .from('case_control_detailed')
         .select('status_id, status_name, status_color, total_time_minutes, case_id');
+
+      // Si el usuario NO puede ver todos los casos, filtrar solo los suyos
+      if (!canViewAllCases() && userProfile?.id) {
+        query = query.eq('user_id', userProfile.id);
+      }
+
+      const { data: caseData, error } = await query;
 
       if (error) {
         console.error('Error fetching status metrics:', error);
@@ -243,20 +283,30 @@ export const useStatusMetrics = () => {
         totalTimeMinutes: metric.totalTimeMinutes,
       }));
     },
+    enabled: !!userProfile, // Solo ejecutar cuando tengamos el perfil del usuario
     staleTime: 1000 * 60 * 5,
   });
 };
 
 // Hook para tiempo por aplicación
 export const useApplicationTimeMetrics = () => {
+  const { canViewAllCases, userProfile } = usePermissions();
+  
   return useQuery({
-    queryKey: ['applicationTimeMetrics'],
+    queryKey: ['applicationTimeMetrics', userProfile?.id],
     queryFn: async (): Promise<ApplicationTimeMetrics[]> => {
       // Usar la vista case_control_detailed para obtener datos de aplicaciones
-      const { data: caseData, error } = await supabase
+      let query = supabase
         .from('case_control_detailed')
         .select('application_name, total_time_minutes, case_id')
         .not('application_name', 'is', null);
+
+      // Si el usuario NO puede ver todos los casos, filtrar solo los suyos
+      if (!canViewAllCases() && userProfile?.id) {
+        query = query.eq('user_id', userProfile.id);
+      }
+
+      const { data: caseData, error } = await query;
 
       if (error) {
         console.error('Error fetching application time metrics:', error);
@@ -303,6 +353,7 @@ export const useApplicationTimeMetrics = () => {
         casesCount: metric.casesSet.size,
       })).sort((a, b) => b.totalTimeMinutes - a.totalTimeMinutes);
     },
+    enabled: !!userProfile, // Solo ejecutar cuando tengamos el perfil del usuario
     staleTime: 1000 * 60 * 5,
   });
 };
