@@ -15,14 +15,15 @@ import {
   ChevronDownIcon,
   SunIcon,
   MoonIcon,
-  ClockIcon
+  ClockIcon,
+  ListBulletIcon
 } from '@heroicons/react/24/outline';
-import { FloatingActionButton } from './FloatingActionButton';
 import { VersionDisplay } from './VersionDisplay';
 import { VersionModal } from './VersionModal';
 import { useAuth } from '@/hooks/useAuth';
 import { usePermissions } from '@/hooks/useUserProfile';
 import { useCaseControlPermissions } from '@/hooks/useCaseControlPermissions';
+import { useTodoPermissions } from '@/hooks/useTodoPermissions';
 import { RLSError } from './RLSError';
 import { useThemeStore } from '@/stores/themeStore';
 import { mapRoleToDisplayName } from '@/utils/roleUtils';
@@ -36,6 +37,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
   const { user, signOut } = useAuth();
   const { userProfile, canManageUsers, canManageRoles, canManagePermissions, canManageOrigenes, canManageAplicaciones, canViewUsers, canViewRoles, canViewPermissions, canViewOrigenes, canViewAplicaciones, hasRLSError, isAdmin } = usePermissions();
   const { canAccessModule: canAccessCaseControl } = useCaseControlPermissions();
+  const { canAccessTodoModule } = useTodoPermissions();
   const { isDarkMode, toggleTheme } = useThemeStore();
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showVersionModal, setShowVersionModal] = useState(false);
@@ -56,8 +58,13 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
       baseNavigation.push({ name: 'Control de Casos', href: '/case-control', icon: ClockIcon });
     }
 
+    // Agregar TODOs si tiene permisos (DESPUÉS de Control de Casos)
+    if (canAccessTodoModule) {
+      baseNavigation.push({ name: 'TODOs', href: '/todos', icon: ListBulletIcon });
+    }
+
     return baseNavigation;
-  }, [canAccessCaseControl]);
+  }, [canAccessCaseControl, canAccessTodoModule]);
 
   // Navegación de administración agrupada por secciones
   const adminSections = React.useMemo(() => {
@@ -391,9 +398,6 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
           </div>
         </main>
       </div>
-
-      {/* Floating Action Button */}
-      <FloatingActionButton />
 
       {/* Version Modal */}
       <VersionModal 

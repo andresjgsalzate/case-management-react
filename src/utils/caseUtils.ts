@@ -61,9 +61,15 @@ export function formatDate(date: string | Date | null | undefined): string {
 /**
  * Formatea minutos en formato de tiempo HH:mm
  */
-export function formatTime(minutes: number): string {
-  const hours = Math.floor(minutes / 60);
-  const mins = minutes % 60;
+export function formatTime(minutes: number | undefined | null): string {
+  // Manejar casos de valores inválidos
+  if (minutes === null || minutes === undefined || isNaN(minutes)) {
+    return '00:00';
+  }
+  
+  const totalMinutes = Math.max(0, Math.floor(minutes));
+  const hours = Math.floor(totalMinutes / 60);
+  const mins = totalMinutes % 60;
   return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
 }
 

@@ -11,6 +11,68 @@ export interface VersionInfo {
 
 export const changelog: VersionInfo[] = [
   {
+    version: "2.2.0",
+    date: "2025-07-05",
+    changes: [
+      {
+        type: "feature",
+        description: "📝 Módulo TODO Completamente Implementado: Gestión completa de tareas con prioridades y asignación"
+      },
+      {
+        type: "feature",
+        description: "⏱️ Control de Tiempo en TODOs: Timer automático, tiempo manual y historial detallado"
+      },
+      {
+        type: "feature",
+        description: "🔄 Contador en Tiempo Real: Visualización en vivo del tiempo transcurrido en tareas activas"
+      },
+      {
+        type: "feature",
+        description: "📊 Historial de Tiempo Detallado: Modal con entradas automáticas y manuales por TODO"
+      },
+      {
+        type: "feature",
+        description: "🗑️ Modal de Confirmación Personalizado: Reemplazo de alerts nativos con diseño moderno"
+      },
+      {
+        type: "feature",
+        description: "🛡️ Sistema de Permisos TODO: Control granular por roles (admin, supervisor, analista, user)"
+      },
+      {
+        type: "improvement",
+        description: "🎨 Interfaz TODO Moderna: Tarjetas con estados visuales, prioridades y tiempo estimado"
+      },
+      {
+        type: "improvement",
+        description: "⚡ Filtros Avanzados TODO: Por estado, prioridad, usuario asignado y fechas límite"
+      },
+      {
+        type: "improvement",
+        description: "🚫 Eliminación Botón Flotante: Interfaz más limpia sin botón '+' en esquina inferior"
+      },
+      {
+        type: "improvement",
+        description: "🔧 Funciones Utilitarias Mejoradas: formatTime robusto con manejo de valores nulos"
+      },
+      {
+        type: "bugfix",
+        description: "🐛 Corrección Estados Mayúsculas: Compatibilidad con estados en formato MAYÚSCULAS de la BD"
+      },
+      {
+        type: "bugfix",
+        description: "🔒 Políticas RLS DELETE: Agregadas políticas faltantes para eliminar entradas de tiempo"
+      },
+      {
+        type: "bugfix",
+        description: "📋 Campos Snake_Case: Corrección de nombres de campos duration_minutes, start_time, end_time"
+      },
+      {
+        type: "bugfix",
+        description: "⚠️ Modal Confirmación Funcional: Eliminación exitosa de entradas con feedback visual"
+      }
+    ]
+  },
+  {
     version: "2.1.0",
     date: "2025-07-05",
     changes: [

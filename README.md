@@ -1,4 +1,4 @@
-# 🚀 Sistema de Gestión de Casos - React v2.1.0
+# 🚀 Sistema de Gestión de Casos - React v2.2.0
 
 Una aplicación moderna para la gestión integral de casos con control de tiempo, basada en React, TypeScript y Supabase.
 

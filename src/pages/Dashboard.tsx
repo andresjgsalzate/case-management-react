@@ -8,7 +8,8 @@ import {
   CheckCircleIcon,
   UserIcon,
   ChartBarIcon,
-  ComputerDesktopIcon
+  ComputerDesktopIcon,
+  ListBulletIcon
 } from '@heroicons/react/24/outline';
 import { useCases } from '@/hooks/useCases';
 import { 
@@ -18,6 +19,7 @@ import {
   useStatusMetrics,
   useApplicationTimeMetrics
 } from '@/hooks/useDashboardMetrics';
+import { useTodoMetrics } from '@/hooks/useTodoMetrics';
 import { LoadingSpinner, ErrorMessage } from '@/components/LoadingSpinner';
 import { PageWrapper } from '@/components/PageWrapper';
 
@@ -30,6 +32,9 @@ export const Dashboard: React.FC = () => {
   const { data: caseTimeMetrics, isLoading: caseTimeLoading } = useCaseTimeMetrics();
   const { data: statusMetrics, isLoading: statusLoading } = useStatusMetrics();
   const { data: appTimeMetrics, isLoading: appTimeLoading } = useApplicationTimeMetrics();
+  
+  // Métricas de TODOs
+  const { metrics: todoMetrics, loading: todoLoading } = useTodoMetrics();
 
   // Calcular estadísticas desde los casos reales - usar useMemo para estabilizar
   const stats = React.useMemo(() => {
@@ -87,6 +92,13 @@ export const Dashboard: React.FC = () => {
       href: '/cases',
       icon: DocumentTextIcon,
       color: 'bg-green-500 hover:bg-green-600',
+    },
+    {
+      name: 'TODOs',
+      description: 'Gestionar tareas pendientes',
+      href: '/todos',
+      icon: ListBulletIcon,
+      color: 'bg-purple-500 hover:bg-purple-600',
     },
   ], []);
 
@@ -254,6 +266,78 @@ export const Dashboard: React.FC = () => {
                 </p>
                 <p className="text-2xl font-bold text-gray-900 dark:text-white">
                   {appTimeLoading ? '...' : appTimeMetrics ? appTimeMetrics.length : '0'}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* TODO Metrics */}
+      <div>
+        <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+          Métricas de TODOs
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 2xl:grid-cols-4 gap-6">
+          <div className="card p-6">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <ListBulletIcon className="h-8 w-8 text-blue-600" />
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                  Total TODOs
+                </p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                  {todoLoading ? '...' : todoMetrics.totalTodos}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="card p-6">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <ClockIcon className="h-8 w-8 text-yellow-600" />
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                  En Progreso
+                </p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                  {todoLoading ? '...' : todoMetrics.inProgressTodos}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="card p-6">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <CheckCircleIcon className="h-8 w-8 text-green-600" />
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                  Completados
+                </p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                  {todoLoading ? '...' : todoMetrics.completedTodos}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="card p-6">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <ExclamationTriangleIcon className="h-8 w-8 text-red-600" />
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                  Vencidos
+                </p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                  {todoLoading ? '...' : todoMetrics.overdueTodos}
                 </p>
               </div>
             </div>

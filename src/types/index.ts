@@ -411,3 +411,175 @@ export const TIME_ENTRY_TYPE = {
 } as const;
 
 export type TimeEntryType = typeof TIME_ENTRY_TYPE[keyof typeof TIME_ENTRY_TYPE];
+
+// =============================================
+// TIPOS PARA MÓDULO TODO
+// =============================================
+
+export interface TodoPriority {
+  id: string;
+  name: string;
+  description?: string;
+  color: string;
+  level: number;
+  isActive: boolean;
+  displayOrder: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface TodoItem {
+  id: string;
+  title: string;
+  description?: string;
+  priorityId: string;
+  assignedUserId?: string;
+  estimatedMinutes?: number;
+  dueDate?: string;
+  createdBy: string;
+  createdAt: string;
+  updatedAt: string;
+  // Relaciones pobladas
+  priority?: TodoPriority;
+  assignedUser?: UserProfile;
+  createdByUser?: UserProfile;
+  control?: TodoControl;
+}
+
+export interface TodoControl {
+  id: string;
+  todoId: string;
+  userId: string;
+  statusId: string;
+  totalTimeMinutes: number;
+  timerStartAt?: string;
+  isTimerActive: boolean;
+  assignedAt: string;
+  startedAt?: string;
+  completedAt?: string;
+  createdAt: string;
+  updatedAt: string;
+  // Relaciones pobladas
+  user?: UserProfile;
+  status?: CaseStatusControl;
+  todo?: TodoItem;
+  timeEntries?: TodoTimeEntry[];
+  manualTimeEntries?: TodoManualTimeEntry[];
+}
+
+export interface TodoTimeEntry {
+  id: string;
+  todoControlId: string;
+  userId: string;
+  startTime: string;
+  endTime?: string;
+  durationMinutes?: number;
+  entryType: 'automatic' | 'manual';
+  description?: string;
+  createdAt: string;
+  updatedAt: string;
+  // Relaciones pobladas
+  user?: UserProfile;
+  todoControl?: TodoControl;
+}
+
+export interface TodoManualTimeEntry {
+  id: string;
+  todoControlId: string;
+  userId: string;
+  date: string;
+  durationMinutes: number;
+  description: string;
+  createdAt: string;
+  createdBy: string;
+  // Relaciones pobladas
+  user?: UserProfile;
+  createdByUser?: UserProfile;
+  todoControl?: TodoControl;
+}
+
+// Tipos para formularios TODO
+export interface CreateTodoData {
+  title: string;
+  description?: string;
+  priorityId: string;
+  assignedUserId: string;
+  estimatedMinutes?: number;
+  dueDate?: string;
+}
+
+export interface UpdateTodoData extends Partial<CreateTodoData> {
+  id: string;
+}
+
+export interface TodoControlUpdate {
+  statusId?: string;
+  totalTimeMinutes?: number;
+  isTimerActive?: boolean;
+  timerStartAt?: string;
+  startedAt?: string;
+  completedAt?: string;
+}
+
+export interface CreateTodoTimeEntryData {
+  todoControlId: string;
+  startTime: string;
+  endTime?: string;
+  durationMinutes?: number;
+  entryType: 'automatic' | 'manual';
+  description?: string;
+}
+
+export interface CreateTodoManualTimeEntryData {
+  todoControlId: string;
+  userId: string;
+  date: string;
+  durationMinutes: number;
+  description: string;
+}
+
+// Tipos para filtros y búsquedas TODO
+export interface TodoFilters {
+  priorityId?: string;
+  assignedUserId?: string;
+  statusId?: string;
+  createdBy?: string;
+  tags?: string[];
+  dueDateFrom?: string;
+  dueDateTo?: string;
+  search?: string;
+}
+
+// Tipos para métricas del dashboard TODO
+export interface TodoMetrics {
+  totalTodos: number;
+  pendingTodos: number;
+  inProgressTodos: number;
+  completedTodos: number;
+  overdueTodos: number;
+  totalTimeToday: number;
+  totalTimeWeek: number;
+  totalTimeMonth: number;
+  averageCompletionTime: number;
+  productivityScore: number;
+}
+
+// Tipos para reportes TODO
+export interface TodoReport {
+  id: string;
+  title: string;
+  description?: string;
+  priority: TodoPriority;
+  assignedUser?: UserProfile;
+  status: CaseStatusControl;
+  totalTime: number;
+  estimatedTime?: number;
+  completionDate?: string;
+  createdAt: string;
+  tags?: string[];
+  efficiency: number; // Porcentaje de eficiencia (tiempo real vs estimado)
+}
+
+// =============================================
+// FIN TIPOS MÓDULO TODO
+// =============================================
