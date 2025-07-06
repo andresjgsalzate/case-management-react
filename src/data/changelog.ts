@@ -11,6 +11,40 @@ export interface VersionInfo {
 
 export const changelog: VersionInfo[] = [
   {
+    version: "2.2.1",
+    date: "2025-07-05",
+    changes: [
+      {
+        type: "improvement",
+        description: "🎨 Modal de Permisos Mejorado: Interfaz más clara y organizada para asignación de permisos en roles"
+      },
+      {
+        type: "improvement",
+        description: "📏 Modal Expandido: Tamaño aumentado (2xl) para mejor visualización de permisos"
+      },
+      {
+        type: "improvement",
+        description: "📝 Descripciones Claras: Uso de descripciones reales de la BD en lugar de nombres técnicos"
+      },
+      {
+        type: "improvement",
+        description: "🗂️ Organización por Recursos: Agrupación visual por módulos del sistema con iconos distintivos"
+      },
+      {
+        type: "improvement",
+        description: "🏷️ Etiquetas Informativas: Nombres técnicos de permisos visibles para referencia"
+      },
+      {
+        type: "improvement",
+        description: "📋 Layout de Grilla: Distribución en columnas para mejor aprovechamiento del espacio"
+      },
+      {
+        type: "improvement",
+        description: "🎯 Alcance de Permisos: Indicadores visuales para permisos propios vs globales"
+      }
+    ]
+  },
+  {
     version: "2.2.0",
     date: "2025-07-05",
     changes: [

@@ -77,6 +77,53 @@ const RoleModal: React.FC<RoleModalProps> = ({ isOpen, onClose, role, isEdit = f
     }));
   };
 
+  // Mejorar la organización y presentación de permisos
+  const getResourceDisplayName = (resource: string): string => {
+    const resourceNames: Record<string, string> = {
+      'admin': '👑 Panel de Administración',
+      'users': '👥 Gestión de Usuarios',
+      'roles': '🛡️ Gestión de Roles',
+      'permissions': '🔐 Gestión de Permisos',
+      'cases': '📋 Gestión de Casos',
+      'case_control': '⏱️ Control de Tiempo de Casos',
+      'aplicaciones': '📱 Gestión de Aplicaciones',
+      'origenes': '🔗 Gestión de Orígenes',
+      'todos': '✅ Gestión de TODOs',
+      'todo_priorities': '⚡ Prioridades de TODO',
+      'todo_control': '⏰ Control de Tiempo TODO',
+      'system': '🔧 Sistema'
+    };
+    return resourceNames[resource] || `📁 ${resource.charAt(0).toUpperCase() + resource.slice(1)}`;
+  };
+
+  const getActionDisplayName = (action: string): string => {
+    const actionNames: Record<string, string> = {
+      'access': '� Acceso',
+      'read': '👁️ Lectura',
+      'view': '👁️ Visualización',
+      'view_all': '👁️ Ver Todos',
+      'view_own': '👁️ Ver Propios',
+      'create': '➕ Crear',
+      'edit': '✏️ Editar',
+      'update': '✏️ Actualizar',
+      'delete': '🗑️ Eliminar',
+      'manage': '⚙️ Gestionar',
+      'assign': '👤 Asignar',
+      'export': '📤 Exportar',
+      'time_tracking': '⏱️ Control de Tiempo'
+    };
+    return actionNames[action] || `🔧 ${action.charAt(0).toUpperCase() + action.slice(1)}`;
+  };
+
+  // Función para obtener el alcance del permiso (own/all)
+  const getPermissionScope = (permission: any): string => {
+    if (permission.name.includes('.own')) return ' (Propios)';
+    if (permission.name.includes('.all')) return ' (Todos)';
+    if (permission.name.includes('view_all')) return ' (Global)';
+    if (permission.name.includes('view_own')) return ' (Propios)';
+    return '';
+  };
+
   // Agrupar permisos por recurso
   const groupedPermissions = permissions?.reduce((acc, permission) => {
     if (!acc[permission.resource]) {
@@ -91,7 +138,7 @@ const RoleModal: React.FC<RoleModalProps> = ({ isOpen, onClose, role, isEdit = f
       isOpen={isOpen}
       onClose={onClose}
       title={isEdit ? 'Editar Rol' : 'Crear Rol'}
-      size="lg"
+      size="2xl"
     >
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="grid grid-cols-1 gap-4">
@@ -130,37 +177,74 @@ const RoleModal: React.FC<RoleModalProps> = ({ isOpen, onClose, role, isEdit = f
           </div>
         </div>
 
-        {/* Permisos */}
+        {/* Permisos Mejorados */}
         <div>
-          <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-3">
-            Permisos
-          </h4>
-          <div className="space-y-4 max-h-60 overflow-y-auto">
+          <div className="flex items-center justify-between mb-4">
+            <h4 className="text-lg font-medium text-gray-900 dark:text-white">
+              🔐 Permisos del Rol
+            </h4>
+            <div className="text-sm text-gray-500 dark:text-gray-400">
+              {formData.permissionIds.length} permisos seleccionados
+            </div>
+          </div>
+          
+          <div className="space-y-4 max-h-96 overflow-y-auto border border-gray-200 dark:border-gray-700 rounded-lg p-4 bg-gray-50 dark:bg-gray-900">
             {Object.entries(groupedPermissions).map(([resource, resourcePermissions]) => (
-              <div key={resource} className="border border-gray-200 dark:border-gray-700 rounded-lg p-3">
-                <h5 className="font-medium text-gray-900 dark:text-white mb-2 capitalize">
-                  {resource}
-                </h5>
-                <div className="grid grid-cols-2 gap-2">
+              <div key={resource} className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700 shadow-sm">
+                <div className="flex items-center justify-between mb-3">
+                  <h5 className="font-semibold text-gray-900 dark:text-white text-base">
+                    {getResourceDisplayName(resource)}
+                  </h5>
+                  <span className="text-xs bg-primary-100 dark:bg-primary-900 text-primary-700 dark:text-primary-300 px-2 py-1 rounded-full font-medium">
+                    {resourcePermissions.length} permisos
+                  </span>
+                </div>
+                
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
                   {resourcePermissions.map((permission) => (
                     <label
                       key={permission.id}
-                      className="flex items-center space-x-2 text-sm"
+                      className="flex items-start space-x-3 p-3 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors border border-gray-100 dark:border-gray-600"
                     >
                       <input
                         type="checkbox"
                         checked={formData.permissionIds.includes(permission.id)}
                         onChange={() => handlePermissionToggle(permission.id)}
-                        className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+                        className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded mt-1 flex-shrink-0"
                       />
-                      <span className="text-gray-700 dark:text-gray-300">
-                        {permission.action}
-                      </span>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center space-x-2 mb-1">
+                          <span className="text-sm font-medium text-gray-900 dark:text-white">
+                            {getActionDisplayName(permission.action)}{getPermissionScope(permission)}
+                          </span>
+                        </div>
+                        <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed">
+                          {permission.description || `Permiso para ${permission.action} en ${permission.resource}`}
+                        </p>
+                        <div className="flex items-center space-x-2 mt-1">
+                          <span className="text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 px-2 py-0.5 rounded font-mono">
+                            {permission.name}
+                          </span>
+                        </div>
+                      </div>
                     </label>
                   ))}
                 </div>
               </div>
             ))}
+            
+            {Object.keys(groupedPermissions).length === 0 && (
+              <div className="text-center py-8">
+                <div className="text-gray-400 dark:text-gray-500">
+                  <svg className="mx-auto h-12 w-12 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                  </svg>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    No hay permisos disponibles
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
