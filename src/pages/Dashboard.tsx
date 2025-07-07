@@ -2,7 +2,6 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { 
   DocumentTextIcon, 
-  PlusIcon, 
   ExclamationTriangleIcon,
   ClockIcon,
   CheckCircleIcon,
@@ -76,31 +75,6 @@ export const Dashboard: React.FC = () => {
       .sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime())
       .slice(0, 5);
   }, [cases]);
-
-  // Acciones rápidas - mover fuera del render para estabilizar
-  const quickActions = React.useMemo(() => [
-    {
-      name: 'Nuevo Caso',
-      description: 'Registrar un nuevo caso en el sistema',
-      href: '/cases/new',
-      icon: PlusIcon,
-      color: 'bg-blue-500 hover:bg-blue-600',
-    },
-    {
-      name: 'Ver Casos',
-      description: 'Explorar todos los casos registrados',
-      href: '/cases',
-      icon: DocumentTextIcon,
-      color: 'bg-green-500 hover:bg-green-600',
-    },
-    {
-      name: 'TODOs',
-      description: 'Gestionar tareas pendientes',
-      href: '/todos',
-      icon: ListBulletIcon,
-      color: 'bg-purple-500 hover:bg-purple-600',
-    },
-  ], []);
 
   if (isLoading) {
     return (
@@ -342,33 +316,6 @@ export const Dashboard: React.FC = () => {
               </div>
             </div>
           </div>
-        </div>
-      </div>
-
-      {/* Quick Actions */}
-      <div>
-        <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
-          Acciones Rápidas
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2 2xl:grid-cols-2 gap-6">
-          {quickActions.map((action) => {
-            const Icon = action.icon;
-            return (
-              <Link
-                key={action.name}
-                to={action.href}
-                className={`block p-6 rounded-lg text-white transition-colors duration-200 ${action.color}`}
-              >
-                <div className="flex items-center">
-                  <Icon className="h-8 w-8" />
-                  <div className="ml-4">
-                    <h3 className="text-lg font-semibold">{action.name}</h3>
-                    <p className="text-sm opacity-90">{action.description}</p>
-                  </div>
-                </div>
-              </Link>
-            );
-          })}
         </div>
       </div>
 

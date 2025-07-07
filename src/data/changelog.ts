@@ -11,6 +11,46 @@ export interface VersionInfo {
 
 export const changelog: VersionInfo[] = [
   {
+    version: "2.2.3",
+    date: "2025-07-06",
+    changes: [
+      {
+        type: "improvement",
+        description: "🧹 Dashboard Simplificado: Eliminación de acciones rápidas duplicadas para interfaz más limpia"
+      },
+      {
+        type: "improvement",
+        description: "🎯 Enfoque en Métricas: Dashboard centrado en datos importantes sin redundancia de navegación"
+      },
+      {
+        type: "improvement",
+        description: "📊 Experiencia Mejorada: Reducción de elementos distractores para mejor legibilidad"
+      }
+    ]
+  },
+  {
+    version: "2.2.2",
+    date: "2025-07-06",
+    changes: [
+      {
+        type: "improvement",
+        description: "🎨 Favicon Implementado: Iconos personalizados en múltiples formatos para mejor branding"
+      },
+      {
+        type: "improvement",
+        description: "📱 Soporte PWA Mejorado: Manifest.json completo con iconos para dispositivos móviles"
+      },
+      {
+        type: "improvement",
+        description: "🌐 Compatibilidad Universal: Favicons para todos los navegadores y dispositivos"
+      },
+      {
+        type: "improvement",
+        description: "📋 Meta Tags Optimizados: Descripción y theme-color actualizados para mejor SEO"
+      }
+    ]
+  },
+  {
     version: "2.2.1",
     date: "2025-07-05",
     changes: [
