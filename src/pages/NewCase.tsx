@@ -5,11 +5,13 @@ import { CaseFormSchema } from '@/lib/validations';
 import { useCreateCase, useUpdateCase, useCase } from '@/hooks/useCases';
 import { LoadingSpinner, ErrorMessage } from '@/components/LoadingSpinner';
 import { PageWrapper } from '@/components/PageWrapper';
+import { useNotification } from '@/components/NotificationSystem';
 
 export const NewCasePage: React.FC = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const isEditing = !!id;
+  const { showSuccess, showError } = useNotification();
 
   // Hooks para operaciones
   const createCase = useCreateCase();
@@ -26,14 +28,14 @@ export const NewCasePage: React.FC = () => {
 
       if (isEditing && id) {
         await updateCase.mutateAsync({ ...formData, id });
-        // El hook useUpdateCase ya maneja las notificaciones
+        showSuccess('Caso actualizado exitosamente');
       } else {
         await createCase.mutateAsync(formData);
-        // El hook useCreateCase ya maneja las notificaciones
+        showSuccess('Caso creado exitosamente');
       }
       navigate('/cases');
     } catch (error) {
-      // Los hooks ya manejan las notificaciones de error
+      showError('Error al guardar el caso', error instanceof Error ? error.message : 'Error desconocido');
       console.error('Error submitting case:', error);
     }
   };

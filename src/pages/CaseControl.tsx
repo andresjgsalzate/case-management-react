@@ -22,9 +22,10 @@ import { formatDistanceToNow } from 'date-fns';
 import { PageWrapper } from '@/components/PageWrapper';
 import { es } from 'date-fns/locale';
 import { exportCaseControlReport } from '@/utils/exportUtils';
-import toast from 'react-hot-toast';
+import { useNotification } from '@/components/NotificationSystem';
 
 const CaseControlPage: React.FC = () => {
+  const { showSuccess } = useNotification();
   const [selectedStatus, setSelectedStatus] = useState<string>('');
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [selectedCaseControl, setSelectedCaseControl] = useState<CaseControl | null>(null);
@@ -104,22 +105,22 @@ const CaseControlPage: React.FC = () => {
 
   const handleStartTimer = async (control: CaseControl) => {
     await startTimerMutation.mutateAsync(control.id);
-    toast.success('Timer iniciado');
+    showSuccess('Timer iniciado');
   };
 
   const handlePauseTimer = async (control: CaseControl) => {
     await pauseTimerMutation.mutateAsync(control.id);
-    toast.success('Timer pausado');
+    showSuccess('Timer pausado');
   };
 
   const handleStopTimer = async (control: CaseControl) => {
     await stopTimerMutation.mutateAsync(control.id);
-    toast.success('Timer detenido y tiempo registrado');
+    showSuccess('Timer detenido y tiempo registrado');
   };
 
   const handleStatusChange = async (controlId: string, statusId: string) => {
     await updateStatusMutation.mutateAsync({ id: controlId, statusId });
-    toast.success('Estado actualizado exitosamente');
+    showSuccess('Estado actualizado exitosamente');
   };
 
   const handleGenerateReport = async () => {
@@ -135,7 +136,8 @@ const CaseControlPage: React.FC = () => {
         caseControls,
         allTimeEntries,
         allManualTimeEntries,
-        filename
+        filename,
+        showSuccess
       );
     } catch (error) {
       console.error('Error generating report:', error);

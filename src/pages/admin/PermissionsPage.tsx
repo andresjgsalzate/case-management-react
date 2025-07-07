@@ -15,6 +15,7 @@ import { Input } from '@/components/Input';
 import { Select } from '@/components/Select';
 import { PageWrapper } from '@/components/PageWrapper';
 import { ConfirmationModal } from '@/components/ConfirmationModal';
+import { useNotification } from '@/components/NotificationSystem';
 
 // Opciones predefinidas para recursos y acciones
 const RESOURCE_OPTIONS = [
@@ -47,6 +48,7 @@ interface PermissionModalProps {
 const PermissionModal: React.FC<PermissionModalProps> = ({ isOpen, onClose, permission, isEdit = false }) => {
   const createPermission = useCreatePermission();
   const updatePermission = useUpdatePermission();
+  const { showSuccess, showError } = useNotification();
 
   const [formData, setFormData] = useState<PermissionFormData>({
     name: permission?.name || '',
@@ -66,12 +68,15 @@ const PermissionModal: React.FC<PermissionModalProps> = ({ isOpen, onClose, perm
     try {
       if (isEdit && permission) {
         await updatePermission.mutateAsync({ id: permission.id, permissionData: formData });
+        showSuccess('Permiso actualizado exitosamente');
       } else {
         await createPermission.mutateAsync(formData);
+        showSuccess('Permiso creado exitosamente');
       }
       onClose();
     } catch (error) {
       console.error('Error saving permission:', error);
+      showError('Error al guardar permiso', error instanceof Error ? error.message : 'Error desconocido');
     }
   };
 
@@ -187,6 +192,7 @@ export const PermissionsPage: React.FC = () => {
   const { canManagePermissions, canViewPermissions } = usePermissions();
   const { data: permissions, isLoading, error } = usePermissionsData();
   const deletePermission = useDeletePermission();
+  const { showSuccess, showError } = useNotification();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [resourceFilter, setResourceFilter] = useState('');
@@ -255,8 +261,11 @@ export const PermissionsPage: React.FC = () => {
     if (deleteModal.permission) {
       try {
         await deletePermission.mutateAsync(deleteModal.permission.id);
+        showSuccess('Permiso eliminado exitosamente');
+        setDeleteModal({ isOpen: false, permission: null });
       } catch (error) {
         console.error('Error deleting permission:', error);
+        showError('Error al eliminar permiso', error instanceof Error ? error.message : 'Error desconocido');
       }
     }
   };

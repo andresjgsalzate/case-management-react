@@ -1,7 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { UserProfile, UserFormData } from '@/types';
-import toast from 'react-hot-toast';
 
 // Hook para obtener todos los usuarios (solo admin)
 export const useUsers = () => {
@@ -141,11 +140,9 @@ export const useUpdateUser = () => {
     onSuccess: (_, { id }) => {
       queryClient.invalidateQueries({ queryKey: ['users'] });
       queryClient.invalidateQueries({ queryKey: ['users', id] });
-      toast.success('Usuario actualizado exitosamente');
     },
     onError: (error: any) => {
       console.error('Error updating user:', error);
-      toast.error('Error al actualizar usuario: ' + (error.message || 'Error desconocido'));
     },
   });
 };
@@ -176,11 +173,9 @@ export const useDeleteUser = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['users'] });
-      toast.success('Usuario eliminado exitosamente');
     },
     onError: (error: any) => {
       console.error('Error deleting user:', error);
-      toast.error('Error al eliminar usuario: ' + (error.message || 'Error desconocido'));
     },
   });
 };

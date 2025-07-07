@@ -20,9 +20,10 @@ import {
   ListBulletIcon,
   ExclamationCircleIcon
 } from '@heroicons/react/24/outline';
-import toast from 'react-hot-toast';
+import { useNotification } from '../components/NotificationSystem';
 
 export default function TodosPage() {
+  const { showSuccess, showError } = useNotification();
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
@@ -113,13 +114,13 @@ export default function TodosPage() {
     try {
       const newTodo = await createTodo(data);
       if (newTodo) {
-        toast.success('TODO creado exitosamente');
+        showSuccess('TODO creado exitosamente');
         setShowCreateModal(false);
         await fetchTodos();
       }
     } catch (error) {
       console.error('Error al crear TODO:', error);
-      toast.error('Error al crear TODO');
+      showError('Error al crear TODO');
     } finally {
       setLoading(false);
     }
@@ -138,14 +139,14 @@ export default function TodosPage() {
       
       const success = await updateTodo(updateData);
       if (success) {
-        toast.success('TODO actualizado exitosamente');
+        showSuccess('TODO actualizado exitosamente');
         setShowEditModal(false);
         setEditingTodo(null);
         await fetchTodos();
       }
     } catch (error) {
       console.error('Error al actualizar TODO:', error);
-      toast.error('Error al actualizar TODO');
+      showError('Error al actualizar TODO');
     } finally {
       setLoading(false);
     }
@@ -163,7 +164,7 @@ export default function TodosPage() {
       if (!todo.control) {
         const newControl = await createControl(todoId);
         if (!newControl) {
-          toast.error('Error al crear control de TODO');
+          showError('Error al crear control de TODO');
           return;
         }
         controlId = newControl.id;
@@ -174,15 +175,15 @@ export default function TodosPage() {
       // Iniciar timer
       const success = await startTimer(controlId!);
       if (success) {
-        toast.success('Timer iniciado');
+        showSuccess('Timer iniciado');
         // Refrescar para ver el estado actualizado
         await fetchTodos();
       } else {
-        toast.error('Error al iniciar timer');
+        showError('Error al iniciar timer');
       }
     } catch (error) {
       console.error('Error al iniciar timer:', error);
-      toast.error('Error al iniciar timer');
+      showError('Error al iniciar timer');
     }
   };
 
@@ -191,14 +192,14 @@ export default function TodosPage() {
     try {
       const success = await pauseTimer(controlId);
       if (success) {
-        toast.success('Timer pausado');
+        showSuccess('Timer pausado');
         await fetchTodos();
       } else {
-        toast.error('Error al pausar timer');
+        showError('Error al pausar timer');
       }
     } catch (error) {
       console.error('Error al pausar timer:', error);
-      toast.error('Error al pausar timer');
+      showError('Error al pausar timer');
     }
   };
 
@@ -207,14 +208,14 @@ export default function TodosPage() {
     try {
       const success = await completeTodo(controlId);
       if (success) {
-        toast.success('TODO completado');
+        showSuccess('TODO completado');
         await fetchTodos();
       } else {
-        toast.error('Error al completar TODO');
+        showError('Error al completar TODO');
       }
     } catch (error) {
       console.error('Error al completar TODO:', error);
-      toast.error('Error al completar TODO');
+      showError('Error al completar TODO');
     }
   };
 
@@ -234,14 +235,14 @@ export default function TodosPage() {
       try {
         const success = await deleteTodo(deleteModal.todo.id);
         if (success) {
-          toast.success('TODO eliminado');
+          showSuccess('TODO eliminado');
           await fetchTodos();
         } else {
-          toast.error('Error al eliminar TODO');
+          showError('Error al eliminar TODO');
         }
       } catch (error) {
         console.error('Error al eliminar TODO:', error);
-        toast.error('Error al eliminar TODO');
+        showError('Error al eliminar TODO');
       }
     }
   };

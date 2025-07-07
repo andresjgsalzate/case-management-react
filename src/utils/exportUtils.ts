@@ -1,11 +1,16 @@
 import * as XLSX from 'xlsx';
 import { Case } from '@/types';
-import toast from 'react-hot-toast';
+
+type NotificationFn = (message: string) => void;
 
 /**
  * Exporta una lista de casos a un archivo Excel
  */
-export const exportCasesToExcel = (cases: Case[], filename: string = 'casos.xlsx') => {
+export const exportCasesToExcel = (
+  cases: Case[], 
+  filename: string = 'casos.xlsx',
+  onSuccess?: NotificationFn
+) => {
   // Preparar los datos para el Excel
   const excelData = cases.map(caso => ({
     'Número de Caso': caso.numeroCaso,
@@ -49,21 +54,29 @@ export const exportCasesToExcel = (cases: Case[], filename: string = 'casos.xlsx
   
   worksheet['!cols'] = columnWidths;
 
-  // Descargar el archivo
+  // Escribir el archivo
   XLSX.writeFile(workbook, filename);
   
   // Mostrar notificación de éxito
-  toast.success('Casos exportados a Excel');
+  if (onSuccess) {
+    onSuccess('Casos exportados a Excel');
+  }
 };
 
 /**
  * Exporta una lista de casos a un archivo CSV
  */
-export const exportCasesToCSV = (cases: Case[], filename: string = 'casos.csv') => {
+export const exportCasesToCSV = (
+  cases: Case[], 
+  filename: string = 'casos.csv',
+  onSuccess?: NotificationFn
+) => {
   const csvData = cases.map(caso => ({
     numeroCaso: caso.numeroCaso,
     descripcion: caso.descripcion,
-    fecha: caso.fecha,
+    fecha: new Date(caso.fecha).toLocaleDateString('es-ES'),
+    origen: caso.origen?.nombre || 'No especificado',
+    aplicacion: caso.aplicacion?.nombre || 'No especificado',
     historialCaso: getHistorialCasoText(caso.historialCaso),
     conocimientoModulo: getConocimientoModuloText(caso.conocimientoModulo),
     manipulacionDatos: getManipulacionDatosText(caso.manipulacionDatos),
@@ -71,82 +84,46 @@ export const exportCasesToCSV = (cases: Case[], filename: string = 'casos.csv') 
     causaFallo: getCausaFalloText(caso.causaFallo),
     puntuacion: caso.puntuacion,
     clasificacion: caso.clasificacion,
-    fechaCreacion: caso.createdAt,
+    fechaCreacion: new Date(caso.createdAt).toLocaleDateString('es-ES'),
   }));
 
-  const worksheet = XLSX.utils.json_to_sheet(csvData);
-  const csv = XLSX.utils.sheet_to_csv(worksheet);
-  
+  // Convertir a CSV
+  const header = Object.keys(csvData[0] || {}).join(',');
+  const rows = csvData.map(row => Object.values(row).map(val => `"${val}"`).join(','));
+  const csv = [header, ...rows].join('\\n');
+
+  // Crear y descargar el archivo
   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
   const link = document.createElement('a');
+  const url = URL.createObjectURL(blob);
   
-  if (link.download !== undefined) {
-    const url = URL.createObjectURL(blob);
-    link.setAttribute('href', url);
-    link.setAttribute('download', filename);
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    
-    // Mostrar notificación de éxito
-    toast.success('Casos exportados a CSV');
+  link.setAttribute('href', url);
+  link.setAttribute('download', filename);
+  link.style.visibility = 'hidden';
+  
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  
+  if (onSuccess) {
+    onSuccess('Casos exportados a CSV');
   }
 };
 
 /**
- * Exporta un reporte de control de casos con acumulado por día
+ * Genera un reporte de control de casos en Excel
  */
 export const exportCaseControlReport = (
   caseControls: any[],
   timeEntries: any[],
   manualTimeEntries: any[],
-  filename: string = 'reporte-control-casos.xlsx'
+  filename: string = 'reporte-control-casos.xlsx',
+  onSuccess?: NotificationFn
 ) => {
-  console.log('� Generando reporte de control de casos...');
+  console.log('📊 Generando reporte de control de casos...');
 
   // Crear un mapa para agrupar por caso y día
   const reportData: { [key: string]: any } = {};
-
-  // Procesar time entries (timer)
-  timeEntries.forEach(entry => {
-    const caseControl = caseControls.find(cc => cc.id === entry.case_control_id);
-    if (!caseControl) return;
-
-    const date = new Date(entry.start_time).toISOString().split('T')[0];
-    const key = `${caseControl.case?.numeroCaso || 'N/A'}-${date}`;
-
-    if (!reportData[key]) {
-      reportData[key] = createReportEntry(caseControl, date);
-    }
-
-    reportData[key].tiempoTimer += entry.duration_minutes || 0;
-  });
-
-  // Procesar manual time entries
-  manualTimeEntries.forEach(entry => {
-    const caseControl = caseControls.find(cc => cc.id === entry.case_control_id);
-    if (!caseControl) return;
-
-    const date = entry.date;
-    const key = `${caseControl.case?.numeroCaso || 'N/A'}-${date}`;
-
-    if (!reportData[key]) {
-      reportData[key] = createReportEntry(caseControl, date);
-    }
-
-    reportData[key].tiempoManual += entry.duration_minutes || 0;
-  });
-
-  // Si no hay datos de tiempo, crear entradas para todos los case controls
-  if (Object.keys(reportData).length === 0 && caseControls.length > 0) {
-    console.log('ℹ️ No hay datos de tiempo, creando entradas para case controls existentes');
-    caseControls.forEach(caseControl => {
-      const today = new Date().toISOString().split('T')[0];
-      const key = `${caseControl.case?.numeroCaso || 'NO-DATA'}-${today}`;
-      reportData[key] = createReportEntry(caseControl, today);
-    });
-  }
 
   // Función helper para crear entradas del reporte
   function createReportEntry(caseControl: any, date: string) {
@@ -199,54 +176,69 @@ export const exportCaseControlReport = (
     };
   }
 
-  console.log('📊 Datos del reporte procesados:', Object.keys(reportData).length, 'entradas');
+  // Procesar time entries
+  timeEntries.forEach(entry => {
+    const caseControl = caseControls.find(cc => cc.id === entry.case_control_id);
+    if (!caseControl) return;
 
-  // Si aún no hay datos, crear un ejemplo básico
-  if (Object.keys(reportData).length === 0) {
-    console.log('⚠️ Creando datos de ejemplo - no se encontraron datos');
-    const today = new Date().toISOString().split('T')[0];
-    reportData[`EJEMPLO-${today}`] = {
-      numeroCaso: 'EJEMPLO',
-      descripcionCaso: 'No hay datos de control de casos disponibles',
-      fecha: today,
-      tiempoTimer: 0,
-      tiempoManual: 0,
-      tiempoTotal: 0,
-      estado: 'N/A',
-      usuarioAsignado: 'Sistema',
-      aplicacion: 'N/A',
-      fechaAsignacion: new Date().toLocaleDateString('es-ES')
-    };
+    const date = entry.start_time ? new Date(entry.start_time).toISOString().split('T')[0] : 'Sin fecha';
+    const key = `${caseControl.case?.numeroCaso || 'N/A'}-${date}`;
+
+    if (!reportData[key]) {
+      reportData[key] = createReportEntry(caseControl, date);
+    }
+
+    reportData[key].tiempoTimer += entry.duration_minutes || 0;
+  });
+
+  // Procesar manual time entries
+  manualTimeEntries.forEach(entry => {
+    const caseControl = caseControls.find(cc => cc.id === entry.case_control_id);
+    if (!caseControl) return;
+
+    const date = entry.date;
+    const key = `${caseControl.case?.numeroCaso || 'N/A'}-${date}`;
+
+    if (!reportData[key]) {
+      reportData[key] = createReportEntry(caseControl, date);
+    }
+
+    reportData[key].tiempoManual += entry.duration_minutes || 0;
+  });
+
+  // Si no hay datos de tiempo, crear entradas para todos los case controls
+  if (Object.keys(reportData).length === 0 && caseControls.length > 0) {
+    console.log('ℹ️ No hay datos de tiempo, creando entradas para case controls existentes');
+    caseControls.forEach(caseControl => {
+      const today = new Date().toISOString().split('T')[0];
+      const key = `${caseControl.case?.numeroCaso || 'NO-DATA'}-${today}`;
+      reportData[key] = createReportEntry(caseControl, today);
+    });
   }
 
-  // Calcular tiempo total y convertir a formato legible
-  const excelData = Object.values(reportData).map(item => {
-    const tiempoTotal = item.tiempoTimer + item.tiempoManual;
-    
-    // Formatear fecha sin problemas de zona horaria
-    const formatFechaLocal = (fechaString: string) => {
-      const [year, month, day] = fechaString.split('-').map(Number);
-      const fecha = new Date(year, month - 1, day);
-      return fecha.toLocaleDateString('es-ES');
-    };
+  // Calcular tiempo total y convertir a formato Excel
+  const excelData = Object.values(reportData).map((entry: any) => {
+    entry.tiempoTotal = entry.tiempoTimer + entry.tiempoManual;
     
     return {
-      'Número de Caso': item.numeroCaso,
-      'Descripción del Caso': item.descripcionCaso,
-      'Fecha': formatFechaLocal(item.fecha),
-      'Tiempo Timer (Horas)': formatMinutesToHours(item.tiempoTimer),
-      'Tiempo Manual (Horas)': formatMinutesToHours(item.tiempoManual),
-      'Tiempo Total (Horas)': formatMinutesToHours(tiempoTotal),
-      'Tiempo Timer (Minutos)': item.tiempoTimer,
-      'Tiempo Manual (Minutos)': item.tiempoManual,
-      'Tiempo Total (Minutos)': tiempoTotal,
-      'Estado': item.estado,
-      'Usuario Asignado': item.usuarioAsignado,
-      'Aplicación': item.aplicacion,
-      'Fecha de Asignación': item.fechaAsignacion
+      'Número de Caso': entry.numeroCaso,
+      'Descripción del Caso': entry.descripcionCaso,
+      'Fecha': entry.fecha,
+      'Tiempo Timer (Horas)': Math.floor(entry.tiempoTimer / 60) + (entry.tiempoTimer % 60) / 60,
+      'Tiempo Manual (Horas)': Math.floor(entry.tiempoManual / 60) + (entry.tiempoManual % 60) / 60,
+      'Tiempo Total (Horas)': Math.floor(entry.tiempoTotal / 60) + (entry.tiempoTotal % 60) / 60,
+      'Tiempo Timer (Minutos)': entry.tiempoTimer,
+      'Tiempo Manual (Minutos)': entry.tiempoManual,
+      'Tiempo Total (Minutos)': entry.tiempoTotal,
+      'Estado': entry.estado,
+      'Usuario Asignado': entry.usuarioAsignado,
+      'Aplicación': entry.aplicacion,
+      'Fecha de Asignación': entry.fechaAsignacion
     };
-  }).sort((a, b) => {
-    // Ordenar por número de caso y luego por fecha
+  });
+
+  // Ordenar por número de caso y fecha
+  excelData.sort((a, b) => {
     const caseCompare = a['Número de Caso'].localeCompare(b['Número de Caso']);
     if (caseCompare !== 0) return caseCompare;
     return new Date(a['Fecha']).getTime() - new Date(b['Fecha']).getTime();
@@ -284,67 +276,35 @@ export const exportCaseControlReport = (
   XLSX.writeFile(workbook, filename);
   
   // Mostrar notificación de éxito
-  toast.success('Reporte generado exitosamente');
+  if (onSuccess) {
+    onSuccess('Reporte generado exitosamente');
+  }
 };
 
 /**
- * Convierte minutos a formato de horas legible
+ * Funciones auxiliares para formatear los valores de los casos
  */
-function formatMinutesToHours(minutes: number): string {
-  const hours = Math.floor(minutes / 60);
-  const remainingMinutes = minutes % 60;
-  
-  if (hours === 0) {
-    return `${remainingMinutes}m`;
-  } else if (remainingMinutes === 0) {
-    return `${hours}h`;
-  } else {
-    return `${hours}h ${remainingMinutes}m`;
-  }
-}
-
-// Funciones helper para convertir números a texto
 function getHistorialCasoText(value: number): string {
-  switch (value) {
-    case 1: return 'Error conocido y solucionado previamente';
-    case 2: return 'Error recurrente, no solucionado';
-    case 3: return 'Error desconocido, no solucionado';
-    default: return 'Desconocido';
-  }
+  const options = ['Nuevo caso', 'Caso recurrente conocido', 'Caso recurrente - nueva manifestación'];
+  return options[value] || 'N/A';
 }
 
 function getConocimientoModuloText(value: number): string {
-  switch (value) {
-    case 1: return 'Conoce módulo y función puntual';
-    case 2: return 'Conoce módulo, requiere capacitación';
-    case 3: return 'Desconoce módulo, requiere capacitación';
-    default: return 'Desconocido';
-  }
+  const options = ['Sin conocimiento', 'Conocimiento básico', 'Conocimiento avanzado'];
+  return options[value] || 'N/A';
 }
 
 function getManipulacionDatosText(value: number): string {
-  switch (value) {
-    case 1: return 'Mínima o no necesaria';
-    case 2: return 'Intensiva, sin replicar lógica';
-    case 3: return 'Extremadamente compleja, replicar lógica';
-    default: return 'Desconocido';
-  }
+  const options = ['Sin manipulación', 'Manipulación básica', 'Manipulación compleja'];
+  return options[value] || 'N/A';
 }
 
 function getClaridadDescripcionText(value: number): string {
-  switch (value) {
-    case 1: return 'Descripción clara y precisa';
-    case 2: return 'Descripción ambigua o poco clara';
-    case 3: return 'Descripción confusa o inexacta';
-    default: return 'Desconocido';
-  }
+  const options = ['Muy confusa', 'Poco clara', 'Clara', 'Muy clara'];
+  return options[value] || 'N/A';
 }
 
 function getCausaFalloText(value: number): string {
-  switch (value) {
-    case 1: return 'Error operativo, fácil solución';
-    case 2: return 'Falla puntual, requiere pruebas';
-    case 3: return 'Falla compleja, pruebas adicionales';
-    default: return 'Desconocido';
-  }
+  const options = ['Error de usuario', 'Error del sistema', 'Funcionalidad faltante', 'Error de datos', 'Error de configuración'];
+  return options[value] || 'N/A';
 }

@@ -11,6 +11,76 @@ export interface VersionInfo {
 
 export const changelog: VersionInfo[] = [
   {
+    version: "2.3.0",
+    date: "2025-07-07",
+    changes: [
+      {
+        type: "feature",
+        description: "🎯 Sistema de Notificaciones Centralizado: Reemplazo completo de react-hot-toast por sistema propio unificado"
+      },
+      {
+        type: "improvement",
+        description: "🚫 Eliminación Total de Duplicidad de Toasts: Los mensajes de éxito/error ahora aparecen una sola vez, nunca duplicados"
+      },
+      {
+        type: "improvement",
+        description: "📍 Posición Consistente: Todas las notificaciones aparecen en esquina inferior derecha con auto-cierre en 3 segundos"
+      },
+      {
+        type: "improvement",
+        description: "🔧 Migración Completa de Módulos: Cases, Users, Roles, Permissions, Configuration, TODOs migrados al nuevo sistema"
+      },
+      {
+        type: "improvement",
+        description: "📱 Modales Migrados: CaseControlDetailsModal, TodoControlDetailsModal, CaseAssignmentModal actualizados"
+      },
+      {
+        type: "improvement",
+        description: "📊 Utilidades de Exportación: exportUtils.ts adaptado para usar callbacks de notificación"
+      },
+      {
+        type: "improvement",
+        description: "🏗️ Arquitectura Mejorada: NotificationProvider y hook useNotification() para gestión centralizada"
+      },
+      {
+        type: "bugfix",
+        description: "🐛 Hooks Limpios: Eliminados toasts automáticos duplicados de useUsers, useRoles, usePermissions, etc."
+      },
+      {
+        type: "improvement",
+        description: "⚡ Mejor UX: Mensajes más consistentes y predecibles en todas las operaciones CRUD"
+      }
+    ]
+  },
+  {
+    version: "2.2.8",
+    date: "2025-07-07",
+    changes: [
+      {
+        type: "bugfix",
+        description: "🏷️ Clasificación de Versiones Corregida: Solucionado problema donde todas las versiones se mostraban como 'MAJOR' en el modal de versiones"
+      },
+      {
+        type: "bugfix",
+        description: "📊 Lógica de Versionado Semántico: Implementada lógica correcta para determinar MAJOR/MINOR/PATCH basándose en el contenido de los cambios"
+      }
+    ]
+  },
+  {
+    version: "2.2.7",
+    date: "2025-07-07",
+    changes: [
+      {
+        type: "bugfix",
+        description: "🔧 Módulo Desarrollo Visible en Producción: Solucionado problema donde administradores no podían ver el módulo Desarrollo en ambiente de producción"
+      },
+      {
+        type: "bugfix",
+        description: "🌐 Acceso Consistente: Eliminada restricción de ambiente DEV para que administradores accedan al módulo en cualquier entorno"
+      }
+    ]
+  },
+  {
     version: "2.2.6",
     date: "2025-07-06",
     changes: [

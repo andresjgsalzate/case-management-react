@@ -75,14 +75,32 @@ export const VersionModal: React.FC<VersionModalProps> = ({ isOpen, onClose }) =
     });
   };
 
-  const getVersionType = (version: string): { type: 'major' | 'minor' | 'patch', color: string } => {
-    const [major, minor, patch] = version.split('.').map(Number);
+  const getVersionType = (version: string, changes: VersionChange[]): { type: 'major' | 'minor' | 'patch', color: string } => {
+    // Determinar el tipo de versión basado en el contenido de los cambios
+    const hasBreaking = changes.some(change => change.type === 'breaking');
+    const hasFeature = changes.some(change => change.type === 'feature');
+    const hasOnlyImprovementsAndBugfixes = changes.every(change => 
+      change.type === 'improvement' || change.type === 'bugfix'
+    );
     
-    // Determinar el tipo de versión basado en cambios significativos
-    if (major > 1 || (major === 1 && minor === 0 && patch === 0)) {
+    if (hasBreaking) {
       return { type: 'major', color: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200' };
-    } else if (minor > 0) {
+    } else if (hasFeature) {
       return { type: 'minor', color: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' };
+    } else if (hasOnlyImprovementsAndBugfixes) {
+      // Si solo hay bugfixes, es PATCH. Si hay improvements, podría ser MINOR o PATCH
+      const hasOnlyBugfixes = changes.every(change => change.type === 'bugfix');
+      if (hasOnlyBugfixes) {
+        return { type: 'patch', color: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' };
+      } else {
+        // Para improvements, verificamos si es PATCH basándose en el número de versión
+        const [, , patch] = version.split('.').map(Number);
+        if (patch > 0) {
+          return { type: 'patch', color: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' };
+        } else {
+          return { type: 'minor', color: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' };
+        }
+      }
     } else {
       return { type: 'patch', color: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' };
     }
@@ -204,7 +222,7 @@ export const VersionModal: React.FC<VersionModalProps> = ({ isOpen, onClose }) =
             </div>
           ) : (
             filteredChangelog.map((version, index) => {
-              const versionInfo = getVersionType(version.version);
+              const versionInfo = getVersionType(version.version, version.changes);
               const isLatest = index === 0 && filterType === 'all';
 
               return (

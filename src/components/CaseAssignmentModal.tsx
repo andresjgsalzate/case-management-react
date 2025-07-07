@@ -12,7 +12,7 @@ import { Case } from '@/types';
 import { useCases } from '@/hooks/useCases';
 import { useCaseStatuses, useStartCaseControl, useCaseControls } from '@/hooks/useCaseControl';
 import { formatDate } from '@/utils/caseUtils';
-import toast from 'react-hot-toast';
+import { useNotification } from './NotificationSystem';
 
 interface CaseAssignmentModalProps {
   isOpen: boolean;
@@ -25,6 +25,7 @@ export const CaseAssignmentModal: React.FC<CaseAssignmentModalProps> = ({
   onClose,
   onAssign
 }) => {
+  const { showSuccess, showError } = useNotification();
   const casesQuery = useCases();
   const statusesQuery = useCaseStatuses();
   const caseControlsQuery = useCaseControls();
@@ -88,10 +89,10 @@ export const CaseAssignmentModal: React.FC<CaseAssignmentModalProps> = ({
       onClose();
       
       // Mostrar notificación de éxito SOLO aquí para evitar duplicados
-      toast.success('Caso asignado al control exitosamente');
+      showSuccess('Caso asignado al control exitosamente');
     } catch (error) {
       console.error('Error assigning case:', error);
-      toast.error('Error al asignar caso al control');
+      showError('Error al asignar caso al control');
     }
   };
 

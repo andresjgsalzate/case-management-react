@@ -1,7 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { Origen, Aplicacion, OrigenFormData, AplicacionFormData } from '@/types';
-import toast from 'react-hot-toast';
 
 // Funciones de mapeo
 const mapOrigenFromDB = (dbOrigen: any): Origen => ({
@@ -129,11 +128,9 @@ export const useCreateOrigen = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['origenes'] });
-      toast.success('Origen creado exitosamente');
     },
     onError: (error: any) => {
       console.error('Error creating origen:', error);
-      toast.error('Error al crear origen: ' + (error.message || 'Error desconocido'));
     },
   });
 };
@@ -166,11 +163,9 @@ export const useUpdateOrigen = () => {
     onSuccess: (_, { id }) => {
       queryClient.invalidateQueries({ queryKey: ['origenes'] });
       queryClient.invalidateQueries({ queryKey: ['origen', id] });
-      toast.success('Origen actualizado exitosamente');
     },
     onError: (error: any) => {
       console.error('Error updating origen:', error);
-      toast.error('Error al actualizar origen: ' + (error.message || 'Error desconocido'));
     },
   });
 };
@@ -193,11 +188,9 @@ export const useDeleteOrigen = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['origenes'] });
-      toast.success('Origen eliminado exitosamente');
     },
     onError: (error: any) => {
       console.error('Error deleting origen:', error);
-      toast.error('Error al eliminar origen: ' + (error.message || 'Error desconocido'));
     },
   });
 };
@@ -229,11 +222,9 @@ export const useCreateAplicacion = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['aplicaciones'] });
-      toast.success('Aplicación creada exitosamente');
     },
     onError: (error: any) => {
       console.error('Error creating aplicacion:', error);
-      toast.error('Error al crear aplicación: ' + (error.message || 'Error desconocido'));
     },
   });
 };
@@ -266,11 +257,9 @@ export const useUpdateAplicacion = () => {
     onSuccess: (_, { id }) => {
       queryClient.invalidateQueries({ queryKey: ['aplicaciones'] });
       queryClient.invalidateQueries({ queryKey: ['aplicacion', id] });
-      toast.success('Aplicación actualizada exitosamente');
     },
     onError: (error: any) => {
       console.error('Error updating aplicacion:', error);
-      toast.error('Error al actualizar aplicación: ' + (error.message || 'Error desconocido'));
     },
   });
 };
@@ -293,11 +282,9 @@ export const useDeleteAplicacion = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['aplicaciones'] });
-      toast.success('Aplicación eliminada exitosamente');
     },
     onError: (error: any) => {
       console.error('Error deleting aplicacion:', error);
-      toast.error('Error al eliminar aplicación: ' + (error.message || 'Error desconocido'));
     },
   });
 };

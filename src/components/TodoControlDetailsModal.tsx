@@ -12,7 +12,7 @@ import { ConfirmationModal } from './ConfirmationModal';
 import { TodoControl } from '../types';
 import { useTodoControl } from '../hooks/useTodoControl';
 import { formatDate, formatTime, formatDateLocal } from '../utils/caseUtils';
-import toast from 'react-hot-toast';
+import { useNotification } from './NotificationSystem';
 
 interface TodoControlDetailsModalProps {
   isOpen: boolean;
@@ -32,6 +32,7 @@ export const TodoControlDetailsModal: React.FC<TodoControlDetailsModalProps> = (
   onClose,
   todoControl
 }) => {
+  const { showSuccess, showError } = useNotification();
   const { 
     getTimeEntries, 
     getManualTimeEntries, 
@@ -92,7 +93,7 @@ export const TodoControlDetailsModal: React.FC<TodoControlDetailsModalProps> = (
       setManualTimeEntries(manualData || []);
     } catch (error) {
       console.error('Error loading time data:', error);
-      toast.error('Error al cargar datos de tiempo');
+      showError('Error al cargar datos de tiempo');
     } finally {
       setLoading(false);
     }
@@ -103,12 +104,12 @@ export const TodoControlDetailsModal: React.FC<TodoControlDetailsModalProps> = (
 
     const totalMinutes = (manualTimeForm.hours * 60) + manualTimeForm.minutes;
     if (totalMinutes <= 0) {
-      toast.error('Debe especificar un tiempo válido');
+      showError('Debe especificar un tiempo válido');
       return;
     }
 
     if (!manualTimeForm.description.trim()) {
-      toast.error('Debe proporcionar una descripción');
+      showError('Debe proporcionar una descripción');
       return;
     }
 
@@ -122,7 +123,7 @@ export const TodoControlDetailsModal: React.FC<TodoControlDetailsModalProps> = (
       });
 
       if (success) {
-        toast.success('Tiempo manual agregado');
+        showSuccess('Tiempo manual agregado');
         setManualTimeForm({
           description: '',
           hours: 0,
@@ -132,10 +133,10 @@ export const TodoControlDetailsModal: React.FC<TodoControlDetailsModalProps> = (
         setShowManualTimeForm(false);
         await loadTimeData(); // Recargar datos
       } else {
-        toast.error('Error al agregar tiempo manual');
+        showError('Error al agregar tiempo manual');
       }
     } catch (error) {
-      toast.error('Error al agregar tiempo manual');
+      showError('Error al agregar tiempo manual');
     }
   };
 
@@ -152,14 +153,14 @@ export const TodoControlDetailsModal: React.FC<TodoControlDetailsModalProps> = (
     try {
       const success = await deleteManualTime(entryId);
       if (success) {
-        toast.success('Entrada de tiempo manual eliminada');
+        showSuccess('Entrada de tiempo manual eliminada');
         await loadTimeData();
       } else {
-        toast.error('Error al eliminar la entrada de tiempo manual');
+        showError('Error al eliminar la entrada de tiempo manual');
       }
     } catch (error) {
       console.error('Error al eliminar entrada manual:', error);
-      toast.error('Error al eliminar la entrada de tiempo manual');
+      showError('Error al eliminar la entrada de tiempo manual');
     }
   };
 
@@ -176,14 +177,14 @@ export const TodoControlDetailsModal: React.FC<TodoControlDetailsModalProps> = (
     try {
       const success = await deleteTimeEntry(entryId);
       if (success) {
-        toast.success('Entrada de tiempo automático eliminada');
+        showSuccess('Entrada de tiempo automático eliminada');
         await loadTimeData();
       } else {
-        toast.error('Error al eliminar la entrada de tiempo automático');
+        showError('Error al eliminar la entrada de tiempo automático');
       }
     } catch (error) {
       console.error('Error al eliminar entrada automática:', error);
-      toast.error('Error al eliminar la entrada de tiempo automático');
+      showError('Error al eliminar la entrada de tiempo automático');
     }
   };
 

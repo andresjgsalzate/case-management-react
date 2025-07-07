@@ -1,7 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { Permission, PermissionFormData } from '@/types';
-import toast from 'react-hot-toast';
 
 // Hook para obtener todos los permisos
 export const usePermissions = () => {
@@ -103,11 +102,9 @@ export const useCreatePermission = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['permissions'] });
-      toast.success('Permiso creado exitosamente');
     },
     onError: (error: any) => {
       console.error('Error creating permission:', error);
-      toast.error('Error al crear permiso: ' + (error.message || 'Error desconocido'));
     },
   });
 };
@@ -152,11 +149,9 @@ export const useUpdatePermission = () => {
     onSuccess: (_, { id }) => {
       queryClient.invalidateQueries({ queryKey: ['permissions'] });
       queryClient.invalidateQueries({ queryKey: ['permissions', id] });
-      toast.success('Permiso actualizado exitosamente');
     },
     onError: (error: any) => {
       console.error('Error updating permission:', error);
-      toast.error('Error al actualizar permiso: ' + (error.message || 'Error desconocido'));
     },
   });
 };
@@ -192,11 +187,9 @@ export const useDeletePermission = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['permissions'] });
       queryClient.invalidateQueries({ queryKey: ['roles'] }); // También invalidar roles porque pueden tener estos permisos
-      toast.success('Permiso eliminado exitosamente');
     },
     onError: (error: any) => {
       console.error('Error deleting permission:', error);
-      toast.error('Error al eliminar permiso: ' + (error.message || 'Error desconocido'));
     },
   });
 };

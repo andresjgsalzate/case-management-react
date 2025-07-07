@@ -1,7 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { Role, RoleFormData } from '@/types';
-import toast from 'react-hot-toast';
 
 // Hook para obtener todos los roles
 export const useRoles = () => {
@@ -171,11 +170,9 @@ export const useCreateRole = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['roles'] });
-      toast.success('Rol creado exitosamente');
     },
     onError: (error: any) => {
       console.error('Error creating role:', error);
-      toast.error('Error al crear rol: ' + (error.message || 'Error desconocido'));
     },
   });
 };
@@ -275,11 +272,9 @@ export const useUpdateRole = () => {
     onSuccess: (_, { id }) => {
       queryClient.invalidateQueries({ queryKey: ['roles'] });
       queryClient.invalidateQueries({ queryKey: ['roles', id] });
-      toast.success('Rol actualizado exitosamente');
     },
     onError: (error: any) => {
       console.error('Error updating role:', error);
-      toast.error('Error al actualizar rol: ' + (error.message || 'Error desconocido'));
     },
   });
 };
@@ -314,11 +309,9 @@ export const useDeleteRole = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['roles'] });
-      toast.success('Rol eliminado exitosamente');
     },
     onError: (error: any) => {
       console.error('Error deleting role:', error);
-      toast.error('Error al eliminar rol: ' + (error.message || 'Error desconocido'));
     },
   });
 };

@@ -15,12 +15,14 @@ import { exportCasesToExcel, exportCasesToCSV } from '@/utils/exportUtils';
 import { formatDateLocal } from '@/utils/caseUtils';
 import { PageWrapper } from '@/components/PageWrapper';
 import { ConfirmationModal } from '@/components/ConfirmationModal';
+import { useNotification } from '@/components/NotificationSystem';
 
 export const CasesPage: React.FC = () => {
   const { data: cases, isLoading, error, refetch } = useCases();
   const { data: origenes } = useOrigenes();
   const { data: aplicaciones } = useAplicaciones();
   const deleteCase = useDeleteCase();
+  const { showSuccess, showError } = useNotification();
 
   // Estados de filtros
   const [searchTerm, setSearchTerm] = useState('');
@@ -78,10 +80,12 @@ export const CasesPage: React.FC = () => {
   const confirmDelete = async () => {
     try {
       await deleteCase.mutateAsync(deleteModal.caseId);
-      // El modal se cierra automáticamente después de confirmar
-      // El hook useDeleteCase ya maneja las notificaciones
+      showSuccess('Caso eliminado exitosamente');
     } catch (error) {
       console.error('Error al eliminar caso:', error);
+      showError('Error al eliminar caso', error instanceof Error ? error.message : 'Error desconocido');
+    } finally {
+      setDeleteModal({ isOpen: false, caseId: '', caseNumber: '' });
     }
   };
 
@@ -93,16 +97,14 @@ export const CasesPage: React.FC = () => {
     if (filteredCases.length === 0) {
       return; // No hacer nada si no hay casos
     }
-    exportCasesToExcel(filteredCases as Case[]);
-    // exportCasesToExcel ya maneja la notificación de éxito
+    exportCasesToExcel(filteredCases as Case[], 'casos.xlsx', showSuccess);
   };
 
   const handleExportCSV = () => {
     if (filteredCases.length === 0) {
       return; // No hacer nada si no hay casos
     }
-    exportCasesToCSV(filteredCases as Case[]);
-    // exportCasesToCSV ya maneja la notificación de éxito
+    exportCasesToCSV(filteredCases as Case[], 'casos.csv', showSuccess);
   };
 
   if (isLoading) {

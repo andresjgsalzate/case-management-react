@@ -18,7 +18,7 @@ import { Input } from '@/components/Input';
 import { Select } from '@/components/Select';
 import { PageWrapper } from '@/components/PageWrapper';
 import { ConfirmationModal } from '@/components/ConfirmationModal';
-import toast from 'react-hot-toast';
+import { useNotification } from '@/components/NotificationSystem';
 
 interface UserModalProps {
   isOpen: boolean;
@@ -29,6 +29,7 @@ interface UserModalProps {
 const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose, user }) => {
   const { data: roles } = useRoles();
   const updateUser = useUpdateUser();
+  const { showSuccess, showError } = useNotification();
 
   const [formData, setFormData] = useState<UserFormData>({
     email: user?.email || '',
@@ -47,10 +48,12 @@ const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose, user }) => {
     try {
       if (user) {
         await updateUser.mutateAsync({ id: user.id, userData: formData });
+        showSuccess('Usuario actualizado exitosamente');
         onClose();
       }
     } catch (error) {
       console.error('Error saving user:', error);
+      showError('Error al actualizar usuario', error instanceof Error ? error.message : 'Error desconocido');
     }
   };
 
@@ -144,6 +147,7 @@ export const UsersPage: React.FC = () => {
   const { data: roles } = useRoles();
   const deleteUser = useDeleteUser();
   const updateUser = useUpdateUser();
+  const { showSuccess, showError } = useNotification();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -162,7 +166,7 @@ export const UsersPage: React.FC = () => {
   const handleQuickActivate = async (user: UserProfile, newRoleName: string) => {
     const targetRole = roles?.find(role => role.name === newRoleName);
     if (!targetRole) {
-      toast.error(`No se encontró el rol ${newRoleName}`);
+      showError('Error', `No se encontró el rol ${newRoleName}`);
       return;
     }
 
@@ -176,10 +180,10 @@ export const UsersPage: React.FC = () => {
           isActive: true
         }
       });
-      toast.success(`Usuario activado como ${newRoleName}`);
+      showSuccess('Usuario activado', `Usuario activado como ${newRoleName}`);
     } catch (error) {
       console.error('Error activating user:', error);
-      toast.error('Error al activar usuario');
+      showError('Error al activar usuario');
     }
   };
 
@@ -220,8 +224,11 @@ export const UsersPage: React.FC = () => {
     if (deleteModal.user) {
       try {
         await deleteUser.mutateAsync(deleteModal.user.id);
+        showSuccess('Usuario eliminado exitosamente');
+        setDeleteModal({ isOpen: false, user: null });
       } catch (error) {
         console.error('Error deleting user:', error);
+        showError('Error al eliminar usuario', error instanceof Error ? error.message : 'Error desconocido');
       }
     }
   };

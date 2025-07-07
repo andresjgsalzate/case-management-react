@@ -1,7 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { CaseStatusControl } from '@/types';
-import { toast } from 'react-hot-toast';
 
 // Interfaces para formularios
 export interface CaseStatusFormData {
@@ -71,10 +70,6 @@ export const useCreateCaseStatus = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['caseStatuses'] });
-      toast.success('Estado de control creado exitosamente');
-    },
-    onError: (error: Error) => {
-      toast.error(error.message || 'Error al crear el estado de control');
     },
   });
 };
@@ -110,10 +105,6 @@ export const useUpdateCaseStatus = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['caseStatuses'] });
-      toast.success('Estado de control actualizado exitosamente');
-    },
-    onError: (error: Error) => {
-      toast.error(error.message || 'Error al actualizar el estado de control');
     },
   });
 };
@@ -152,10 +143,6 @@ export const useDeleteCaseStatus = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['caseStatuses'] });
-      toast.success('Estado de control eliminado exitosamente');
-    },
-    onError: (error: Error) => {
-      toast.error(error.message || 'Error al eliminar el estado de control');
     },
   });
 };
@@ -184,10 +171,6 @@ export const useReorderCaseStatuses = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['caseStatuses'] });
-      toast.success('Estados reordenados exitosamente');
-    },
-    onError: (error: Error) => {
-      toast.error(error.message || 'Error al reordenar los estados');
     },
   });
 };

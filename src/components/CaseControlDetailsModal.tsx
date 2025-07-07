@@ -11,7 +11,7 @@ import { Input } from './Input';
 import { CaseControl } from '@/types';
 import { useTimeEntries, useManualTimeEntries, useAddManualTime, useDeleteManualTime, useDeleteTimeEntry } from '@/hooks/useCaseControl';
 import { formatDate, formatTime, formatDateLocal } from '@/utils/caseUtils';
-import toast from 'react-hot-toast';
+import { useNotification } from './NotificationSystem';
 
 interface CaseControlDetailsModalProps {
   isOpen: boolean;
@@ -31,6 +31,7 @@ export const CaseControlDetailsModal: React.FC<CaseControlDetailsModalProps> = (
   onClose,
   caseControl
 }) => {
+  const { showSuccess, showError } = useNotification();
   const timeEntriesQuery = useTimeEntries(caseControl?.id || '');
   const manualTimeEntriesQuery = useManualTimeEntries(caseControl?.id || '');
   const addManualTimeMutation = useAddManualTime();
@@ -107,30 +108,30 @@ export const CaseControlDetailsModal: React.FC<CaseControlDetailsModalProps> = (
       setShowManualTimeForm(false);
       
       // Mostrar notificación de éxito SOLO aquí
-      toast.success('Tiempo manual agregado exitosamente');
+      showSuccess('Tiempo manual agregado exitosamente');
     } catch (error) {
       console.error('Error adding manual time:', error);
-      toast.error('Error al agregar tiempo manual');
+      showError('Error al agregar tiempo manual');
     }
   };
 
   const handleDeleteManualTime = async (entryId: string) => {
     try {
       await deleteManualTimeMutation.mutateAsync(entryId);
-      toast.success('Tiempo manual eliminado exitosamente');
+      showSuccess('Tiempo manual eliminado exitosamente');
     } catch (error) {
       console.error('Error deleting manual time:', error);
-      toast.error('Error al eliminar tiempo manual');
+      showError('Error al eliminar tiempo manual');
     }
   };
 
   const handleDeleteTimeEntry = async (entryId: string) => {
     try {
       await deleteTimeEntryMutation.mutateAsync(entryId);
-      toast.success('Entrada de tiempo eliminada exitosamente');
+      showSuccess('Entrada de tiempo eliminada exitosamente');
     } catch (error) {
       console.error('Error deleting time entry:', error);
-      toast.error('Error al eliminar entrada de timer');
+      showError('Error al eliminar entrada de timer');
     }
   };
 

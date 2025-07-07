@@ -18,6 +18,7 @@ import {
 } from '@/hooks/useCaseStatusControl';
 import { Origen, Aplicacion, OrigenFormData, AplicacionFormData, CaseStatusControl } from '@/types';
 import { Modal } from '@/components/Modal';
+import { useNotification } from '@/components/NotificationSystem';
 import { Button } from '@/components/Button';
 import { Input } from '@/components/Input';
 import { PageWrapper } from '@/components/PageWrapper';
@@ -34,6 +35,7 @@ interface OrigenModalProps {
 const OrigenModal: React.FC<OrigenModalProps> = ({ isOpen, onClose, origen, isEdit = false }) => {
   const createOrigen = useCreateOrigen();
   const updateOrigen = useUpdateOrigen();
+  const { showSuccess, showError } = useNotification();
 
   const [formData, setFormData] = useState<OrigenFormData>({
     nombre: origen?.nombre || '',
@@ -51,12 +53,15 @@ const OrigenModal: React.FC<OrigenModalProps> = ({ isOpen, onClose, origen, isEd
     try {
       if (isEdit && origen) {
         await updateOrigen.mutateAsync({ id: origen.id, data: formData });
+        showSuccess('Origen actualizado exitosamente');
       } else {
         await createOrigen.mutateAsync(formData);
+        showSuccess('Origen creado exitosamente');
       }
       onClose();
     } catch (error) {
       console.error('Error saving origen:', error);
+      showError('Error al guardar origen: ' + (error instanceof Error ? error.message : 'Error desconocido'));
     }
   };
 
@@ -146,6 +151,7 @@ interface AplicacionModalProps {
 const AplicacionModal: React.FC<AplicacionModalProps> = ({ isOpen, onClose, aplicacion, isEdit = false }) => {
   const createAplicacion = useCreateAplicacion();
   const updateAplicacion = useUpdateAplicacion();
+  const { showSuccess, showError } = useNotification();
 
   const [formData, setFormData] = useState<AplicacionFormData>({
     nombre: aplicacion?.nombre || '',
@@ -163,12 +169,15 @@ const AplicacionModal: React.FC<AplicacionModalProps> = ({ isOpen, onClose, apli
     try {
       if (isEdit && aplicacion) {
         await updateAplicacion.mutateAsync({ id: aplicacion.id, data: formData });
+        showSuccess('Aplicación actualizada exitosamente');
       } else {
         await createAplicacion.mutateAsync(formData);
+        showSuccess('Aplicación creada exitosamente');
       }
       onClose();
     } catch (error) {
       console.error('Error saving aplicacion:', error);
+      showError('Error al guardar aplicación: ' + (error instanceof Error ? error.message : 'Error desconocido'));
     }
   };
 
@@ -258,6 +267,7 @@ interface CaseStatusModalProps {
 const CaseStatusModal: React.FC<CaseStatusModalProps> = ({ isOpen, onClose, caseStatus, isEdit = false }) => {
   const createCaseStatus = useCreateCaseStatus();
   const updateCaseStatus = useUpdateCaseStatus();
+  const { showSuccess, showError } = useNotification();
 
   const [formData, setFormData] = useState<CaseStatusFormData>({
     name: caseStatus?.name || '',
@@ -277,12 +287,15 @@ const CaseStatusModal: React.FC<CaseStatusModalProps> = ({ isOpen, onClose, case
     try {
       if (isEdit && caseStatus) {
         await updateCaseStatus.mutateAsync({ id: caseStatus.id, data: formData });
+        showSuccess('Estado de caso actualizado exitosamente');
       } else {
         await createCaseStatus.mutateAsync(formData);
+        showSuccess('Estado de caso creado exitosamente');
       }
       onClose();
     } catch (error) {
       console.error('Error saving case status:', error);
+      showError('Error al guardar estado de caso: ' + (error instanceof Error ? error.message : 'Error desconocido'));
     }
   };
 
@@ -412,6 +425,7 @@ const CaseStatusModal: React.FC<CaseStatusModalProps> = ({ isOpen, onClose, case
 
 export const ConfigurationPage: React.FC = () => {
   const { canManageOrigenes, canManageAplicaciones, canViewOrigenes, canViewAplicaciones } = usePermissions();
+  const { showSuccess, showError } = useNotification();
   
   const { data: origenes } = useOrigenes();
   const { data: aplicaciones } = useAplicaciones();
@@ -522,8 +536,11 @@ export const ConfigurationPage: React.FC = () => {
     if (deleteOrigenModal.origen) {
       try {
         await deleteOrigen.mutateAsync(deleteOrigenModal.origen.id);
+        showSuccess('Origen eliminado exitosamente');
+        setDeleteOrigenModal({ isOpen: false, origen: null });
       } catch (error) {
         console.error('Error deleting origen:', error);
+        showError('Error al eliminar origen: ' + (error instanceof Error ? error.message : 'Error desconocido'));
       }
     }
   };
@@ -556,8 +573,11 @@ export const ConfigurationPage: React.FC = () => {
     if (deleteAplicacionModal.aplicacion) {
       try {
         await deleteAplicacion.mutateAsync(deleteAplicacionModal.aplicacion.id);
+        showSuccess('Aplicación eliminada exitosamente');
+        setDeleteAplicacionModal({ isOpen: false, aplicacion: null });
       } catch (error) {
         console.error('Error deleting aplicacion:', error);
+        showError('Error al eliminar aplicación: ' + (error instanceof Error ? error.message : 'Error desconocido'));
       }
     }
   };
@@ -590,8 +610,11 @@ export const ConfigurationPage: React.FC = () => {
     if (deleteCaseStatusModal.caseStatus) {
       try {
         await deleteCaseStatus.mutateAsync(deleteCaseStatusModal.caseStatus.id);
+        showSuccess('Estado de caso eliminado exitosamente');
+        setDeleteCaseStatusModal({ isOpen: false, caseStatus: null });
       } catch (error) {
         console.error('Error deleting case status:', error);
+        showError('Error al eliminar estado de caso: ' + (error instanceof Error ? error.message : 'Error desconocido'));
       }
     }
   };

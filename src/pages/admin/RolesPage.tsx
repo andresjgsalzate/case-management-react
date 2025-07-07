@@ -15,6 +15,7 @@ import { Button } from '@/components/Button';
 import { Input } from '@/components/Input';
 import { PageWrapper } from '@/components/PageWrapper';
 import { ConfirmationModal } from '@/components/ConfirmationModal';
+import { useNotification } from '@/components/NotificationSystem';
 
 interface RoleModalProps {
   isOpen: boolean;
@@ -27,6 +28,7 @@ const RoleModal: React.FC<RoleModalProps> = ({ isOpen, onClose, role, isEdit = f
   const { data: permissions } = usePermissionsData();
   const createRole = useCreateRole();
   const updateRole = useUpdateRole();
+  const { showSuccess, showError } = useNotification();
 
   const [formData, setFormData] = useState<RoleFormData>({
     name: role?.name || '',
@@ -45,12 +47,15 @@ const RoleModal: React.FC<RoleModalProps> = ({ isOpen, onClose, role, isEdit = f
     try {
       if (isEdit && role) {
         await updateRole.mutateAsync({ id: role.id, roleData: formData });
+        showSuccess('Rol actualizado exitosamente');
       } else {
         await createRole.mutateAsync(formData);
+        showSuccess('Rol creado exitosamente');
       }
       onClose();
     } catch (error) {
       console.error('Error saving role:', error);
+      showError('Error al guardar rol', error instanceof Error ? error.message : 'Error desconocido');
     }
   };
 
@@ -273,6 +278,7 @@ export const RolesPage: React.FC = () => {
   const { canManageRoles, canViewRoles } = usePermissions();
   const { data: roles, isLoading, error } = useRoles();
   const deleteRole = useDeleteRole();
+  const { showSuccess, showError } = useNotification();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -331,8 +337,11 @@ export const RolesPage: React.FC = () => {
     if (deleteModal.role) {
       try {
         await deleteRole.mutateAsync(deleteModal.role.id);
+        showSuccess('Rol eliminado exitosamente');
+        setDeleteModal({ isOpen: false, role: null });
       } catch (error) {
         console.error('Error deleting role:', error);
+        showError('Error al eliminar rol', error instanceof Error ? error.message : 'Error desconocido');
       }
     }
   };

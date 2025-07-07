@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Routes, Route } from 'react-router-dom';
-import { Toaster } from 'react-hot-toast';
+import { NotificationProvider } from '@/components/NotificationSystem';
 import { useThemeStore } from '@/stores/themeStore';
 import { Layout } from '@/components/Layout';
 import { ConfigurationRequired } from '@/components/ConfigurationRequired';
@@ -68,7 +68,7 @@ function App() {
   }
 
   return (
-    <>
+    <NotificationProvider>
       <Routes>
         {/* Rutas públicas (sin autenticación) */}
         <Route path="/reset-password" element={<ResetPasswordPage />} />
@@ -80,15 +80,7 @@ function App() {
           </ProtectedRoute>
         } />
       </Routes>
-      
-      <Toaster 
-        position="bottom-right"
-        toastOptions={{
-          duration: 4000,
-          className: 'dark:bg-gray-800 dark:text-white',
-        }}
-      />
-    </>
+    </NotificationProvider>
   );
 }
 
