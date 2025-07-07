@@ -72,7 +72,7 @@ export function useTodoMetrics() {
 
       if (userRole === 'analista') {
         // Analistas solo ven sus TODOs
-        todosQuery = todosQuery.or(`created_by.eq.${user?.id},assigned_user_id.eq.${user?.id}`);
+        todosQuery = todosQuery.or(`created_by_user_id.eq.${user?.id},assigned_user_id.eq.${user?.id}`);
       }
       // Admin y supervisor ven todos
 

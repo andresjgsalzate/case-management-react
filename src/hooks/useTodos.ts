@@ -43,7 +43,7 @@ export function useTodos() {
       // Si el usuario NO puede ver todos los TODOs, filtrar según su rol
       if (!canViewAllTodos && userProfile?.id) {
         // Solo mostrar TODOs asignados al usuario o creados por él
-        query = query.or(`assigned_user_id.eq.${userProfile.id},created_by.eq.${userProfile.id}`);
+        query = query.or(`assigned_user_id.eq.${userProfile.id},created_by_user_id.eq.${userProfile.id}`);
       }
 
       // Aplicar filtros adicionales
@@ -226,18 +226,32 @@ export function useTodos() {
   const deleteTodo = async (todoId: string): Promise<boolean> => {
     try {
       setError(null);
+      console.log('🗑️ Intentando eliminar TODO:', todoId);
 
-      const { error: deleteError } = await supabase
+      const { data, error: deleteError, count } = await supabase
         .from('todos')
         .delete()
-        .eq('id', todoId);
+        .eq('id', todoId)
+        .select(); // Agregamos select para ver qué se eliminó
 
-      if (deleteError) throw deleteError;
+      console.log('🔍 Resultado de eliminación:', { data, error: deleteError, count });
 
+      if (deleteError) {
+        console.error('❌ Error en la eliminación:', deleteError);
+        throw deleteError;
+      }
+
+      // Verificar si realmente se eliminó algo
+      if (!data || data.length === 0) {
+        console.warn('⚠️ No se eliminó ningún registro. Posible problema de permisos RLS.');
+        throw new Error('No se pudo eliminar el TODO. Verifique sus permisos.');
+      }
+
+      console.log('✅ TODO eliminado exitosamente:', data);
       await fetchTodos(); // Recargar la lista
       return true;
     } catch (err) {
-      console.error('Error deleting todo:', err);
+      console.error('💥 Error deleting todo:', err);
       setError(err instanceof Error ? err.message : 'Error al eliminar TODO');
       return false;
     }

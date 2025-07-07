@@ -11,6 +11,26 @@ export interface VersionInfo {
 
 export const changelog: VersionInfo[] = [
   {
+    version: "2.3.2",
+    date: "2025-07-07",
+    changes: [
+      {
+        type: "bugfix",
+        description: "🔍 Fix consultas TODOs: Corregido uso de 'created_by_user_id' en lugar de 'created_by' en filtros y métricas"
+      }
+    ]
+  },
+  {
+    version: "2.3.1",
+    date: "2025-07-07",
+    changes: [
+      {
+        type: "bugfix",
+        description: "🔐 Fix RLS TODOs: Corregida política de eliminación para que analistas puedan eliminar sus propios TODOs y los asignados"
+      }
+    ]
+  },
+  {
     version: "2.3.0",
     date: "2025-07-07",
     changes: [
@@ -263,6 +283,14 @@ export const changelog: VersionInfo[] = [
       {
         type: "bugfix",
         description: "⚠️ Modal Confirmación Funcional: Eliminación exitosa de entradas con feedback visual"
+      },
+      {
+        type: "bugfix",
+        description: "🔐 Fix RLS TODOs: Corregida política de eliminación para que analistas puedan eliminar sus propios TODOs y los asignados"
+      },
+      {
+        type: "improvement",
+        description: "⚡ Mejoras en el rendimiento de consultas y eliminación de datos innecesarios"
       }
     ]
   },
