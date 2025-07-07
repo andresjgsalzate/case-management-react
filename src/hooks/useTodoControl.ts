@@ -1,9 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
 import { 
   TodoControl, 
   TodoControlUpdate,
-  CreateTodoManualTimeEntryData 
+  CreateTodoManualTimeEntryData,
+  TodoTimeEntry,
+  TodoManualTimeEntry
 } from '../types';
 import { useAuth } from './useAuth';
 
@@ -523,3 +526,128 @@ export function useTodoControl() {
     hasActiveTimer: getActiveControls().length > 0
   };
 }
+
+// Nuevos hooks para obtener todos los time entries (para reportes)
+export const useAllTodoTimeEntries = () => {
+  return useQuery({
+    queryKey: ['allTodoTimeEntries'],
+    queryFn: async (): Promise<TodoTimeEntry[]> => {
+      const { data, error } = await supabase
+        .from('todo_time_entries')
+        .select('*')
+        .order('start_time', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching all todo time entries:', error);
+        throw error;
+      }
+
+      return data || [];
+    },
+  });
+};
+
+export const useAllTodoManualTimeEntries = () => {
+  return useQuery({
+    queryKey: ['allTodoManualTimeEntries'],
+    queryFn: async (): Promise<TodoManualTimeEntry[]> => {
+      const { data, error } = await supabase
+        .from('todo_manual_time_entries')
+        .select('*')
+        .order('date', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching all todo manual time entries:', error);
+        throw error;
+      }
+
+      return data || [];
+    },
+  });
+};
+
+export const useAllTodoControls = () => {
+  return useQuery({
+    queryKey: ['allTodoControls'],
+    queryFn: async (): Promise<TodoControl[]> => {
+      const { data, error } = await supabase
+        .from('todo_control')
+        .select(`
+          *,
+          user:user_profiles(*),
+          status:case_status_control(*),
+          todo:todos(
+            *,
+            priority:todo_priorities(*)
+          )
+        `)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching all todo controls:', error);
+        throw error;
+      }
+
+      const formattedControls: TodoControl[] = (data || []).map(control => ({
+        id: control.id,
+        todoId: control.todo_id,
+        userId: control.user_id,
+        statusId: control.status_id,
+        totalTimeMinutes: control.total_time_minutes,
+        timerStartAt: control.timer_start_at,
+        isTimerActive: control.is_timer_active,
+        assignedAt: control.assigned_at,
+        startedAt: control.started_at,
+        completedAt: control.completed_at,
+        createdAt: control.created_at,
+        updatedAt: control.updated_at,
+        user: control.user ? {
+          id: control.user.id,
+          email: control.user.email,
+          fullName: control.user.full_name,
+          roleId: control.user.role_id,
+          isActive: control.user.is_active,
+          lastLoginAt: control.user.last_login_at,
+          createdAt: control.user.created_at,
+          updatedAt: control.user.updated_at
+        } : undefined,
+        status: control.status ? {
+          id: control.status.id,
+          name: control.status.name,
+          description: control.status.description,
+          color: control.status.color,
+          isActive: control.status.is_active,
+          displayOrder: control.status.display_order,
+          createdAt: control.status.created_at,
+          updatedAt: control.status.updated_at
+        } : undefined,
+        todo: control.todo ? {
+          id: control.todo.id,
+          title: control.todo.title,
+          description: control.todo.description,
+          priorityId: control.todo.priority_id,
+          assignedUserId: control.todo.assigned_user_id,
+          estimatedMinutes: control.todo.estimated_minutes,
+          tags: control.todo.tags || [],
+          dueDate: control.todo.due_date,
+          createdBy: control.todo.created_by,
+          createdAt: control.todo.created_at,
+          updatedAt: control.todo.updated_at,
+          priority: control.todo.priority ? {
+            id: control.todo.priority.id,
+            name: control.todo.priority.name,
+            description: control.todo.priority.description,
+            color: control.todo.priority.color,
+            level: control.todo.priority.level,
+            isActive: control.todo.priority.is_active,
+            displayOrder: control.todo.priority.display_order,
+            createdAt: control.todo.priority.created_at,
+            updatedAt: control.todo.priority.updated_at
+          } : undefined
+        } : undefined
+      }));
+
+      return formattedControls;
+    },
+  });
+};

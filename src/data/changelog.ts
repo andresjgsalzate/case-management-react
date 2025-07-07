@@ -11,6 +11,50 @@ export interface VersionInfo {
 
 export const changelog: VersionInfo[] = [
   {
+    version: "2.6.0",
+    date: "2025-07-07",
+    changes: [
+      {
+        type: "improvement",
+        description: "📊 Refactorización de Métricas Dashboard: Eliminadas métricas 'Promedio por Caso' y 'Usuarios Activos'"
+      },
+      {
+        type: "feature",
+        description: "⏱️ Métricas de Tiempo Combinadas: 'Tiempo Total' ahora suma tiempo de casos y TODOs"
+      },
+      {
+        type: "feature",
+        description: "📈 Nuevas Métricas Específicas: Agregadas tarjetas 'Tiempo Total por Caso' y 'Tiempo Total por TODOs'"
+      },
+      {
+        type: "improvement",
+        description: "🎯 Mejora Visual: Reorganización de las métricas de tiempo para mayor claridad y utilidad"
+      }
+    ]
+  },
+  {
+    version: "2.5.0",
+    date: "2025-07-07",
+    changes: [
+      {
+        type: "feature",
+        description: "📊 Sistema de Reportes TODO: Implementado generador de reportes Excel para TODOs con métricas completas de tiempo, eficiencia y cumplimiento"
+      },
+      {
+        type: "feature",
+        description: "📈 Métricas Avanzadas: Reportes incluyen tiempo estimado vs real, cálculo de eficiencia, estado de cumplimiento y análisis por prioridad"
+      },
+      {
+        type: "improvement",
+        description: "🔐 Permisos Respetados: Sistema de reportes respeta las mismas reglas de permisos que Control de Casos"
+      },
+      {
+        type: "improvement",
+        description: "📄 Formato Mejorado: Reportes con columnas organizadas, filtros automáticos y formato optimizado para análisis"
+      }
+    ]
+  },
+  {
     version: "2.4.0",
     date: "2025-07-07",
     changes: [
@@ -29,6 +73,10 @@ export const changelog: VersionInfo[] = [
       {
         type: "improvement",
         description: "📐 Iconos Mejorados: Aumentado tamaño de iconos en sidebar colapsado para mejor visibilidad (h-5 → h-6)"
+      },
+      {
+        type: "feature",
+        description: "📊 Reportes TODO: Implementado sistema de reportes para TODOs con métricas de tiempo y eficiencia, respetando permisos de usuario"
       },
       {
         type: "improvement",

@@ -5,8 +5,6 @@ import {
   ExclamationTriangleIcon,
   ClockIcon,
   CheckCircleIcon,
-  UserIcon,
-  ChartBarIcon,
   ComputerDesktopIcon,
   ListBulletIcon
 } from '@heroicons/react/24/outline';
@@ -189,6 +187,33 @@ export const Dashboard: React.FC = () => {
                   Tiempo Total
                 </p>
                 <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                  {timeLoading || todoLoading ? '...' : 
+                    timeMetrics && todoMetrics ? 
+                      `${((timeMetrics.totalTimeMinutes + todoMetrics.totalTimeMonth) / 60).toFixed(1)}h` : 
+                      '0h'
+                  }
+                </p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  {timeLoading || todoLoading ? '...' : 
+                    timeMetrics && todoMetrics ? 
+                      `${timeMetrics.totalTimeMinutes + todoMetrics.totalTimeMonth} min` : 
+                      '0 min'
+                  }
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="card p-6">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <DocumentTextIcon className="h-8 w-8 text-blue-600" />
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                  Tiempo Total por Caso
+                </p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">
                   {timeLoading ? '...' : timeMetrics ? `${timeMetrics.totalHours.toFixed(1)}h` : '0h'}
                 </p>
                 <p className="text-xs text-gray-500 dark:text-gray-400">
@@ -201,30 +226,17 @@ export const Dashboard: React.FC = () => {
           <div className="card p-6">
             <div className="flex items-center">
               <div className="flex-shrink-0">
-                <ChartBarIcon className="h-8 w-8 text-indigo-600" />
+                <ListBulletIcon className="h-8 w-8 text-green-600" />
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                  Promedio por Caso
+                  Tiempo Total por TODOs
                 </p>
                 <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                  {timeLoading ? '...' : timeMetrics ? `${timeMetrics.averageTimePerCase.toFixed(1)}m` : '0m'}
+                  {todoLoading ? '...' : todoMetrics ? `${(todoMetrics.totalTimeMonth / 60).toFixed(1)}h` : '0h'}
                 </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="card p-6">
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <UserIcon className="h-8 w-8 text-cyan-600" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                  Usuarios Activos
-                </p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                  {userTimeLoading ? '...' : userTimeMetrics ? userTimeMetrics.length : '0'}
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  {todoLoading ? '...' : todoMetrics ? `${todoMetrics.totalTimeMonth} min` : '0 min'}
                 </p>
               </div>
             </div>

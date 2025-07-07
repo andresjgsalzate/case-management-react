@@ -7,7 +7,7 @@ import { LoadingSpinner } from '../components/LoadingSpinner';
 import { PageWrapper } from '../components/PageWrapper';
 import { ConfirmationModal } from '../components/ConfirmationModal';
 import { useTodos } from '../hooks/useTodos';
-import { useTodoControl } from '../hooks/useTodoControl';
+import { useTodoControl, useAllTodoControls, useAllTodoTimeEntries, useAllTodoManualTimeEntries } from '../hooks/useTodoControl';
 import { useTodoPriorities } from '../hooks/useTodoPriorities';
 import { useTodoPermissions } from '../hooks/useTodoPermissions';
 import { CreateTodoData, UpdateTodoData, TodoItem, TodoFilters } from '../types';
@@ -18,9 +18,11 @@ import {
   CheckCircleIcon,
   ExclamationTriangleIcon,
   ListBulletIcon,
-  ExclamationCircleIcon
+  ExclamationCircleIcon,
+  DocumentChartBarIcon
 } from '@heroicons/react/24/outline';
 import { useNotification } from '../components/NotificationSystem';
+import { exportTodoControlReport } from '../utils/exportUtils';
 
 export default function TodosPage() {
   const { showSuccess, showError } = useNotification();
@@ -77,6 +79,34 @@ export default function TodosPage() {
   } = useTodoControl();
 
   const { priorities } = useTodoPriorities();
+
+  // Hooks para reportes
+  const { data: allTodoControls = [], isLoading: loadingControls } = useAllTodoControls();
+  const { data: allTodoTimeEntries = [], isLoading: loadingTimeEntries } = useAllTodoTimeEntries();
+  const { data: allTodoManualTimeEntries = [], isLoading: loadingManualEntries } = useAllTodoManualTimeEntries();
+
+  // Función para generar reporte
+  const handleGenerateReport = async () => {
+    if (loadingTimeEntries || loadingManualEntries || loadingControls) {
+      return; // Los hooks ya muestran el estado de carga
+    }
+
+    try {
+      const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
+      const filename = `reporte-control-todos-${timestamp}.xlsx`;
+      
+      exportTodoControlReport(
+        allTodoControls,
+        allTodoTimeEntries,
+        allTodoManualTimeEntries,
+        filename,
+        showSuccess
+      );
+    } catch (error) {
+      console.error('Error generating TODO report:', error);
+      showError('Error al generar el reporte');
+    }
+  };
 
   // Verificar acceso al módulo
   if (!canAccessTodoModule) {
@@ -296,6 +326,18 @@ export default function TodosPage() {
           </p>
         </div>
         <div className="flex space-x-3">
+          {/* Botón de reportes */}
+          <Button
+            variant="outline"
+            size="sm"
+            className="flex items-center"
+            onClick={handleGenerateReport}
+            disabled={loadingTimeEntries || loadingManualEntries || loadingControls}
+          >
+            <DocumentChartBarIcon className="h-4 w-4 mr-2" />
+            Reportes
+          </Button>
+          
           <Button
             variant="secondary"
             onClick={() => setShowFilters(!showFilters)}

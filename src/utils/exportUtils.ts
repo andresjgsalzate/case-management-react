@@ -282,6 +282,236 @@ export const exportCaseControlReport = (
 };
 
 /**
+ * Genera un reporte de control de TODOs en Excel
+ */
+export const exportTodoControlReport = (
+  todoControls: any[],
+  timeEntries: any[],
+  manualTimeEntries: any[],
+  filename: string = 'reporte-control-todos.xlsx',
+  onSuccess?: NotificationFn
+) => {
+  console.log('📊 Generando reporte de control de TODOs...');
+
+  // Crear un mapa para agrupar por TODO y día
+  const reportData: { [key: string]: any } = {};
+
+  // Función helper para crear entradas del reporte
+  function createReportEntry(todoControl: any, date: string) {
+    // Extraer datos de manera más robusta
+    const todoData = todoControl.todo || {};
+    const userData = todoControl.user || {};
+    const statusData = todoControl.status || {};
+    const priorityData = todoData.priority || {};
+    
+    // Intentar obtener el título del TODO de diferentes maneras
+    const tituloTodo = todoData.title || 
+                      todoControl.todo_title || 
+                      todoControl.todoId || 
+                      'N/A';
+    
+    // Intentar obtener la descripción de diferentes maneras
+    const descripcionTodo = todoData.description || 
+                           todoControl.todo_description || 
+                           'Sin descripción';
+    
+    // Intentar obtener el nombre del usuario de diferentes maneras
+    const usuarioAsignado = userData.fullName || 
+                           userData.full_name || 
+                           userData.name || 
+                           todoControl.assigned_user_name || 
+                           todoControl.user_name ||
+                           'N/A';
+    
+    // Intentar obtener el estado de diferentes maneras
+    const estado = statusData.name || 
+                   todoControl.status_name || 
+                   'N/A';
+    
+    // Intentar obtener la prioridad de diferentes maneras
+    const prioridad = priorityData.name || 
+                     todoControl.priority_name || 
+                     'N/A';
+
+    // Obtener nivel de prioridad
+    const nivelPrioridad = priorityData.level || 
+                          todoControl.priority_level || 
+                          0;
+    
+    // Obtener tiempo estimado
+    const tiempoEstimado = todoData.estimatedMinutes || 
+                          todoControl.estimated_minutes || 
+                          0;
+
+    // Obtener fecha de vencimiento
+    const fechaVencimiento = todoData.dueDate || 
+                            todoControl.due_date || 
+                            'N/A';
+
+    // Obtener etiquetas
+    const etiquetas = (todoData.tags || todoControl.tags || []).join(', ') || 'Sin etiquetas';
+    
+    return {
+      tituloTodo,
+      descripcionTodo,
+      fecha: date,
+      tiempoTimer: 0,
+      tiempoManual: 0,
+      tiempoTotal: 0,
+      tiempoEstimado,
+      estado,
+      prioridad,
+      nivelPrioridad,
+      usuarioAsignado,
+      fechaVencimiento: fechaVencimiento !== 'N/A' ? new Date(fechaVencimiento).toLocaleDateString('es-ES') : 'N/A',
+      fechaAsignacion: todoControl.assigned_at ? new Date(todoControl.assigned_at).toLocaleDateString('es-ES') : 'N/A',
+      fechaInicio: todoControl.started_at ? new Date(todoControl.started_at).toLocaleDateString('es-ES') : 'N/A',
+      fechaComplecion: todoControl.completed_at ? new Date(todoControl.completed_at).toLocaleDateString('es-ES') : 'N/A',
+      etiquetas
+    };
+  }
+
+  // Procesar time entries
+  timeEntries.forEach(entry => {
+    const todoControl = todoControls.find(tc => tc.id === entry.todoControlId || tc.id === entry.todo_control_id);
+    if (!todoControl) return;
+
+    const date = entry.startTime || entry.start_time ? 
+                 new Date(entry.startTime || entry.start_time).toISOString().split('T')[0] : 
+                 'Sin fecha';
+    const key = `${todoControl.todo?.title || todoControl.todoId || 'N/A'}-${date}`;
+
+    if (!reportData[key]) {
+      reportData[key] = createReportEntry(todoControl, date);
+    }
+
+    reportData[key].tiempoTimer += entry.durationMinutes || entry.duration_minutes || 0;
+  });
+
+  // Procesar manual time entries
+  manualTimeEntries.forEach(entry => {
+    const todoControl = todoControls.find(tc => tc.id === entry.todoControlId || tc.id === entry.todo_control_id);
+    if (!todoControl) return;
+
+    const date = entry.date;
+    const key = `${todoControl.todo?.title || todoControl.todoId || 'N/A'}-${date}`;
+
+    if (!reportData[key]) {
+      reportData[key] = createReportEntry(todoControl, date);
+    }
+
+    reportData[key].tiempoManual += entry.durationMinutes || entry.duration_minutes || 0;
+  });
+
+  // Si no hay datos de tiempo, crear entradas para todos los todo controls
+  if (Object.keys(reportData).length === 0 && todoControls.length > 0) {
+    console.log('ℹ️ No hay datos de tiempo, creando entradas para todo controls existentes');
+    todoControls.forEach(todoControl => {
+      const today = new Date().toISOString().split('T')[0];
+      const key = `${todoControl.todo?.title || 'NO-DATA'}-${today}`;
+      reportData[key] = createReportEntry(todoControl, today);
+    });
+  }
+
+  // Calcular tiempo total y convertir a formato Excel
+  const excelData = Object.values(reportData).map((entry: any) => {
+    entry.tiempoTotal = entry.tiempoTimer + entry.tiempoManual;
+    
+    // Calcular eficiencia (tiempo real vs estimado)
+    const eficiencia = entry.tiempoEstimado > 0 ? 
+                      ((entry.tiempoEstimado / entry.tiempoTotal) * 100).toFixed(1) + '%' : 
+                      'N/A';
+
+    // Determinar estado de cumplimiento
+    const estadoCumplimiento = entry.tiempoTotal === 0 ? 'Sin tiempo registrado' :
+                              entry.tiempoEstimado === 0 ? 'Sin estimación' :
+                              entry.tiempoTotal <= entry.tiempoEstimado ? 'Dentro del tiempo' :
+                              'Excedido';
+    
+    return {
+      'Título TODO': entry.tituloTodo,
+      'Descripción': entry.descripcionTodo,
+      'Fecha': entry.fecha,
+      'Tiempo Timer (Horas)': Math.floor(entry.tiempoTimer / 60) + (entry.tiempoTimer % 60) / 60,
+      'Tiempo Manual (Horas)': Math.floor(entry.tiempoManual / 60) + (entry.tiempoManual % 60) / 60,
+      'Tiempo Total (Horas)': Math.floor(entry.tiempoTotal / 60) + (entry.tiempoTotal % 60) / 60,
+      'Tiempo Estimado (Horas)': Math.floor(entry.tiempoEstimado / 60) + (entry.tiempoEstimado % 60) / 60,
+      'Tiempo Timer (Minutos)': entry.tiempoTimer,
+      'Tiempo Manual (Minutos)': entry.tiempoManual,
+      'Tiempo Total (Minutos)': entry.tiempoTotal,
+      'Tiempo Estimado (Minutos)': entry.tiempoEstimado,
+      'Eficiencia': eficiencia,
+      'Estado de Cumplimiento': estadoCumplimiento,
+      'Estado': entry.estado,
+      'Prioridad': entry.prioridad,
+      'Nivel de Prioridad': entry.nivelPrioridad,
+      'Usuario Asignado': entry.usuarioAsignado,
+      'Fecha de Vencimiento': entry.fechaVencimiento,
+      'Fecha de Asignación': entry.fechaAsignacion,
+      'Fecha de Inicio': entry.fechaInicio,
+      'Fecha de Completación': entry.fechaComplecion,
+      'Etiquetas': entry.etiquetas
+    };
+  });
+
+  // Ordenar por prioridad (nivel), luego por título del TODO y fecha
+  excelData.sort((a, b) => {
+    const priorityCompare = b['Nivel de Prioridad'] - a['Nivel de Prioridad']; // Mayor prioridad primero
+    if (priorityCompare !== 0) return priorityCompare;
+    
+    const titleCompare = a['Título TODO'].localeCompare(b['Título TODO']);
+    if (titleCompare !== 0) return titleCompare;
+    
+    return new Date(a['Fecha']).getTime() - new Date(b['Fecha']).getTime();
+  });
+
+  console.log('✅ Reporte de TODOs generado exitosamente con', excelData.length, 'filas');
+
+  // Crear el libro de Excel
+  const worksheet = XLSX.utils.json_to_sheet(excelData);
+  const workbook = XLSX.utils.book_new();
+  
+  // Añadir la hoja al libro
+  XLSX.utils.book_append_sheet(workbook, worksheet, 'Reporte Control TODOs');
+
+  // Configurar el ancho de las columnas
+  const columnWidths = [
+    { wch: 25 }, // Título TODO
+    { wch: 40 }, // Descripción
+    { wch: 12 }, // Fecha
+    { wch: 18 }, // Tiempo Timer (Horas)
+    { wch: 18 }, // Tiempo Manual (Horas)
+    { wch: 18 }, // Tiempo Total (Horas)
+    { wch: 18 }, // Tiempo Estimado (Horas)
+    { wch: 18 }, // Tiempo Timer (Minutos)
+    { wch: 18 }, // Tiempo Manual (Minutos)
+    { wch: 18 }, // Tiempo Total (Minutos)
+    { wch: 20 }, // Tiempo Estimado (Minutos)
+    { wch: 12 }, // Eficiencia
+    { wch: 20 }, // Estado de Cumplimiento
+    { wch: 15 }, // Estado
+    { wch: 15 }, // Prioridad
+    { wch: 12 }, // Nivel de Prioridad
+    { wch: 20 }, // Usuario Asignado
+    { wch: 18 }, // Fecha de Vencimiento
+    { wch: 18 }, // Fecha de Asignación
+    { wch: 18 }, // Fecha de Inicio
+    { wch: 18 }, // Fecha de Completación
+    { wch: 30 }, // Etiquetas
+  ];
+  
+  worksheet['!cols'] = columnWidths;
+
+  // Escribir el archivo
+  XLSX.writeFile(workbook, filename);
+  
+  // Mostrar notificación de éxito
+  if (onSuccess) {
+    onSuccess('Reporte de TODOs generado exitosamente');
+  }
+};
+
+/**
  * Funciones auxiliares para formatear los valores de los casos
  */
 function getHistorialCasoText(value: number): string {

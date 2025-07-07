@@ -1,4 +1,4 @@
-# 🚀 Sistema de Gestión de Casos - React v2.2.8
+# 🚀 Sistema de Gestión de Casos - React v2.6.0
 
 Una aplicación moderna para la gestión integral de casos con control de tiempo, basada en React, TypeScript y Supabase.
 
@@ -13,6 +13,31 @@ Una aplicación moderna para la gestión integral de casos con control de tiempo
 
 ## ✨ Características Principales
 
+### 📊 **Dashboard Mejorado (v2.6.0)**
+- **Métricas de Tiempo Combinadas**: Tiempo total que suma casos y TODOs
+- **Métricas Específicas**: Tiempo separado por casos y TODOs
+- **Visualización Optimizada**: Eliminación de métricas redundantes
+- **Análisis Integral**: Vista unificada del trabajo realizado
+
+### 📈 **Sistema de Reportes Completo (v2.5.0)**
+- **Reportes de Control de Casos**: Exportación Excel con métricas detalladas de tiempo por caso y día
+- **Reportes de TODOs**: Sistema completo de reportes para TODOs con análisis de eficiencia y cumplimiento
+- **Métricas Avanzadas**: Tiempo estimado vs real, cálculo de eficiencia, estado de cumplimiento
+- **Respeto de Permisos**: Ambos sistemas respetan las reglas de permisos de usuario
+
+### �📱 **Interfaz Mejorada (v2.4.0)**
+- **Menú lateral colapsable** con logo como botón de toggle
+- **Iconos optimizados** para mejor visibilidad en modo colapsado
+- **Transiciones suaves** y tooltips informativos
+- **Responsive design** adaptativo
+
+### 🎯 **Gestión de TODOs (v2.3.0+)**
+- **CRUD completo** de tareas con prioridades y etiquetas
+- **Control de tiempo** integrado con timer automático
+- **Estimación de tiempo** y seguimiento de cumplimiento
+- **Estados y asignación** de usuarios
+- **Reportes de eficiencia** con métricas detalladas
+
 ### 📝 **Gestión de Casos**
 - **CRUD completo** de casos con validación robusta
 - **Clasificación automática** basada en puntuación (Baja/Media/Alta complejidad)
@@ -26,6 +51,14 @@ Una aplicación moderna para la gestión integral de casos con control de tiempo
 - **Estados de Control**: Seguimiento del progreso (Pendiente, En Curso, Escalada, Terminada)
 - **Reportes Detallados**: Exportación Excel con datos agrupados por caso y día
 - **Gestión de Permisos**: Control granular de acceso a funcionalidades
+
+### 📋 **Gestión de TODOs Avanzada**
+- **Control de Tiempo Completo**: Timer automático y registro manual para tareas
+- **Análisis de Eficiencia**: Comparación tiempo estimado vs tiempo real
+- **Estados de Cumplimiento**: Clasificación automática del rendimiento
+- **Reportes Especializados**: Excel con métricas específicas para TODOs
+- **Gestión de Prioridades**: Sistema de niveles con análisis por importancia
+- **Etiquetas y Categorización**: Organización flexible de tareas
 
 ### 👥 **Gestión de Usuarios Simplificada** (RENOVADO en v2.0.0)
 - **Registro Directo**: Usuarios se registran por su cuenta en el sistema
@@ -123,26 +156,73 @@ src/
 │   ├── Dashboard.tsx       # Panel principal
 │   ├── Cases.tsx           # Lista de casos
 │   ├── NewCase.tsx         # Crear/editar caso
-│   ├── CaseControl.tsx     # Control de casos (NUEVO)
+│   ├── CaseControl.tsx     # Control de casos
+│   ├── TodosPage.tsx       # Gestión de TODOs (NUEVO)
 │   └── admin/              # Páginas de administración
 ├── hooks/                  # Hooks personalizados
 │   ├── useCases.ts         # Gestión de casos
-│   ├── useCaseControl.ts   # Control de casos (NUEVO)
-│   ├── useTimerCounter.ts  # Contador de timer (NUEVO)
+│   ├── useCaseControl.ts   # Control de casos
+│   ├── useTodos.ts         # Gestión de TODOs (NUEVO)
+│   ├── useTodoControl.ts   # Control de TODOs (NUEVO)
+│   ├── useTimerCounter.ts  # Contador de timer
 │   └── useAuth.ts          # Autenticación
 ├── lib/                    # Configuraciones
 │   ├── supabase.ts         # Cliente de Supabase
-│   └── validations.ts  # Esquemas de validación
-├── stores/             # Estado global
-│   └── themeStore.ts   # Estado del tema
-├── types/              # Tipos TypeScript
-│   └── index.ts        # Tipos principales
-├── utils/              # Utilidades
-│   └── caseUtils.ts    # Utilidades de casos
-└── hooks/              # Custom hooks
+│   └── validations.ts      # Esquemas de validación
+├── stores/                 # Estado global
+│   └── themeStore.ts       # Estado del tema
+├── types/                  # Tipos TypeScript
+│   └── index.ts            # Tipos principales (actualizado)
+├── utils/                  # Utilidades
+│   ├── caseUtils.ts        # Utilidades de casos
+│   └── exportUtils.ts      # Exportación de reportes (mejorado)
+└── components/             # Componentes reutilizables
 ```
 
 ## 🎯 Funcionalidades Principales
+
+### 📊 Sistema de Reportes Avanzado
+
+El sistema incluye **reportes especializados** para ambos módulos:
+
+#### **Reportes de Control de Casos:**
+- **Datos por Caso y Día**: Agrupación inteligente de tiempo trabajado
+- **Tiempo Automático y Manual**: Registro completo de actividades
+- **Información Contextual**: Usuario, estado, aplicación, fechas
+- **Formato Excel**: Exportación con columnas optimizadas
+
+#### **Reportes de TODOs:**
+- **Análisis de Eficiencia**: Comparación tiempo estimado vs real
+- **Estado de Cumplimiento**: Clasificación automática del rendimiento
+- **Métricas por Prioridad**: Análisis ordenado por importancia
+- **Gestión de Etiquetas**: Categorización y organización
+- **Formato Especializado**: Columnas específicas para gestión de tareas
+
+#### **Características Comunes:**
+- **Respeto de Permisos**: Acceso controlado según roles
+- **Generación Automática**: Un clic para obtener reportes completos
+- **Formato Profesional**: Excel con anchos de columna optimizados
+- **Ordenamiento Inteligente**: Datos organizados por relevancia
+
+### 🎯 Gestión de TODOs Completa
+
+El sistema incluye un **módulo completo de gestión de tareas**:
+
+#### **Funcionalidades de TODOs:**
+- **Crear y Gestionar**: CRUD completo de tareas
+- **Prioridades**: Sistema de niveles (Alta, Media, Baja)
+- **Estimación de Tiempo**: Planificación de tareas
+- **Control de Tiempo**: Timer integrado y registro manual
+- **Estados**: Seguimiento del progreso de tareas
+- **Asignación**: Distribución de tareas entre usuarios
+- **Etiquetas**: Categorización flexible
+- **Fechas de Vencimiento**: Control de plazos
+
+#### **Métricas y Análisis:**
+- **Eficiencia**: Porcentaje de cumplimiento temporal
+- **Cumplimiento**: Estado automático basado en tiempos
+- **Reportes Detallados**: Análisis completo en Excel
+- **Dashboard**: Métricas en tiempo real
 
 ### Gestión de Usuarios Simplificada
 
@@ -250,12 +330,52 @@ El tema oscuro se maneja automáticamente con Tailwind CSS y Zustand.
 
 ## 📊 Características Técnicas
 
+### 🔧 Tecnologías Principales
 - **Validación**: Esquemas Zod para validación robusta
 - **Estado**: React Query para datos del servidor, Zustand para estado local
 - **Tipos**: TypeScript estricto con tipos personalizados
 - **Performance**: Lazy loading, memoización, optimizaciones de bundle
 - **Accesibilidad**: Componentes accesibles con ARIA labels
 - **SEO**: Meta tags y estructura semántica
+
+### 📊 Sistema de Reportes
+- **Exportación Excel**: Generación automática con XLSX
+- **Filtrado de Datos**: Respeto de permisos de usuario
+- **Formato Optimizado**: Anchos de columna y ordenamiento inteligente
+- **Múltiples Módulos**: Reportes para Casos y TODOs
+- **Métricas Avanzadas**: Análisis de tiempo y eficiencia
+
+### 🎯 Gestión de Permisos
+- **Control Granular**: Permisos específicos por funcionalidad
+- **Seguridad RLS**: Row Level Security en Supabase
+- **Roles Dinámicos**: Asignación flexible de permisos
+- **Consistencia**: Mismo sistema para todos los módulos
+
+## 🆕 Novedades Recientes
+
+### 🎉 **Versión 2.6.0 - Dashboard Mejorado**
+- **📊 Métricas Combinadas**: Tiempo total que suma casos y TODOs
+- **📈 Métricas Específicas**: Tiempo separado por casos y TODOs
+- **🎯 Visualización Optimizada**: Eliminación de métricas redundantes
+- **🔄 Análisis Integral**: Vista unificada del trabajo realizado
+
+### 🎉 **Versión 2.5.0 - Sistema de Reportes TODO**
+- **📊 Reportes Completos**: Generación de reportes Excel para TODOs con métricas avanzadas
+- **📈 Análisis de Eficiencia**: Comparación tiempo estimado vs tiempo real
+- **🎯 Estado de Cumplimiento**: Clasificación automática del rendimiento
+- **🔐 Permisos Respetados**: Mismo sistema de seguridad que Control de Casos
+
+### 🎉 **Versión 2.4.0 - Menú Colapsable**
+- **📱 Sidebar Responsive**: Menú lateral colapsable con logo como toggle
+- **🎯 UX Mejorada**: Transiciones suaves y tooltips informativos
+- **📐 Iconos Optimizados**: Mejor visibilidad en modo colapsado
+- **🔧 Navegación Corregida**: Enlaces de configuración funcionales
+
+### 🎉 **Versión 2.3.0 - Módulo de TODOs**
+- **📋 Gestión Completa**: CRUD de tareas con prioridades y etiquetas
+- **⏱️ Control de Tiempo**: Timer integrado y registro manual
+- **🎯 Estimación**: Planificación y seguimiento de tiempos
+- **📊 Dashboard**: Métricas y estadísticas en tiempo real
 
 ## 🚀 Despliegue
 
