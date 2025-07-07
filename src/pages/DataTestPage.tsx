@@ -3,6 +3,7 @@ import { TableCellsIcon, CircleStackIcon, ArrowPathIcon } from '@heroicons/react
 import { useCases } from '@/hooks/useCases';
 import { useOrigenes, useAplicaciones } from '@/hooks/useOrigenesAplicaciones';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
+import { formatDateLocal } from '@/utils/caseUtils';
 import { supabase } from '@/lib/supabase';
 import { PageWrapper } from '@/components/PageWrapper';
 
@@ -266,7 +267,7 @@ export const DataTestPage: React.FC = () => {
                         {caso.puntuacion}/15
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                        {new Date(caso.fecha).toLocaleDateString('es-ES')}
+                        {formatDateLocal(caso.fecha)}
                       </td>
                     </tr>
                   ))

@@ -11,6 +11,56 @@ export interface VersionInfo {
 
 export const changelog: VersionInfo[] = [
   {
+    version: "2.2.6",
+    date: "2025-07-06",
+    changes: [
+      {
+        type: "improvement",
+        description: "✨ Experiencia de Usuario Mejorada: Reemplazados todos los diálogos nativos (alert/confirm) por modales de confirmación modernos y consistentes"
+      },
+      {
+        type: "improvement", 
+        description: "🎨 Interfaz Unificada: Implementación de modales de confirmación personalizados en Cases, Users, Roles, Permissions, Configuration y TODOs"
+      },
+      {
+        type: "improvement",
+        description: "🔒 Mejor Feedback Visual: Modales con iconos, colores temáticos y mensajes más descriptivos para acciones de eliminación"
+      }
+    ]
+  },
+  {
+    version: "2.2.5",
+    date: "2025-07-06",
+    changes: [
+      {
+        type: "improvement",
+        description: "📅 Formato de Fecha Mejorado: Cambio a formato DD/MM/AAAA para mejor legibilidad"
+      },
+      {
+        type: "improvement",
+        description: "🎯 Consistencia Visual: Formato unificado en toda la aplicación (03/07/2025)"
+      }
+    ]
+  },
+  {
+    version: "2.2.4",
+    date: "2025-07-06",
+    changes: [
+      {
+        type: "bugfix",
+        description: "🗓️ Corrección Fechas de Casos: Solucionado problema de zona horaria que mostraba fechas con un día de diferencia"
+      },
+      {
+        type: "bugfix",
+        description: "📅 Formato de Fecha Consistente: Implementado formatDateLocal para evitar desfases de UTC vs local"
+      },
+      {
+        type: "improvement",
+        description: "🔧 Función Utilitaria: Uso de formatDateLocal en todas las visualizaciones de fechas de casos"
+      }
+    ]
+  },
+  {
     version: "2.2.3",
     date: "2025-07-06",
     changes: [

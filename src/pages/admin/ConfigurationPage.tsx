@@ -21,6 +21,7 @@ import { Modal } from '@/components/Modal';
 import { Button } from '@/components/Button';
 import { Input } from '@/components/Input';
 import { PageWrapper } from '@/components/PageWrapper';
+import { ConfirmationModal } from '@/components/ConfirmationModal';
 
 // Modal para Orígenes
 interface OrigenModalProps {
@@ -432,6 +433,31 @@ export const ConfigurationPage: React.FC = () => {
   const [selectedCaseStatus, setSelectedCaseStatus] = useState<CaseStatusControl | undefined>();
   const [isEdit, setIsEdit] = useState(false);
 
+  // Estados para modales de confirmación de eliminación
+  const [deleteOrigenModal, setDeleteOrigenModal] = useState<{
+    isOpen: boolean;
+    origen: Origen | null;
+  }>({
+    isOpen: false,
+    origen: null
+  });
+
+  const [deleteAplicacionModal, setDeleteAplicacionModal] = useState<{
+    isOpen: boolean;
+    aplicacion: Aplicacion | null;
+  }>({
+    isOpen: false,
+    aplicacion: null
+  });
+
+  const [deleteCaseStatusModal, setDeleteCaseStatusModal] = useState<{
+    isOpen: boolean;
+    caseStatus: CaseStatusControl | null;
+  }>({
+    isOpen: false,
+    caseStatus: null
+  });
+
   // Verificar permisos - agregar verificación para control de casos
   const canManageCaseStatuses = () => {
     // Por ahora usamos el mismo permiso que aplicaciones, pero se puede cambiar
@@ -485,14 +511,25 @@ export const ConfigurationPage: React.FC = () => {
     setIsOrigenModalOpen(true);
   };
 
-  const handleDeleteOrigen = async (origen: Origen) => {
-    if (window.confirm(`¿Estás seguro de que quieres eliminar el origen "${origen.nombre}"?`)) {
+  const handleDeleteOrigen = (origen: Origen) => {
+    setDeleteOrigenModal({
+      isOpen: true,
+      origen: origen
+    });
+  };
+
+  const confirmDeleteOrigen = async () => {
+    if (deleteOrigenModal.origen) {
       try {
-        await deleteOrigen.mutateAsync(origen.id);
+        await deleteOrigen.mutateAsync(deleteOrigenModal.origen.id);
       } catch (error) {
         console.error('Error deleting origen:', error);
       }
     }
+  };
+
+  const cancelDeleteOrigen = () => {
+    setDeleteOrigenModal({ isOpen: false, origen: null });
   };
 
   // Handlers para Aplicaciones
@@ -508,14 +545,25 @@ export const ConfigurationPage: React.FC = () => {
     setIsAplicacionModalOpen(true);
   };
 
-  const handleDeleteAplicacion = async (aplicacion: Aplicacion) => {
-    if (window.confirm(`¿Estás seguro de que quieres eliminar la aplicación "${aplicacion.nombre}"?`)) {
+  const handleDeleteAplicacion = (aplicacion: Aplicacion) => {
+    setDeleteAplicacionModal({
+      isOpen: true,
+      aplicacion: aplicacion
+    });
+  };
+
+  const confirmDeleteAplicacion = async () => {
+    if (deleteAplicacionModal.aplicacion) {
       try {
-        await deleteAplicacion.mutateAsync(aplicacion.id);
+        await deleteAplicacion.mutateAsync(deleteAplicacionModal.aplicacion.id);
       } catch (error) {
         console.error('Error deleting aplicacion:', error);
       }
     }
+  };
+
+  const cancelDeleteAplicacion = () => {
+    setDeleteAplicacionModal({ isOpen: false, aplicacion: null });
   };
 
   // Handlers para Estados de Control de Casos
@@ -531,14 +579,25 @@ export const ConfigurationPage: React.FC = () => {
     setIsCaseStatusModalOpen(true);
   };
 
-  const handleDeleteCaseStatus = async (caseStatus: CaseStatusControl) => {
-    if (window.confirm(`¿Estás seguro de que quieres eliminar el estado "${caseStatus.name}"?`)) {
+  const handleDeleteCaseStatus = (caseStatus: CaseStatusControl) => {
+    setDeleteCaseStatusModal({
+      isOpen: true,
+      caseStatus: caseStatus
+    });
+  };
+
+  const confirmDeleteCaseStatus = async () => {
+    if (deleteCaseStatusModal.caseStatus) {
       try {
-        await deleteCaseStatus.mutateAsync(caseStatus.id);
+        await deleteCaseStatus.mutateAsync(deleteCaseStatusModal.caseStatus.id);
       } catch (error) {
         console.error('Error deleting case status:', error);
       }
     }
+  };
+
+  const cancelDeleteCaseStatus = () => {
+    setDeleteCaseStatusModal({ isOpen: false, caseStatus: null });
   };
 
   const getButtonText = () => {
@@ -927,6 +986,40 @@ export const ConfigurationPage: React.FC = () => {
         onClose={() => setIsCaseStatusModalOpen(false)}
         caseStatus={selectedCaseStatus}
         isEdit={isEdit}
+      />
+
+      {/* Modales de Confirmación de Eliminación */}
+      <ConfirmationModal
+        isOpen={deleteOrigenModal.isOpen}
+        title="Confirmar eliminación"
+        message={`¿Estás seguro de que quieres eliminar el origen "${deleteOrigenModal.origen?.nombre}"? Esta acción no se puede deshacer.`}
+        confirmText="Eliminar"
+        cancelText="Cancelar"
+        onConfirm={confirmDeleteOrigen}
+        onClose={cancelDeleteOrigen}
+        type="danger"
+      />
+
+      <ConfirmationModal
+        isOpen={deleteAplicacionModal.isOpen}
+        title="Confirmar eliminación"
+        message={`¿Estás seguro de que quieres eliminar la aplicación "${deleteAplicacionModal.aplicacion?.nombre}"? Esta acción no se puede deshacer.`}
+        confirmText="Eliminar"
+        cancelText="Cancelar"
+        onConfirm={confirmDeleteAplicacion}
+        onClose={cancelDeleteAplicacion}
+        type="danger"
+      />
+
+      <ConfirmationModal
+        isOpen={deleteCaseStatusModal.isOpen}
+        title="Confirmar eliminación"
+        message={`¿Estás seguro de que quieres eliminar el estado "${deleteCaseStatusModal.caseStatus?.name}"? Esta acción no se puede deshacer.`}
+        confirmText="Eliminar"
+        cancelText="Cancelar"
+        onConfirm={confirmDeleteCaseStatus}
+        onClose={cancelDeleteCaseStatus}
+        type="danger"
       />
     </PageWrapper>
   );

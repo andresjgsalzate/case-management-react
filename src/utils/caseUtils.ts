@@ -51,11 +51,12 @@ export function formatDate(date: string | Date | null | undefined): string {
     return 'Fecha inválida';
   }
   
-  return dateObj.toLocaleDateString('es-ES', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  });
+  // Formato DD/MM/AAAA
+  const day = dateObj.getDate().toString().padStart(2, '0');
+  const month = (dateObj.getMonth() + 1).toString().padStart(2, '0');
+  const year = dateObj.getFullYear();
+  
+  return `${day}/${month}/${year}`;
 }
 
 /**
@@ -104,9 +105,6 @@ export function formatDateLocal(dateString: string): string {
     return 'Fecha inválida';
   }
   
-  return dateObj.toLocaleDateString('es-ES', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  });
+  // Formato DD/MM/AAAA
+  return `${day.toString().padStart(2, '0')}/${month.toString().padStart(2, '0')}/${year}`;
 }

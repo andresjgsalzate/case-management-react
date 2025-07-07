@@ -5,6 +5,7 @@ import { Modal } from '../components/Modal';
 import { Button } from '../components/Button';
 import { LoadingSpinner } from '../components/LoadingSpinner';
 import { PageWrapper } from '../components/PageWrapper';
+import { ConfirmationModal } from '../components/ConfirmationModal';
 import { useTodos } from '../hooks/useTodos';
 import { useTodoControl } from '../hooks/useTodoControl';
 import { useTodoPriorities } from '../hooks/useTodoPriorities';
@@ -28,6 +29,15 @@ export default function TodosPage() {
   const [editingTodo, setEditingTodo] = useState<TodoItem | null>(null);
   const [filters, setFilters] = useState<TodoFilters>({});
   const [loading, setLoading] = useState(false);
+  
+  // Estado para modal de confirmación de eliminación
+  const [deleteModal, setDeleteModal] = useState<{
+    isOpen: boolean;
+    todo: TodoItem | null;
+  }>({
+    isOpen: false,
+    todo: null
+  });
 
   // Permisos
   const {
@@ -209,21 +219,35 @@ export default function TodosPage() {
   };
 
   // Eliminar TODO
-  const handleDeleteTodo = async (todoId: string) => {
-    if (!window.confirm('¿Estás seguro de eliminar este TODO?')) return;
+  const handleDeleteTodo = (todoId: string) => {
+    const todo = todos.find(t => t.id === todoId);
+    if (todo) {
+      setDeleteModal({
+        isOpen: true,
+        todo: todo
+      });
+    }
+  };
 
-    try {
-      const success = await deleteTodo(todoId);
-      if (success) {
-        toast.success('TODO eliminado');
-        await fetchTodos();
-      } else {
+  const confirmDeleteTodo = async () => {
+    if (deleteModal.todo) {
+      try {
+        const success = await deleteTodo(deleteModal.todo.id);
+        if (success) {
+          toast.success('TODO eliminado');
+          await fetchTodos();
+        } else {
+          toast.error('Error al eliminar TODO');
+        }
+      } catch (error) {
+        console.error('Error al eliminar TODO:', error);
         toast.error('Error al eliminar TODO');
       }
-    } catch (error) {
-      console.error('Error al eliminar TODO:', error);
-      toast.error('Error al eliminar TODO');
     }
+  };
+
+  const cancelDeleteTodo = () => {
+    setDeleteModal({ isOpen: false, todo: null });
   };
 
   // Abrir modal de edición
@@ -482,6 +506,18 @@ export default function TodosPage() {
           />
         )}
       </Modal>
+
+      {/* Modal de Confirmación de Eliminación */}
+      <ConfirmationModal
+        isOpen={deleteModal.isOpen}
+        title="Confirmar eliminación"
+        message={`¿Estás seguro de que quieres eliminar el TODO "${deleteModal.todo?.title}"? Esta acción no se puede deshacer.`}
+        confirmText="Eliminar"
+        cancelText="Cancelar"
+        onConfirm={confirmDeleteTodo}
+        onClose={cancelDeleteTodo}
+        type="danger"
+      />
       </div>
     </PageWrapper>
   );

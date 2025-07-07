@@ -17,6 +17,7 @@ import { Button } from '@/components/Button';
 import { Input } from '@/components/Input';
 import { Select } from '@/components/Select';
 import { PageWrapper } from '@/components/PageWrapper';
+import { ConfirmationModal } from '@/components/ConfirmationModal';
 import toast from 'react-hot-toast';
 
 interface UserModalProps {
@@ -147,6 +148,15 @@ export const UsersPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<UserProfile | undefined>();
+  
+  // Estado para modal de confirmación de eliminación
+  const [deleteModal, setDeleteModal] = useState<{
+    isOpen: boolean;
+    user: UserProfile | null;
+  }>({
+    isOpen: false,
+    user: null
+  });
 
   // Función para activar usuario rápidamente (cambiar de 'user' a otro rol)
   const handleQuickActivate = async (user: UserProfile, newRoleName: string) => {
@@ -199,14 +209,25 @@ export const UsersPage: React.FC = () => {
     setIsModalOpen(true);
   };
 
-  const handleDelete = async (user: UserProfile) => {
-    if (window.confirm(`¿Estás seguro de que quieres eliminar al usuario ${user.email}?`)) {
+  const handleDelete = (user: UserProfile) => {
+    setDeleteModal({
+      isOpen: true,
+      user: user
+    });
+  };
+
+  const confirmDelete = async () => {
+    if (deleteModal.user) {
       try {
-        await deleteUser.mutateAsync(user.id);
+        await deleteUser.mutateAsync(deleteModal.user.id);
       } catch (error) {
         console.error('Error deleting user:', error);
       }
     }
+  };
+
+  const cancelDelete = () => {
+    setDeleteModal({ isOpen: false, user: null });
   };
 
   if (isLoading) {
@@ -407,6 +428,18 @@ export const UsersPage: React.FC = () => {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         user={selectedUser}
+      />
+
+      {/* Modal de Confirmación de Eliminación */}
+      <ConfirmationModal
+        isOpen={deleteModal.isOpen}
+        title="Confirmar eliminación"
+        message={`¿Estás seguro de que quieres eliminar al usuario ${deleteModal.user?.email}? Esta acción no se puede deshacer.`}
+        confirmText="Eliminar"
+        cancelText="Cancelar"
+        onConfirm={confirmDelete}
+        onClose={cancelDelete}
+        type="danger"
       />
     </PageWrapper>
   );

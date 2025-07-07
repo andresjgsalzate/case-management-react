@@ -14,6 +14,7 @@ import { Modal } from '@/components/Modal';
 import { Button } from '@/components/Button';
 import { Input } from '@/components/Input';
 import { PageWrapper } from '@/components/PageWrapper';
+import { ConfirmationModal } from '@/components/ConfirmationModal';
 
 interface RoleModalProps {
   isOpen: boolean;
@@ -277,6 +278,15 @@ export const RolesPage: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedRole, setSelectedRole] = useState<Role | undefined>();
   const [isEdit, setIsEdit] = useState(false);
+  
+  // Estado para modal de confirmación de eliminación
+  const [deleteModal, setDeleteModal] = useState<{
+    isOpen: boolean;
+    role: Role | null;
+  }>({
+    isOpen: false,
+    role: null
+  });
 
   // Verificar permisos
   if (!canViewRoles() && !canManageRoles()) {
@@ -310,14 +320,25 @@ export const RolesPage: React.FC = () => {
     setIsModalOpen(true);
   };
 
-  const handleDelete = async (role: Role) => {
-    if (window.confirm(`¿Estás seguro de que quieres eliminar el rol "${role.name}"?`)) {
+  const handleDelete = (role: Role) => {
+    setDeleteModal({
+      isOpen: true,
+      role: role
+    });
+  };
+
+  const confirmDelete = async () => {
+    if (deleteModal.role) {
       try {
-        await deleteRole.mutateAsync(role.id);
+        await deleteRole.mutateAsync(deleteModal.role.id);
       } catch (error) {
         console.error('Error deleting role:', error);
       }
     }
+  };
+
+  const cancelDelete = () => {
+    setDeleteModal({ isOpen: false, role: null });
   };
 
   if (isLoading) {
@@ -476,6 +497,18 @@ export const RolesPage: React.FC = () => {
         onClose={() => setIsModalOpen(false)}
         role={selectedRole}
         isEdit={isEdit}
+      />
+
+      {/* Modal de Confirmación de Eliminación */}
+      <ConfirmationModal
+        isOpen={deleteModal.isOpen}
+        title="Confirmar eliminación"
+        message={`¿Estás seguro de que quieres eliminar el rol "${deleteModal.role?.name}"? Esta acción no se puede deshacer.`}
+        confirmText="Eliminar"
+        cancelText="Cancelar"
+        onConfirm={confirmDelete}
+        onClose={cancelDelete}
+        type="danger"
       />
     </PageWrapper>
   );

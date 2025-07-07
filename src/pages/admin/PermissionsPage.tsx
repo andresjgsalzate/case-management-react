@@ -14,6 +14,7 @@ import { Button } from '@/components/Button';
 import { Input } from '@/components/Input';
 import { Select } from '@/components/Select';
 import { PageWrapper } from '@/components/PageWrapper';
+import { ConfirmationModal } from '@/components/ConfirmationModal';
 
 // Opciones predefinidas para recursos y acciones
 const RESOURCE_OPTIONS = [
@@ -192,6 +193,15 @@ export const PermissionsPage: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedPermission, setSelectedPermission] = useState<Permission | undefined>();
   const [isEdit, setIsEdit] = useState(false);
+  
+  // Estado para modal de confirmación de eliminación
+  const [deleteModal, setDeleteModal] = useState<{
+    isOpen: boolean;
+    permission: Permission | null;
+  }>({
+    isOpen: false,
+    permission: null
+  });
 
   // Verificar permisos
   if (!canViewPermissions() && !canManagePermissions()) {
@@ -234,14 +244,25 @@ export const PermissionsPage: React.FC = () => {
     setIsModalOpen(true);
   };
 
-  const handleDelete = async (permission: Permission) => {
-    if (window.confirm(`¿Estás seguro de que quieres eliminar el permiso "${permission.name}"?`)) {
+  const handleDelete = (permission: Permission) => {
+    setDeleteModal({
+      isOpen: true,
+      permission: permission
+    });
+  };
+
+  const confirmDelete = async () => {
+    if (deleteModal.permission) {
       try {
-        await deletePermission.mutateAsync(permission.id);
+        await deletePermission.mutateAsync(deleteModal.permission.id);
       } catch (error) {
         console.error('Error deleting permission:', error);
       }
     }
+  };
+
+  const cancelDelete = () => {
+    setDeleteModal({ isOpen: false, permission: null });
   };
 
   if (isLoading) {
@@ -414,6 +435,18 @@ export const PermissionsPage: React.FC = () => {
         onClose={() => setIsModalOpen(false)}
         permission={selectedPermission}
         isEdit={isEdit}
+      />
+
+      {/* Modal de Confirmación de Eliminación */}
+      <ConfirmationModal
+        isOpen={deleteModal.isOpen}
+        title="Confirmar eliminación"
+        message={`¿Estás seguro de que quieres eliminar el permiso "${deleteModal.permission?.name}"? Esta acción no se puede deshacer.`}
+        confirmText="Eliminar"
+        cancelText="Cancelar"
+        onConfirm={confirmDelete}
+        onClose={cancelDelete}
+        type="danger"
       />
     </PageWrapper>
   );

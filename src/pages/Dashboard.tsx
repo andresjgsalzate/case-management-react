@@ -19,6 +19,7 @@ import {
   useApplicationTimeMetrics
 } from '@/hooks/useDashboardMetrics';
 import { useTodoMetrics } from '@/hooks/useTodoMetrics';
+import { formatDateLocal } from '@/utils/caseUtils';
 import { LoadingSpinner, ErrorMessage } from '@/components/LoadingSpinner';
 import { PageWrapper } from '@/components/PageWrapper';
 
@@ -641,7 +642,7 @@ export const Dashboard: React.FC = () => {
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                        {new Date(caso.fecha).toLocaleDateString('es-ES')}
+                        {formatDateLocal(caso.fecha)}
                       </td>
                     </tr>
                   ))

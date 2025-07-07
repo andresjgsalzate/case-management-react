@@ -12,7 +12,9 @@ import { Case } from '@/types';
 import { useOrigenes, useAplicaciones } from '@/hooks/useOrigenesAplicaciones';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { exportCasesToExcel, exportCasesToCSV } from '@/utils/exportUtils';
+import { formatDateLocal } from '@/utils/caseUtils';
 import { PageWrapper } from '@/components/PageWrapper';
+import { ConfirmationModal } from '@/components/ConfirmationModal';
 
 export const CasesPage: React.FC = () => {
   const { data: cases, isLoading, error, refetch } = useCases();
@@ -25,6 +27,17 @@ export const CasesPage: React.FC = () => {
   const [selectedOrigen, setSelectedOrigen] = useState('');
   const [selectedAplicacion, setSelectedAplicacion] = useState('');
   const [selectedComplexity, setSelectedComplexity] = useState('');
+
+  // Estado para modal de confirmación
+  const [deleteModal, setDeleteModal] = useState<{
+    isOpen: boolean;
+    caseId: string;
+    caseNumber: string;
+  }>({
+    isOpen: false,
+    caseId: '',
+    caseNumber: ''
+  });
 
   // Debug: log the current state
   React.useEffect(() => {
@@ -54,11 +67,26 @@ export const CasesPage: React.FC = () => {
     });
   }, [cases, searchTerm, selectedOrigen, selectedAplicacion, selectedComplexity]);
 
-  const handleDelete = async (id: string, numeroCaso: string) => {
-    if (confirm(`¿Estás seguro de que quieres eliminar el caso ${numeroCaso}?`)) {
-      await deleteCase.mutateAsync(id);
+  const handleDelete = (id: string, numeroCaso: string) => {
+    setDeleteModal({
+      isOpen: true,
+      caseId: id,
+      caseNumber: numeroCaso
+    });
+  };
+
+  const confirmDelete = async () => {
+    try {
+      await deleteCase.mutateAsync(deleteModal.caseId);
+      // El modal se cierra automáticamente después de confirmar
       // El hook useDeleteCase ya maneja las notificaciones
+    } catch (error) {
+      console.error('Error al eliminar caso:', error);
     }
+  };
+
+  const cancelDelete = () => {
+    setDeleteModal({ isOpen: false, caseId: '', caseNumber: '' });
   };
 
   const handleExportExcel = () => {
@@ -305,7 +333,7 @@ export const CasesPage: React.FC = () => {
                       {caso.puntuacion}/15
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                      {new Date(caso.fecha).toLocaleDateString('es-ES')}
+                      {formatDateLocal(caso.fecha)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <div className="flex justify-end space-x-2">
@@ -330,6 +358,18 @@ export const CasesPage: React.FC = () => {
           </table>
         </div>
       </div>
+
+      {/* Modal de Confirmación */}
+      <ConfirmationModal
+        isOpen={deleteModal.isOpen}
+        title="Confirmar eliminación"
+        message={`¿Estás seguro de que quieres eliminar el caso ${deleteModal.caseNumber}? Esta acción no se puede deshacer.`}
+        confirmText="Eliminar"
+        cancelText="Cancelar"
+        onConfirm={confirmDelete}
+        onClose={cancelDelete}
+        type="danger"
+      />
     </PageWrapper>
   );
 };
