@@ -11,6 +11,32 @@ export interface VersionInfo {
 
 export const changelog: VersionInfo[] = [
   {
+    version: "2.4.0",
+    date: "2025-07-07",
+    changes: [
+      {
+        type: "feature",
+        description: "📱 Menú Lateral Colapsable: Implementado botón para colapsar/expandir el menú usando el logo como control"
+      },
+      {
+        type: "improvement",
+        description: "🎯 UX Mejorada: Transiciones suaves, tooltips en modo colapsado y ajuste automático del contenido principal"
+      },
+      {
+        type: "improvement",
+        description: "📐 Responsive Design: Menú adaptativo que se ajusta de 64 píxeles (colapsado) a 256 píxeles (expandido)"
+      },
+      {
+        type: "improvement",
+        description: "📐 Iconos Mejorados: Aumentado tamaño de iconos en sidebar colapsado para mejor visibilidad (h-5 → h-6)"
+      },
+      {
+        type: "improvement",
+        description: "🔧 Funcionalidad Inteligente: Auto-cierre de dropdowns y menús al colapsar, preservación del estado activo"
+      }
+    ]
+  },
+  {
     version: "2.3.2",
     date: "2025-07-07",
     changes: [
