@@ -152,7 +152,10 @@ export const useCreateCase = () => {
       return mapCaseFromDB(data);
     },
     onSuccess: () => {
+      // Invalidar queries de casos
       queryClient.invalidateQueries({ queryKey: ['cases'] });
+      // Invalidar queries de control de casos (cross-módulo)
+      queryClient.invalidateQueries({ queryKey: ['caseControls'] });
     },
   });
 };
@@ -204,8 +207,11 @@ export const useUpdateCase = () => {
       return mapCaseFromDB(data);
     },
     onSuccess: (data) => {
+      // Invalidar queries de casos
       queryClient.invalidateQueries({ queryKey: ['cases'] });
       queryClient.invalidateQueries({ queryKey: ['case', data.id] });
+      // Invalidar queries de control de casos (cross-módulo)
+      queryClient.invalidateQueries({ queryKey: ['caseControls'] });
     },
   });
 };
@@ -224,7 +230,10 @@ export const useDeleteCase = () => {
       if (error) throw error;
     },
     onSuccess: () => {
+      // Invalidar queries de casos
       queryClient.invalidateQueries({ queryKey: ['cases'] });
+      // Invalidar queries de control de casos (cross-módulo)
+      queryClient.invalidateQueries({ queryKey: ['caseControls'] });
     },
   });
 };

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { TodoCard } from '../components/TodoCard';
 import { TodoForm } from '../components/TodoForm';
 import { Modal } from '../components/Modal';
@@ -6,10 +6,12 @@ import { Button } from '../components/Button';
 import { LoadingSpinner } from '../components/LoadingSpinner';
 import { PageWrapper } from '../components/PageWrapper';
 import { ConfirmationModal } from '../components/ConfirmationModal';
+import { ArchiveModal } from '../components/ArchiveModal';
 import { useTodos } from '../hooks/useTodos';
 import { useTodoControl, useAllTodoControls, useAllTodoTimeEntries, useAllTodoManualTimeEntries } from '../hooks/useTodoControl';
 import { useTodoPriorities } from '../hooks/useTodoPriorities';
 import { useTodoPermissions } from '../hooks/useTodoPermissions';
+import { useArchive } from '../hooks/useArchive';
 import { CreateTodoData, UpdateTodoData, TodoItem, TodoFilters } from '../types';
 import { 
   PlusIcon,
@@ -42,14 +44,38 @@ export default function TodosPage() {
     todo: null
   });
 
+  // Estado para modal de archivo
+  const [archiveModal, setArchiveModal] = useState<{
+    isOpen: boolean;
+    todo: TodoItem | null;
+    loading: boolean;
+  }>({
+    isOpen: false,
+    todo: null,
+    loading: false
+  });
+
   // Permisos
   const {
     canCreateTodos,
     canEditTodos,
     canDeleteTodos,
     canControlTodos,
-    canAccessTodoModule
+    canViewAllTodos
   } = useTodoPermissions();
+
+  const { archiveTodo, canArchive } = useArchive();
+  const [canArchiveItems, setCanArchiveItems] = useState(false);
+
+  // Verificar permisos de archivo
+  React.useEffect(() => {
+    const checkArchivePermissions = async () => {
+      const canArchiveResult = await canArchive();
+      setCanArchiveItems(canArchiveResult);
+    };
+    
+    checkArchivePermissions();
+  }, [canArchive]);
 
   // Debug: log de permisos
   console.log('🔐 TODO Permisos:', {
@@ -57,7 +83,7 @@ export default function TodosPage() {
     canEditTodos,
     canDeleteTodos,
     canControlTodos,
-    canAccessTodoModule
+    canViewAllTodos
   });
 
   const { 
@@ -109,7 +135,7 @@ export default function TodosPage() {
   };
 
   // Verificar acceso al módulo
-  if (!canAccessTodoModule) {
+  if (!canViewAllTodos) {
     return (
       <PageWrapper>
         <div className="text-center py-12">
@@ -279,6 +305,41 @@ export default function TodosPage() {
 
   const cancelDeleteTodo = () => {
     setDeleteModal({ isOpen: false, todo: null });
+  };
+
+  // Archivar TODO
+  const handleArchiveTodo = (todo: TodoItem) => {
+    setArchiveModal({
+      isOpen: true,
+      todo: todo,
+      loading: false
+    });
+  };
+
+  const confirmArchiveTodo = async (data: { id: string; type: 'case' | 'todo'; reason?: string }) => {
+    if (!archiveModal.todo) return;
+    
+    setArchiveModal(prev => ({ ...prev, loading: true }));
+    
+    try {
+      const result = await archiveTodo({
+        id: archiveModal.todo.id,
+        type: 'todo',
+        reason: data.reason
+      });
+
+      if (result.success) {
+        showSuccess('TODO archivado exitosamente');
+        await fetchTodos();
+        setArchiveModal({ isOpen: false, todo: null, loading: false });
+      } else {
+        showError('Error al archivar TODO', result.error || 'Error desconocido');
+      }
+    } catch (error) {
+      showError('Error al archivar TODO', error instanceof Error ? error.message : 'Error desconocido');
+    } finally {
+      setArchiveModal(prev => ({ ...prev, loading: false }));
+    }
   };
 
   // Abrir modal de edición
@@ -487,6 +548,7 @@ export default function TodosPage() {
               onComplete={canControlTodos ? handleCompleteTodo : undefined}
               onEdit={canEditTodos ? handleEditClick : undefined}
               onDelete={canDeleteTodos ? handleDeleteTodo : undefined}
+              onArchive={canArchiveItems ? handleArchiveTodo : undefined}
             />
           ))}
         </div>
@@ -560,6 +622,19 @@ export default function TodosPage() {
         onConfirm={confirmDeleteTodo}
         onClose={cancelDeleteTodo}
         type="danger"
+      />
+
+      {/* Modal de Confirmación de Archivo */}
+      <ArchiveModal
+        isOpen={archiveModal.isOpen}
+        onClose={() => setArchiveModal({ isOpen: false, todo: null, loading: false })}
+        onConfirm={confirmArchiveTodo}
+        loading={archiveModal.loading}
+        item={{
+          id: archiveModal.todo?.id || '',
+          title: archiveModal.todo?.title || '',
+          type: 'todo'
+        }}
       />
       </div>
     </PageWrapper>

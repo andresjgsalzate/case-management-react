@@ -11,6 +11,138 @@ export interface VersionInfo {
 
 export const changelog: VersionInfo[] = [
   {
+    version: "2.7.5",
+    date: "2025-07-08",
+    changes: [
+      {
+        type: "bugfix",
+        description: "🔄 Sincronización Cross-Módulo: Corregida invalidación de queries al eliminar casos desde módulo Casos - ahora se actualiza automáticamente en Control de Casos"
+      },
+      {
+        type: "bugfix",
+        description: "🗂️ Modal TODO Mejorado: Solucionados problemas de z-index y transparencia - modales ahora aparecen correctamente por encima de todas las tarjetas"
+      },
+      {
+        type: "improvement",
+        description: "🎨 Portal DOM: Implementado renderizado de modales en portal para evitar conflictos de stacking context"
+      },
+      {
+        type: "improvement",
+        description: "⚡ UX Mejorada: Bloqueo de scroll del body cuando modales están abiertos y fondo con efecto blur"
+      }
+    ]
+  },
+  {
+    version: "2.7.4",
+    date: "2025-07-07",
+    changes: [
+      {
+        type: "bugfix",
+        description: "🔄 Recarga Automática: Corregido problema de caché donde los casos archivados seguían apareciendo en Control de Casos"
+      },
+      {
+        type: "improvement",
+        description: "📱 UX Mejorada: Los datos se recargan automáticamente después de archivar para evitar confusión en usuarios"
+      },
+      {
+        type: "improvement",
+        description: "⚡ Sincronización: Todas las páginas (TODOs, Control de Casos, Archivo) ahora se sincronizan correctamente después de operaciones de archivado"
+      }
+    ]
+  },
+  {
+    version: "2.7.3",
+    date: "2025-07-07",
+    changes: [
+      {
+        type: "feature",
+        description: "🗑️ Eliminación Permanente: Los administradores ahora pueden eliminar permanentemente casos y TODOs desde el archivo"
+      },
+      {
+        type: "feature",
+        description: "📋 Modal de Confirmación: Implementado modal de confirmación estándar para eliminación permanente con mensaje claro de advertencia"
+      },
+      {
+        type: "improvement",
+        description: "🛡️ Seguridad Reforzada: Solo administradores pueden eliminar permanentemente, con validación en backend y frontend"
+      },
+      {
+        type: "improvement",
+        description: "📊 Log de Eliminaciones: Registro automático de todas las eliminaciones permanentes con fecha, usuario y razón"
+      }
+    ]
+  },
+  {
+    version: "2.7.2",
+    date: "2025-07-07",
+    changes: [
+      {
+        type: "bugfix",
+        description: "🔄 Restauración Completa: Los casos y TODOs restaurados ahora recrean los registros originales en estado 'pendiente' para poder trabajarse nuevamente"
+      },
+      {
+        type: "bugfix", 
+        description: "🗃️ Archivado Verificado: Confirmado que el archivado elimina correctamente los registros originales de casos y control"
+      },
+      {
+        type: "improvement",
+        description: "⚡ Flujo Optimizado: Restaurar → Estado Pendiente → Listo para trabajar, eliminando pasos manuales adicionales"
+      }
+    ]
+  },
+  {
+    version: "2.7.1",
+    date: "2025-07-07", 
+    changes: [
+      {
+        type: "bugfix",
+        description: "🔐 Corrección de Permisos de Archivo: Los analistas ahora pueden restaurar sus propios casos y TODOs archivados"
+      },
+      {
+        type: "improvement",
+        description: "🛡️ Políticas RLS Mejoradas: Políticas de actualización refinadas para respetar la jerarquía de permisos estándar del sistema"
+      },
+      {
+        type: "improvement", 
+        description: "👥 Verificación Granular: Implementada verificación a nivel de elemento para garantizar que analistas solo restauren contenido propio"
+      }
+    ]
+  },
+  {
+    version: "2.7.0",
+    date: "2025-07-07",
+    changes: [
+      {
+        type: "feature",
+        description: "🗄️ Módulo de Archivo Completo: Nuevo sistema integral para archivar y gestionar casos y TODOs terminados"
+      },
+      {
+        type: "feature",
+        description: "📦 Archivo Inteligente: Archivado automático que preserva todos los datos originales y métricas de tiempo en formato JSON"
+      },
+      {
+        type: "feature",
+        description: "🔄 Sistema de Restauración: Funcionalidad para marcar elementos archivados como restaurados con auditoría completa"
+      },
+      {
+        type: "feature",
+        description: "📊 Estadísticas de Archivo: Métricas detalladas con contadores globales y estadísticas mensuales de los últimos 12 meses"
+      },
+      {
+        type: "feature",
+        description: "🧹 Limpieza Automática: Función para eliminar registros de control huérfanos y mantener la integridad de la base de datos"
+      },
+      {
+        type: "feature",
+        description: "🔐 Seguridad RLS Completa: Políticas granulares que respetan la jerarquía de roles (admin, supervisor, analista) para acceso a archivos"
+      },
+      {
+        type: "feature",
+        description: "🎨 Interfaz de Usuario Moderna: Página de archivo con filtros, búsqueda y visualización detallada de elementos archivados"
+      }
+    ]
+  },
+  {
     version: "2.6.0",
     date: "2025-07-07",
     changes: [

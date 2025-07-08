@@ -23,6 +23,7 @@ import { DebugPage } from '@/pages/DebugPage';
 import { NotFoundPage } from '@/pages/NotFound';
 import CaseControlPage from '@/pages/CaseControl';
 import TodosPage from '@/pages/TodosPage';
+import { ArchivePage } from '@/pages/ArchivePage';
 
 function App() {
   const { isDarkMode } = useThemeStore();
@@ -132,6 +133,9 @@ function AppContent() {
         
         {/* Case Control Module */}
         <Route path="/case-control" element={<CaseControlPage />} />
+        
+        {/* Archive Module */}
+        <Route path="/archive" element={<ArchivePage />} />
         
         {/* Admin Routes */}
         <Route path="/admin/users" element={<UsersPage />} />

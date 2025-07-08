@@ -16,7 +16,8 @@ import {
   SunIcon,
   MoonIcon,
   ClockIcon,
-  ListBulletIcon
+  ListBulletIcon,
+  ArchiveBoxIcon
 } from '@heroicons/react/24/outline';
 import { VersionDisplay } from './VersionDisplay';
 import { VersionModal } from './VersionModal';
@@ -61,6 +62,9 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
     if (canAccessTodoModule) {
       baseNavigation.push({ name: 'TODOs', href: '/todos', icon: ListBulletIcon });
     }
+
+    // Agregar Archivo si el usuario puede acceder
+    baseNavigation.push({ name: 'Archivo', href: '/archive', icon: ArchiveBoxIcon });
 
     return baseNavigation;
   }, [canAccessCaseControl, canAccessTodoModule]);

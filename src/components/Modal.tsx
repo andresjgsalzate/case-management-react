@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 
 export interface ModalProps {
@@ -19,19 +20,32 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, size = 
     '3xl': 'max-w-3xl',
   };
 
+  // Bloquear scroll del body cuando el modal está abierto
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
-  return (
-    <div className="fixed inset-0 z-50 overflow-y-auto">
+  const modalContent = (
+    <div className="fixed inset-0 z-[9999] overflow-y-auto">
       <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
         {/* Background overlay */}
         <div 
-          className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
+          className="fixed inset-0 bg-black bg-opacity-50 transition-opacity backdrop-blur-sm"
           onClick={onClose}
         ></div>
 
         {/* Modal content */}
-        <div className={`inline-block align-bottom bg-white dark:bg-gray-800 rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:p-6 w-full ${sizeClasses[size]}`}>
+        <div className={`relative inline-block align-bottom bg-white dark:bg-gray-800 rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:p-6 w-full ${sizeClasses[size]} z-[10000]`}>
           {/* Header */}
           {title && (
             <div className="flex items-center justify-between mb-4">
@@ -40,7 +54,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, size = 
               </h3>
               <button
                 onClick={onClose}
-                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors"
               >
                 <XMarkIcon className="h-6 w-6" />
               </button>
@@ -55,6 +69,9 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, size = 
       </div>
     </div>
   );
+
+  // Renderizar en un portal para asegurar que esté en el nivel superior del DOM
+  return createPortal(modalContent, document.body);
 };
 
 export { Modal };

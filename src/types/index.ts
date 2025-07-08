@@ -583,3 +583,99 @@ export interface TodoReport {
 // =============================================
 // FIN TIPOS MÓDULO TODO
 // =============================================
+
+// =============================================
+// TIPOS MÓDULO ARCHIVO
+// =============================================
+
+export interface ArchivedCase {
+  id: string;
+  originalCaseId: string;
+  caseNumber: string;
+  description: string;
+  classification: CaseComplexity;
+  totalTimeMinutes: number;
+  completedAt: string;
+  archivedAt: string;
+  archivedBy: string;
+  originalData: any; // JSON con todos los datos originales del caso
+  controlData: any; // JSON con datos de control y tiempo
+  // Relaciones
+  archivedByUser?: UserProfile;
+  restoredAt?: string;
+  restoredBy?: string;
+  restoredByUser?: UserProfile;
+  isRestored: boolean;
+}
+
+export interface ArchivedTodo {
+  id: string;
+  originalTodoId: string;
+  title: string;
+  description?: string;
+  priority: string;
+  totalTimeMinutes: number;
+  completedAt: string;
+  archivedAt: string;
+  archivedBy: string;
+  originalData: any; // JSON con todos los datos originales del TODO
+  controlData: any; // JSON con datos de control y tiempo
+  // Relaciones
+  archivedByUser?: UserProfile;
+  restoredAt?: string;
+  restoredBy?: string;
+  restoredByUser?: UserProfile;
+  isRestored: boolean;
+}
+
+export interface ArchiveStats {
+  totalArchivedCases: number;
+  totalArchivedTodos: number;
+  totalArchivedTimeMinutes: number;
+  archivedThisMonth: number;
+  restoredThisMonth: number;
+  
+  // Por usuario
+  byUser: {
+    userId: string;
+    userName: string;
+    archivedCases: number;
+    archivedTodos: number;
+    totalTimeMinutes: number;
+  }[];
+  
+  // Por mes (últimos 12 meses)
+  monthlyStats: {
+    month: string;
+    archivedCases: number;
+    archivedTodos: number;
+    totalTimeMinutes: number;
+  }[];
+}
+
+export interface ArchiveFilters {
+  type?: 'cases' | 'todos' | 'all';
+  archivedBy?: string;
+  dateFrom?: string;
+  dateTo?: string;
+  classification?: CaseComplexity;
+  priority?: string;
+  search?: string;
+  showRestored?: boolean;
+}
+
+export interface ArchiveActionData {
+  id: string;
+  type: 'case' | 'todo';
+  reason?: string;
+}
+
+export interface RestoreActionData {
+  id: string;
+  type: 'case' | 'todo';
+  reason?: string;
+}
+
+// =============================================
+// FIN TIPOS MÓDULO ARCHIVO
+// =============================================

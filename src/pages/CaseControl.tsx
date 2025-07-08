@@ -6,15 +6,18 @@ import {
   EyeIcon,
   AdjustmentsHorizontalIcon,
   MagnifyingGlassIcon,
-  UserIcon
+  UserIcon,
+  ArchiveBoxIcon
 } from '@heroicons/react/24/outline';
 import { Button } from '@/components/Button';
 import { Select } from '@/components/Select';
 import { Input } from '@/components/Input';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { TimerControl } from '@/components/TimerControl';
+import { ArchiveModal } from '@/components/ArchiveModal';
 import { useCaseControls, useCaseStatuses, useStartTimer, useStopTimer, usePauseTimer, useUpdateCaseStatus, useAllTimeEntries, useAllManualTimeEntries } from '@/hooks/useCaseControl';
 import { useCaseControlPermissions } from '@/hooks/useCaseControlPermissions';
+import { useArchive } from '@/hooks/useArchive';
 import { CaseControlDetailsModal } from '@/components/CaseControlDetailsModal';
 import { CaseAssignmentModal } from '@/components/CaseAssignmentModal';
 import { CaseControl } from '@/types';
@@ -25,12 +28,17 @@ import { exportCaseControlReport } from '@/utils/exportUtils';
 import { useNotification } from '@/components/NotificationSystem';
 
 const CaseControlPage: React.FC = () => {
-  const { showSuccess } = useNotification();
+  const { showSuccess, showError } = useNotification();
   const [selectedStatus, setSelectedStatus] = useState<string>('');
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [selectedCaseControl, setSelectedCaseControl] = useState<CaseControl | null>(null);
   const [showTimeModal, setShowTimeModal] = useState(false);
   const [showAssignModal, setShowAssignModal] = useState(false);
+  const [archiveModal, setArchiveModal] = useState<{
+    isOpen: boolean;
+    caseControl: CaseControl | null;
+    loading: boolean;
+  }>({ isOpen: false, caseControl: null, loading: false });
 
   // Hooks
   const { 
@@ -39,7 +47,20 @@ const CaseControlPage: React.FC = () => {
     canAssignCases
   } = useCaseControlPermissions();
 
-  const { data: caseControls = [], isLoading: loadingControls } = useCaseControls();
+  const { archiveCase, canArchive } = useArchive();
+  const [canArchiveItems, setCanArchiveItems] = useState(false);
+
+  // Verificar permisos de archivo
+  React.useEffect(() => {
+    const checkArchivePermissions = async () => {
+      const canArchiveResult = await canArchive();
+      setCanArchiveItems(canArchiveResult);
+    };
+    
+    checkArchivePermissions();
+  }, [canArchive]);
+
+  const { data: caseControls = [], isLoading: loadingControls, refetch: refetchCaseControls } = useCaseControls();
   const { data: statuses = [] } = useCaseStatuses();
   const { data: allTimeEntries = [], isLoading: loadingTimeEntries } = useAllTimeEntries();
   const { data: allManualTimeEntries = [], isLoading: loadingManualEntries } = useAllManualTimeEntries();
@@ -141,6 +162,44 @@ const CaseControlPage: React.FC = () => {
       );
     } catch (error) {
       console.error('Error generating report:', error);
+    }
+  };
+
+  const handleArchiveCase = async (control: CaseControl) => {
+    if (!control.case?.id) return;
+    
+    setArchiveModal({
+      isOpen: true,
+      caseControl: control,
+      loading: false
+    });
+  };
+
+  // Confirmar archivo
+  const handleArchiveConfirm = async (data: { id: string; type: 'case' | 'todo'; reason?: string }) => {
+    if (!archiveModal.caseControl) return;
+    
+    setArchiveModal(prev => ({ ...prev, loading: true }));
+    
+    try {
+      const result = await archiveCase({
+        id: archiveModal.caseControl.case!.id,
+        type: 'case',
+        reason: data.reason
+      });
+
+      if (result.success) {
+        showSuccess('Caso archivado exitosamente');
+        // Recargar los datos para actualizar la vista
+        await refetchCaseControls();
+        setArchiveModal({ isOpen: false, caseControl: null, loading: false });
+      } else {
+        showError('Error al archivar caso', result.error || 'Error desconocido');
+      }
+    } catch (error) {
+      showError('Error al archivar caso', error instanceof Error ? error.message : 'Error desconocido');
+    } finally {
+      setArchiveModal(prev => ({ ...prev, loading: false }));
     }
   };
 
@@ -372,16 +431,29 @@ const CaseControlPage: React.FC = () => {
                     />
                   )}
 
-                  {/* Botón ver detalles */}                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => {
-                        setSelectedCaseControl(control);
-                        setShowTimeModal(true);
-                      }}
-                    >
+                  {/* Botón ver detalles */}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setSelectedCaseControl(control);
+                      setShowTimeModal(true);
+                    }}
+                  >
                     <EyeIcon className="h-4 w-4" />
                   </Button>
+
+                  {/* Botón archivar caso - solo si está terminado */}
+                  {canArchiveItems && control.status?.name === 'TERMINADA' && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleArchiveCase(control)}
+                      className="text-yellow-600 hover:text-yellow-700"
+                    >
+                      <ArchiveBoxIcon className="h-4 w-4" />
+                    </Button>
+                  )}
                 </div>
               </div>
             </div>
@@ -403,6 +475,19 @@ const CaseControlPage: React.FC = () => {
         onAssign={() => {
           // Refrescar la lista de controles de casos
           // Los queries se refrescarán automáticamente
+        }}
+      />
+
+      {/* Modal de archivo */}
+      <ArchiveModal
+        isOpen={archiveModal.isOpen}
+        onClose={() => setArchiveModal({ isOpen: false, caseControl: null, loading: false })}
+        onConfirm={handleArchiveConfirm}
+        loading={archiveModal.loading}
+        item={{
+          id: archiveModal.caseControl?.case?.id || '',
+          title: archiveModal.caseControl?.case?.numeroCaso || '',
+          type: 'case'
         }}
       />
     </PageWrapper>
