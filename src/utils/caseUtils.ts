@@ -75,6 +75,28 @@ export function formatTime(minutes: number | undefined | null): string {
 }
 
 /**
+ * Formatea minutos en formato detallado con etiquetas (para modales y vistas detalladas)
+ */
+export function formatTimeDetailed(minutes: number | undefined | null): string {
+  // Manejar casos de valores inválidos
+  if (minutes === null || minutes === undefined || isNaN(minutes)) {
+    return '0h 0m';
+  }
+  
+  const totalMinutes = Math.max(0, Math.floor(minutes));
+  const hours = Math.floor(totalMinutes / 60);
+  const mins = totalMinutes % 60;
+  
+  if (hours === 0) {
+    return `${mins}m`;
+  } else if (mins === 0) {
+    return `${hours}h`;
+  } else {
+    return `${hours}h ${mins}m`;
+  }
+}
+
+/**
  * Genera un ID único para casos
  */
 export function generateId(): string {

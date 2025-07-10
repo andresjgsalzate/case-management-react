@@ -11,7 +11,7 @@ import { Input } from './Input';
 import { ConfirmationModal } from './ConfirmationModal';
 import { TodoControl } from '../types';
 import { useTodoControl } from '../hooks/useTodoControl';
-import { formatDate, formatTime, formatDateLocal } from '../utils/caseUtils';
+import { formatDate, formatTimeDetailed, formatDateLocal } from '../utils/caseUtils';
 import { useNotification } from './NotificationSystem';
 
 interface TodoControlDetailsModalProps {
@@ -214,25 +214,25 @@ export const TodoControlDetailsModal: React.FC<TodoControlDetailsModalProps> = (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
             <div>
               <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-                {formatTime(totalMinutes)}
+                {formatTimeDetailed(totalMinutes)}
               </div>
               <div className="text-sm text-gray-600 dark:text-gray-400">Tiempo Total</div>
             </div>
             <div>
               <div className="text-2xl font-bold text-green-600 dark:text-green-400">
-                {formatTime(totalAutoMinutes)}
+                {formatTimeDetailed(totalAutoMinutes)}
               </div>
               <div className="text-sm text-gray-600 dark:text-gray-400">Automático</div>
             </div>
             <div>
               <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">
-                {formatTime(totalManualMinutes)}
+                {formatTimeDetailed(totalManualMinutes)}
               </div>
               <div className="text-sm text-gray-600 dark:text-gray-400">Manual</div>
             </div>
             <div>
               <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">
-                {formatTime(todoControl.todo?.estimatedMinutes || 0)}
+                {formatTimeDetailed(todoControl.todo?.estimatedMinutes || 0)}
               </div>
               <div className="text-sm text-gray-600 dark:text-gray-400">Estimado</div>
             </div>
@@ -346,7 +346,7 @@ export const TodoControlDetailsModal: React.FC<TodoControlDetailsModalProps> = (
                           <ClockIcon className="h-5 w-5 text-green-600 dark:text-green-400" />
                           <div>
                             <div className="font-medium text-gray-900 dark:text-white">
-                              {formatTime(entry.duration_minutes)}
+                              {formatTimeDetailed(entry.duration_minutes)}
                             </div>
                             <div className="text-sm text-gray-600 dark:text-gray-400">
                               {formatDate(entry.start_time)} - {formatDate(entry.end_time)}
@@ -381,7 +381,7 @@ export const TodoControlDetailsModal: React.FC<TodoControlDetailsModalProps> = (
                           <CalendarIcon className="h-5 w-5 text-orange-600 dark:text-orange-400" />
                           <div>
                             <div className="font-medium text-gray-900 dark:text-white">
-                              {formatTime(entry.duration_minutes)}
+                              {formatTimeDetailed(entry.duration_minutes)}
                             </div>
                             <div className="text-sm text-gray-600 dark:text-gray-400">
                               {formatDateLocal(entry.date)} - {entry.description}

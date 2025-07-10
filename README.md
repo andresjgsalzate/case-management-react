@@ -1,4 +1,4 @@
-# 🚀 Sistema de Gestión de Casos - React v2.6.0
+# 🚀 Sistema de Gestión de Casos - React v2.7.5
 
 Una aplicación moderna para la gestión integral de casos con control de tiempo, basada en React, TypeScript y Supabase.
 
@@ -13,7 +13,25 @@ Una aplicación moderna para la gestión integral de casos con control de tiempo
 
 ## ✨ Características Principales
 
-### 📊 **Dashboard Mejorado (v2.6.0)**
+### � **Sincronización Cross-Módulo (v2.7.5)**
+- **Invalidación Automática**: Los cambios en un módulo se reflejan instantáneamente en otros
+- **Eliminación Sincronizada**: Eliminar casos desde Casos actualiza Control de Casos automáticamente
+- **Archivo Bidireccional**: Archivar desde Control de Casos actualiza la vista de Casos
+- **UX Sin Interrupciones**: No más necesidad de recargar páginas manualmente
+
+### 🎨 **Modales Mejorados (v2.7.5)**
+- **Portal DOM**: Renderizado en nivel superior para evitar conflictos de z-index
+- **Visualización Perfecta**: Modales siempre aparecen por encima de cualquier elemento
+- **Fondo Mejorado**: Efecto blur y opacidad optimizada para mejor UX
+- **Bloqueo de Scroll**: El body se bloquea cuando hay modales abiertos
+
+### 🗄️ **Sistema de Archivo Completo (v2.7.0-2.7.4)**
+- **Restauración con Historial**: Los casos y TODOs restaurados mantienen todo el historial de tiempos
+- **Archivo Inteligente**: Preserva datos originales y métricas en formato JSON
+- **Eliminación Permanente**: Solo administradores pueden eliminar permanentemente
+- **Auditoría Completa**: Registro de todas las operaciones de archivo y restauración
+
+### �📊 **Dashboard Mejorado (v2.6.0)**
 - **Métricas de Tiempo Combinadas**: Tiempo total que suma casos y TODOs
 - **Métricas Específicas**: Tiempo separado por casos y TODOs
 - **Visualización Optimizada**: Eliminación de métricas redundantes
@@ -352,6 +370,23 @@ El tema oscuro se maneja automáticamente con Tailwind CSS y Zustand.
 - **Consistencia**: Mismo sistema para todos los módulos
 
 ## 🆕 Novedades Recientes
+
+### 🎉 **Versión 2.7.5 - Sincronización y Modales Mejorados**
+- **🔄 Sincronización Cross-Módulo**: Invalidación automática de queries entre módulos
+- **🗂️ Modales Perfeccionados**: Solucionados problemas de z-index y transparencia
+- **🎨 Portal DOM**: Renderizado mejorado para evitar conflictos visuales
+- **⚡ UX Optimizada**: Bloqueo de scroll y efectos visuales mejorados
+
+### 🎉 **Versión 2.7.4 - Sistema de Archivo Completo**
+- **🔄 Recarga Automática**: Casos archivados desaparecen automáticamente de Control de Casos
+- **📱 UX Mejorada**: Sincronización automática después de operaciones de archivado
+- **⚡ Páginas Sincronizadas**: TODOs, Control de Casos y Archivo completamente coordinados
+
+### 🎉 **Versión 2.7.0-2.7.3 - Módulo de Archivo**
+- **🗄️ Sistema Integral**: Archivado y gestión completa de casos y TODOs terminados
+- **🔄 Restauración Completa**: Mantiene historial de tiempos al restaurar elementos
+- **🗑️ Eliminación Permanente**: Solo administradores con confirmación y auditoría
+- **📊 Estadísticas**: Métricas detalladas con contadores y datos mensuales
 
 ### 🎉 **Versión 2.6.0 - Dashboard Mejorado**
 - **📊 Métricas Combinadas**: Tiempo total que suma casos y TODOs

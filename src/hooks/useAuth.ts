@@ -34,9 +34,7 @@ export const useAuth = () => {
   const { data: user, isLoading, error: queryError } = useQuery({
     queryKey: ['auth', 'user'],
     queryFn: async () => {
-      console.log('🔐 Obteniendo usuario de Supabase...');
-      
-      // Timeout para evitar cuelgues indefinidos
+// Timeout para evitar cuelgues indefinidos
       const timeoutPromise = new Promise((_, reject) => {
         setTimeout(() => reject(new Error('Timeout al conectar con Supabase')), 10000);
       });
@@ -51,8 +49,7 @@ export const useAuth = () => {
           throw error;
         }
         
-        console.log('👤 Usuario obtenido:', user ? `${user.email}` : 'No autenticado');
-        return user;
+return user;
       } catch (error) {
         console.error('💥 Error fatal en auth:', error);
         throw error;
@@ -66,13 +63,9 @@ export const useAuth = () => {
 
   // Escuchar cambios de autenticación
   useEffect(() => {
-    console.log('🔄 Configurando listener de auth...');
-    
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log('🔄 Auth state change:', event, session?.user?.email || 'No user');
-        
-        setAuthState({
+setAuthState({
           user: session?.user ?? null,
           loading: false,
           error: null,
@@ -84,14 +77,12 @@ export const useAuth = () => {
           queryClient.invalidateQueries({ queryKey: ['systemAccess'] });
         } else if (event === 'SIGNED_OUT') {
           // No invalidar queries aquí, ya se limpian en onSuccess del signOut
-          console.log('✅ Usuario deslogueado, queries se limpiarán automáticamente');
-        }
+}
       }
     );
 
     return () => {
-      console.log('🧹 Limpiando listener de auth...');
-      subscription.unsubscribe();
+subscription.unsubscribe();
     };
   }, [queryClient]);
 
@@ -107,9 +98,7 @@ export const useAuth = () => {
   // Mutation para sign in
   const signIn = useMutation({
     mutationFn: async ({ email, password }: SignInData) => {
-      console.log('🔐 Iniciando sesión...', email);
-      
-      const { data, error } = await supabase.auth.signInWithPassword({
+const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
@@ -119,8 +108,7 @@ export const useAuth = () => {
         throw error;
       }
 
-      console.log('✅ Sign in exitoso');
-      return data;
+return data;
     },
     onSuccess: () => {
       toast.success('¡Bienvenido de vuelta!');
@@ -135,9 +123,7 @@ export const useAuth = () => {
   // Mutation para sign up
   const signUp = useMutation({
     mutationFn: async ({ email, password, name }: SignUpData) => {
-      console.log('📝 Registrando usuario...', email);
-      
-      const { data, error } = await supabase.auth.signUp({
+const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -152,8 +138,7 @@ export const useAuth = () => {
         throw error;
       }
 
-      console.log('✅ Sign up exitoso');
-      return data;
+return data;
     },
     onSuccess: (data) => {
       if (data.user && !data.user.email_confirmed_at) {
@@ -172,9 +157,7 @@ export const useAuth = () => {
   // Mutation para sign out
   const signOut = useMutation({
     mutationFn: async () => {
-      console.log('🚪 Cerrando sesión...');
-      
-      const { error } = await supabase.auth.signOut({
+const { error } = await supabase.auth.signOut({
         scope: 'local' // Cerrar sesión solo localmente
       });
 
@@ -183,8 +166,7 @@ export const useAuth = () => {
         throw error;
       }
 
-      console.log('✅ Sign out exitoso');
-    },
+},
     onSuccess: () => {
       // Limpiar el estado local inmediatamente
       setAuthState({
@@ -209,9 +191,7 @@ export const useAuth = () => {
   // Mutation para reset password
   const resetPassword = useMutation({
     mutationFn: async (email: string) => {
-      console.log('🔄 Enviando reset password...', email);
-      
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: `${window.location.origin}/reset-password`,
       });
 
@@ -220,8 +200,7 @@ export const useAuth = () => {
         throw error;
       }
 
-      console.log('✅ Reset password enviado');
-    },
+},
     onSuccess: () => {
       toast.success('Correo de recuperación enviado. Revisa tu bandeja de entrada.');
     },
@@ -234,9 +213,7 @@ export const useAuth = () => {
   // Mutation para update password
   const updatePassword = useMutation({
     mutationFn: async (newPassword: string) => {
-      console.log('🔄 Actualizando contraseña...');
-      
-      const { error } = await supabase.auth.updateUser({
+const { error } = await supabase.auth.updateUser({
         password: newPassword,
       });
 
@@ -245,8 +222,7 @@ export const useAuth = () => {
         throw error;
       }
 
-      console.log('✅ Contraseña actualizada');
-    },
+},
     onSuccess: () => {
       toast.success('Contraseña actualizada correctamente');
     },

@@ -80,9 +80,7 @@ export const useUpdateCaseStatus = () => {
 
   return useMutation({
     mutationFn: async ({ id, data }: { id: string; data: CaseStatusFormData }): Promise<CaseStatusControl> => {
-      console.log('🔄 Actualizando estado con ID:', id);
-
-      const { data: result, error } = await supabase
+const { data: result, error } = await supabase
         .from('case_status_control')
         .update({
           name: data.name,

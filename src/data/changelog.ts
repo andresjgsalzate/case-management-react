@@ -11,6 +11,42 @@ export interface VersionInfo {
 
 export const changelog: VersionInfo[] = [
   {
+    version: "2.7.7",
+    date: "2025-07-08",
+    changes: [
+      {
+        type: "improvement",
+        description: "⏰ Visualización de Tiempo Mejorada: Los tiempos en modales de detalle ahora se muestran como '9h 58m' en lugar de '09:58' para evitar confusión"
+      },
+      {
+        type: "improvement",
+        description: "🎯 UX Clarificada: Formato de tiempo más intuitivo que distingue claramente horas y minutos de minutos y segundos"
+      },
+      {
+        type: "improvement",
+        description: "📊 Consistencia Visual: Aplicado el nuevo formato en todos los modales de Control de Casos y TODOs"
+      }
+    ]
+  },
+  {
+    version: "2.7.6",
+    date: "2025-07-08",
+    changes: [
+      {
+        type: "improvement",
+        description: "🧹 Limpieza de Código: Eliminados todos los console.log innecesarios de desarrollo para optimizar el rendimiento"
+      },
+      {
+        type: "improvement",
+        description: "⚡ Performance Mejorada: Código más limpio sin logs de debug que afecten la producción"
+      },
+      {
+        type: "improvement",
+        description: "🔧 Mantenimiento: Conservados solo los console.error necesarios para debugging de errores críticos"
+      }
+    ]
+  },
+  {
     version: "2.7.5",
     date: "2025-07-08",
     changes: [

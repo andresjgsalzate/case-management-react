@@ -96,11 +96,9 @@ export const useCaseControls = () => {
 
       // Si el usuario NO puede ver todos los casos, filtrar solo los suyos
       if (!canViewAllCases() && userProfile?.id) {
-        console.log('🔒 Filtering case controls for user:', userProfile.email);
-        query = query.eq('user_id', userProfile.id);
+query = query.eq('user_id', userProfile.id);
       } else {
-        console.log('🌐 User can view all case controls');
-      }
+}
 
       const { data, error } = await query.order('created_at', { ascending: false });
 
@@ -660,10 +658,7 @@ export const useAddManualTime = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Usuario no autenticado');
 
-      console.log('🗓️ Backend - fecha a insertar:', form.date);
-      console.log('🗓️ Backend - form completo:', form);
-
-      const { data, error } = await supabase
+const { data, error } = await supabase
         .from('manual_time_entries')
         .insert({
           case_control_id: caseControlId,
@@ -676,9 +671,7 @@ export const useAddManualTime = () => {
         .select('*')
         .single();
 
-      console.log('🗓️ Backend - datos insertados:', data);
-
-      if (error) {
+if (error) {
         console.error('Error adding manual time:', error);
         throw error;
       }

@@ -226,17 +226,13 @@ export function useTodos() {
   const deleteTodo = async (todoId: string): Promise<boolean> => {
     try {
       setError(null);
-      console.log('🗑️ Intentando eliminar TODO:', todoId);
-
-      const { data, error: deleteError, count } = await supabase
+const { data, error: deleteError } = await supabase
         .from('todos')
         .delete()
         .eq('id', todoId)
         .select(); // Agregamos select para ver qué se eliminó
 
-      console.log('🔍 Resultado de eliminación:', { data, error: deleteError, count });
-
-      if (deleteError) {
+if (deleteError) {
         console.error('❌ Error en la eliminación:', deleteError);
         throw deleteError;
       }
@@ -247,8 +243,7 @@ export function useTodos() {
         throw new Error('No se pudo eliminar el TODO. Verifique sus permisos.');
       }
 
-      console.log('✅ TODO eliminado exitosamente:', data);
-      await fetchTodos(); // Recargar la lista
+await fetchTodos(); // Recargar la lista
       return true;
     } catch (err) {
       console.error('💥 Error deleting todo:', err);

@@ -120,9 +120,7 @@ export const exportCaseControlReport = (
   filename: string = 'reporte-control-casos.xlsx',
   onSuccess?: NotificationFn
 ) => {
-  console.log('📊 Generando reporte de control de casos...');
-
-  // Crear un mapa para agrupar por caso y día
+// Crear un mapa para agrupar por caso y día
   const reportData: { [key: string]: any } = {};
 
   // Función helper para crear entradas del reporte
@@ -208,8 +206,7 @@ export const exportCaseControlReport = (
 
   // Si no hay datos de tiempo, crear entradas para todos los case controls
   if (Object.keys(reportData).length === 0 && caseControls.length > 0) {
-    console.log('ℹ️ No hay datos de tiempo, creando entradas para case controls existentes');
-    caseControls.forEach(caseControl => {
+caseControls.forEach(caseControl => {
       const today = new Date().toISOString().split('T')[0];
       const key = `${caseControl.case?.numeroCaso || 'NO-DATA'}-${today}`;
       reportData[key] = createReportEntry(caseControl, today);
@@ -244,9 +241,7 @@ export const exportCaseControlReport = (
     return new Date(a['Fecha']).getTime() - new Date(b['Fecha']).getTime();
   });
 
-  console.log('✅ Reporte generado exitosamente con', excelData.length, 'filas');
-
-  // Crear el libro de Excel
+// Crear el libro de Excel
   const worksheet = XLSX.utils.json_to_sheet(excelData);
   const workbook = XLSX.utils.book_new();
   
@@ -291,9 +286,7 @@ export const exportTodoControlReport = (
   filename: string = 'reporte-control-todos.xlsx',
   onSuccess?: NotificationFn
 ) => {
-  console.log('📊 Generando reporte de control de TODOs...');
-
-  // Crear un mapa para agrupar por TODO y día
+// Crear un mapa para agrupar por TODO y día
   const reportData: { [key: string]: any } = {};
 
   // Función helper para crear entradas del reporte
@@ -405,8 +398,7 @@ export const exportTodoControlReport = (
 
   // Si no hay datos de tiempo, crear entradas para todos los todo controls
   if (Object.keys(reportData).length === 0 && todoControls.length > 0) {
-    console.log('ℹ️ No hay datos de tiempo, creando entradas para todo controls existentes');
-    todoControls.forEach(todoControl => {
+todoControls.forEach(todoControl => {
       const today = new Date().toISOString().split('T')[0];
       const key = `${todoControl.todo?.title || 'NO-DATA'}-${today}`;
       reportData[key] = createReportEntry(todoControl, today);
@@ -465,9 +457,7 @@ export const exportTodoControlReport = (
     return new Date(a['Fecha']).getTime() - new Date(b['Fecha']).getTime();
   });
 
-  console.log('✅ Reporte de TODOs generado exitosamente con', excelData.length, 'filas');
-
-  // Crear el libro de Excel
+// Crear el libro de Excel
   const worksheet = XLSX.utils.json_to_sheet(excelData);
   const workbook = XLSX.utils.book_new();
   

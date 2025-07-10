@@ -35,8 +35,6 @@ export const useCases = () => {
   return useQuery({
     queryKey: ['cases'],
     queryFn: async () => {
-      console.log('🔍 Fetching cases...');
-      
       try {
         let query = supabase
           .from('cases')
@@ -49,10 +47,7 @@ export const useCases = () => {
 
         // Si el usuario NO puede ver todos los casos, filtrar solo los suyos
         if (!canViewAllCases() && userProfile?.id) {
-          console.log('🔒 Filtering cases for user:', userProfile.email);
           query = query.eq('user_id', userProfile.id);
-        } else {
-          console.log('🌐 User can view all cases');
         }
         
         const { data, error } = await query;
@@ -70,7 +65,6 @@ export const useCases = () => {
           throw error;
         }
         
-        console.log('✅ Cases fetched successfully:', data?.length || 0);
         return data?.map(mapCaseFromDB) || [];
       } catch (error) {
         console.error('💥 Fatal error fetching cases:', error);

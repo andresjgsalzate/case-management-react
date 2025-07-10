@@ -31,17 +31,8 @@ function App() {
 
   // Verificar configuración de Supabase
   useEffect(() => {
-    console.log('🔍 Verificando configuración de Supabase...');
-    
     const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
     const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
-    console.log('📊 Variables de entorno:', {
-      url: supabaseUrl,
-      keyLength: supabaseAnonKey?.length || 0,
-      hasUrl: !!supabaseUrl,
-      hasKey: !!supabaseAnonKey
-    });
 
     const isConfigured = 
       supabaseUrl && 
@@ -50,7 +41,6 @@ function App() {
       supabaseAnonKey !== 'your_anon_key_here' &&
       supabaseUrl.startsWith('https://');
 
-    console.log('✅ Configuración válida:', isConfigured);
     setIsSupabaseConfigured(!!isConfigured);
   }, []);
 

@@ -16,9 +16,7 @@ export const useSystemAccess = (): SystemAccessResult => {
 
   // Función para crear el perfil del usuario automáticamente
   const createUserProfile = async (userId: string, email: string) => {
-    console.log('🆕 Creando perfil de usuario para:', email);
-    
-    try {
+try {
       // Obtener el ID del rol 'user' (sin acceso)
       const { data: userRole, error: roleError } = await supabase
         .from('roles')
@@ -58,8 +56,7 @@ export const useSystemAccess = (): SystemAccessResult => {
         throw insertError;
       }
 
-      console.log('✅ Perfil creado exitosamente:', newProfile);
-      return newProfile;
+return newProfile;
     } catch (error) {
       console.error('💥 Error en createUserProfile:', error);
       throw error;
@@ -97,8 +94,7 @@ export const useSystemAccess = (): SystemAccessResult => {
 
       // Si no existe el perfil, crearlo automáticamente
       if (profileError && profileError.code === 'PGRST116') {
-        console.log('👤 Usuario sin perfil detectado, creando automáticamente...');
-        try {
+try {
           finalProfileData = await createUserProfile(user.id, user.email || '');
           // Invalidar la cache para refrescar todos los datos
           queryClient.invalidateQueries({ queryKey: ['systemAccess'] });

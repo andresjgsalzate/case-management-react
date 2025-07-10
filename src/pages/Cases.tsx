@@ -43,14 +43,7 @@ export const CasesPage: React.FC = () => {
 
   // Debug: log the current state
   React.useEffect(() => {
-    console.log('📊 Cases Page State:', {
-      cases: cases?.length || 0,
-      isLoading,
-      error: error?.message,
-      origenes: origenes?.length || 0,
-      aplicaciones: aplicaciones?.length || 0
-    });
-  }, [cases, isLoading, error, origenes, aplicaciones]);
+}, [cases, isLoading, error, origenes, aplicaciones]);
 
   // Filtrar casos
   const filteredCases = React.useMemo(() => {

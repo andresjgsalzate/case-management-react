@@ -78,15 +78,7 @@ export default function TodosPage() {
   }, [canArchive]);
 
   // Debug: log de permisos
-  console.log('🔐 TODO Permisos:', {
-    canCreateTodos,
-    canEditTodos,
-    canDeleteTodos,
-    canControlTodos,
-    canViewAllTodos
-  });
-
-  const { 
+const { 
     todos, 
     loading: todosLoading, 
     error: todosError,

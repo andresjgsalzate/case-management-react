@@ -51,8 +51,7 @@ export const AuthForm: React.FC = () => {
       // Mostrar mensaje de éxito específico para registro
       if (!import.meta.env.VITE_SUPABASE_EMAIL_CONFIRMATIONS) {
         // Si las confirmaciones están desactivadas, el usuario puede iniciar sesión inmediatamente
-        console.log('✅ Registro completado - Email confirmations desactivadas');
-      }
+}
     } catch (error) {
       console.error('❌ Error en registro:', error);
     }

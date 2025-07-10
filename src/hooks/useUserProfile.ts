@@ -38,18 +38,13 @@ export const useUserProfile = () => {
   return useQuery({
     queryKey: ['userProfile'],
     queryFn: async (): Promise<UserProfile | null> => {
-      console.log('🔍 Fetching user profile...');
-      
-      const { data: { user } } = await supabase.auth.getUser();
+const { data: { user } } = await supabase.auth.getUser();
       
       if (!user) {
-        console.log('❌ No user found');
-        return null;
+return null;
       }
 
-      console.log('👤 User found:', user.email, 'ID:', user.id);
-
-      // Try the full query with joins since RLS should be fixed now
+// Try the full query with joins since RLS should be fixed now
       let { data, error } = await supabase
         .from('user_profiles')
         .select(`
@@ -77,9 +72,7 @@ export const useUserProfile = () => {
       }
 
       if (!data) {
-        console.log('❌ No user profile data found, attempting to create one...');
-        
-        // Try to create a user profile for this user
+// Try to create a user profile for this user
         const { data: roles } = await supabase
           .from('roles')
           .select('id')
@@ -112,16 +105,14 @@ export const useUserProfile = () => {
             throw createError;
           }
           
-          console.log('✅ User profile created successfully');
-          return mapUserProfileData(newProfile);
+return mapUserProfileData(newProfile);
         } else {
           console.error('❌ No default user role found');
           return null;
         }
       }
 
-      console.log('✅ User profile fetched:', data.email, 'Role:', data.role?.name);
-      return mapUserProfileData(data);
+return mapUserProfileData(data);
     },
     enabled: true,
     staleTime: 5 * 60 * 1000, // 5 minutos

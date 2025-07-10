@@ -10,7 +10,7 @@ import { Button } from './Button';
 import { Input } from './Input';
 import { CaseControl } from '@/types';
 import { useTimeEntries, useManualTimeEntries, useAddManualTime, useDeleteManualTime, useDeleteTimeEntry } from '@/hooks/useCaseControl';
-import { formatDate, formatTime, formatDateLocal } from '@/utils/caseUtils';
+import { formatDate, formatTimeDetailed, formatDateLocal } from '@/utils/caseUtils';
 import { useNotification } from './NotificationSystem';
 
 interface CaseControlDetailsModalProps {
@@ -60,17 +60,7 @@ export const CaseControlDetailsModal: React.FC<CaseControlDetailsModalProps> = (
   const loading = timeEntriesQuery.isLoading || manualTimeEntriesQuery.isLoading;
 
   // Debug logging
-  console.log('🕒 CaseControlDetailsModal Debug:', {
-    caseControlId: caseControl?.id,
-    totalTimeMinutes: caseControl?.totalTimeMinutes,
-    timeEntries: timeEntries.length,
-    manualTimeEntries: manualTimeEntries.length,
-    timeEntriesData: timeEntries,
-    manualTimeEntriesData: manualTimeEntries,
-    loading
-  });
-
-  useEffect(() => {
+useEffect(() => {
     // Los queries se ejecutan automáticamente cuando cambia el ID
   }, []);
 
@@ -87,10 +77,8 @@ export const CaseControlDetailsModal: React.FC<CaseControlDetailsModalProps> = (
     }
 
     try {
-      console.log('🗓️ Fecha que se va a enviar:', manualTimeForm.date);
-      console.log('🗓️ Datos del formulario:', manualTimeForm);
-      
-      await addManualTimeMutation.mutateAsync({
+
+await addManualTimeMutation.mutateAsync({
         caseControlId: caseControl.id,
         form: {
           date: manualTimeForm.date,
@@ -165,20 +153,20 @@ export const CaseControlDetailsModal: React.FC<CaseControlDetailsModalProps> = (
           <div className="flex items-center gap-2 mb-2">
             <ClockIcon className="h-5 w-5 text-blue-600 dark:text-blue-400" />
             <h3 className="text-lg font-semibold text-blue-900 dark:text-blue-100">
-              Tiempo Total: {formatTime(getTotalTime())}
+              Tiempo Total: {formatTimeDetailed(getTotalTime())}
             </h3>
           </div>
           <div className="grid grid-cols-2 gap-4 text-sm">
             <div>
               <span className="text-gray-600 dark:text-gray-400">Tiempo de Timer:</span>
               <span className="ml-2 font-medium">
-                {formatTime(getTimerTime())}
+                {formatTimeDetailed(getTimerTime())}
               </span>
             </div>
             <div>
               <span className="text-gray-600 dark:text-gray-400">Tiempo Manual:</span>
               <span className="ml-2 font-medium">
-                {formatTime(getManualTime())}
+                {formatTimeDetailed(getManualTime())}
               </span>
             </div>
           </div>
@@ -283,7 +271,7 @@ export const CaseControlDetailsModal: React.FC<CaseControlDetailsModalProps> = (
                       {formatDateLocal(entry.date)}
                     </span>
                     <span className="font-medium text-blue-600 dark:text-blue-400">
-                      {formatTime(entry.durationMinutes)}
+                      {formatTimeDetailed(entry.durationMinutes)}
                     </span>
                   </div>
                   <p className="text-sm text-gray-800 dark:text-gray-200 mt-1">
@@ -328,7 +316,7 @@ export const CaseControlDetailsModal: React.FC<CaseControlDetailsModalProps> = (
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="font-medium text-green-600 dark:text-green-400">
-                    {formatTime(entry.durationMinutes || 0)}
+                    {formatTimeDetailed(entry.durationMinutes || 0)}
                   </span>
                   {/* Solo permitir eliminar entradas que ya terminaron */}
                   {entry.endTime && (

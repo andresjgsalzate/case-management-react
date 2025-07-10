@@ -44,13 +44,7 @@ export const ResetPasswordPage: React.FC = () => {
       const refreshToken = searchParams.get('refresh_token');
       const type = searchParams.get('type');
 
-      console.log('🔍 Verificando tokens de reset password:', {
-        hasAccessToken: !!accessToken,
-        hasRefreshToken: !!refreshToken,
-        type,
-      });
-
-      if (type === 'recovery' && accessToken && refreshToken) {
+if (type === 'recovery' && accessToken && refreshToken) {
         try {
           // Establecer la sesión con los tokens de recovery
           const { data, error } = await supabase.auth.setSession({
@@ -66,8 +60,7 @@ export const ResetPasswordPage: React.FC = () => {
           }
 
           if (data.user) {
-            console.log('✅ Sesión de recovery establecida para:', data.user.email);
-            setIsTokenValid(true);
+setIsTokenValid(true);
           } else {
             setIsTokenValid(false);
             toast.error('No se pudo establecer la sesión de recuperación');
@@ -78,8 +71,7 @@ export const ResetPasswordPage: React.FC = () => {
           toast.error('Error al procesar el enlace de recuperación');
         }
       } else {
-        console.log('❌ Tokens de recovery no encontrados o inválidos');
-        setIsTokenValid(false);
+setIsTokenValid(false);
         toast.error('Enlace de recuperación inválido');
       }
     };
