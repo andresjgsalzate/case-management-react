@@ -11,7 +11,7 @@ export interface VersionInfo {
 
 export const changelog: VersionInfo[] = [
   {
-    version: "2.7.11",
+    version: "2.7.10",
     date: "2025-01-15", 
     changes: [
       {
@@ -41,13 +41,7 @@ export const changelog: VersionInfo[] = [
       {
         type: "feature",
         description: "✅ Validación Funcional Completa: Todos los módulos (Gestión de Casos, Control de Casos, Archivo) verificados y funcionando correctamente"
-      }
-    ]
-  },
-  {
-    version: "2.7.10",
-    date: "2025-01-14", 
-    changes: [
+      },
       {
         type: "improvement",
         description: "🔒 Seguridad RLS: Habilitado Row Level Security (RLS) en todas las tablas públicas para cumplir con estándares de seguridad de Supabase"
@@ -66,7 +60,7 @@ export const changelog: VersionInfo[] = [
       },
       {
         type: "improvement",
-        description: "📋 Cumplimiento: Resolución completa de 16 errores críticos de seguridad reportados por Supabase Linter"
+        description: "📋 Cumplimiento: Resolución completa de errores críticos de seguridad y funcionalidad del sistema"
       }
     ]
   },
