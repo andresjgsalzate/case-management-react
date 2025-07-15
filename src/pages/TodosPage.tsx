@@ -340,10 +340,10 @@ const {
     setShowEditModal(true);
   };
 
-  // Estadísticas rápidas
+  // Estadísticas rápidas - usar is_completed en lugar del status del control
   const overdueTodos = getOverdueTodos();
-  const completedTodos = filteredTodos.filter(t => t.control?.status?.name === 'Terminada');
-  const inProgressTodos = filteredTodos.filter(t => t.control?.status?.name === 'En Curso');
+  const completedTodos = filteredTodos.filter(t => t.isCompleted);
+  const inProgressTodos = filteredTodos.filter(t => !t.isCompleted && t.control?.status?.name === 'EN CURSO');
 
   if (todosLoading) {
     return (

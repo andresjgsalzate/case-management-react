@@ -436,6 +436,8 @@ export interface TodoItem {
   assignedUserId?: string;
   estimatedMinutes?: number;
   dueDate?: string;
+  isCompleted: boolean;
+  completedAt?: string;
   createdBy: string;
   createdAt: string;
   updatedAt: string;

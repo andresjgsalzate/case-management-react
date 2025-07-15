@@ -11,94 +11,8 @@ export interface VersionInfo {
 
 export const changelog: VersionInfo[] = [
   {
-    version: "2.7.11",
-    date: "2025-01-15", 
-    changes: [
-      {
-        type: "bugfix",
-        description: "🔧 Corrección de Recursión RLS: Solucionada la recursión infinita en las políticas de user_profiles que causaba errores de acceso al sistema"
-      },
-      {
-        type: "improvement",
-        description: "🔐 Sistema de Seguridad Optimizado: Migración completa a un modelo de seguridad híbrido que elimina conflictos de RLS y mejora el rendimiento"
-      },
-      {
-        type: "bugfix", 
-        description: "� Vista archive_stats Corregida: Solucionado el error 'multiple rows returned' que impedía cargar las estadísticas de archivo"
-      },
-      {
-        type: "bugfix",
-        description: "🎯 Vista case_control_detailed Reparada: Agregadas columnas faltantes (case_number, application_name, assigned_user_name, status_color) que causaban errores 400"
-      },
-      {
-        type: "improvement",
-        description: "� Módulo Control de Casos Restaurado: Completa funcionalidad del módulo de control con todas las métricas y gráficos operativos"
-      },
-      {
-        type: "improvement",
-        description: "🧹 Limpieza de Políticas: Eliminadas políticas RLS huérfanas y duplicadas, reduciendo advertencias de seguridad de ~20 a solo warnings menores"
-      },
-      {
-        type: "feature",
-        description: "✅ Validación Funcional Completa: Todos los módulos (Gestión de Casos, Control de Casos, Archivo) verificados y funcionando correctamente"
-      }
-    ]
-  },
-  {
-    version: "2.7.10",
-    date: "2025-01-14", 
-    changes: [
-      {
-        type: "improvement",
-        description: "🔒 Seguridad RLS: Habilitado Row Level Security (RLS) en todas las tablas públicas para cumplir con estándares de seguridad de Supabase"
-      },
-      {
-        type: "improvement", 
-        description: "🛡️ Políticas de Acceso: Implementadas políticas de seguridad granulares basadas en roles de usuario (admin, supervisor, analista)"
-      },
-      {
-        type: "improvement",
-        description: "👁️ Vistas Seguras: Recreadas vistas críticas como SECURITY INVOKER para mejorar la seguridad y transparencia de permisos"
-      },
-      {
-        type: "improvement",
-        description: "🔧 Compatibilidad Mantenida: Todos los cambios de seguridad preservan la funcionalidad existente sin afectar el comportamiento actual"
-      },
-      {
-        type: "improvement",
-        description: "📋 Cumplimiento: Resolución completa de 16 errores críticos de seguridad reportados por Supabase Linter"
-      }
-    ]
-  },
-  {
-    version: "2.7.9",
-    date: "2025-01-14",
-    changes: [
-      {
-        type: "bugfix",
-        description: "🔧 Sincronización de Estado de TODOs: Corregido el campo 'is_completed' en la tabla 'todos' que no se actualizaba al completar TODOs desde el control"
-      },
-      {
-        type: "improvement",
-        description: "⚡ Métricas de TODOs Precisas: Las métricas de TODOs ahora reflejan correctamente el estado real de completado desde la base de datos"
-      },
-      {
-        type: "feature",
-        description: "🔄 Función de Reactivación: Agregada funcionalidad para reactivar TODOs completados, revirtiendo su estado a pendiente"
-      },
-      {
-        type: "improvement",
-        description: "🎯 Invalidación Automática de Queries: Mejora en la actualización automática de la interfaz al completar/reactivar TODOs"
-      },
-      {
-        type: "feature",
-        description: "🤖 Trigger de Base de Datos: Implementado trigger automático que mantiene sincronizado el estado de completado entre las tablas 'todo_control' y 'todos'"
-      }
-    ]
-  },
-  {
     version: "2.7.8",
-    date: "2025-01-10",
+    date: "2025-07-08",
     changes: [
       {
         type: "feature",
@@ -106,7 +20,7 @@ export const changelog: VersionInfo[] = [
       },
       {
         type: "improvement",
-        description: "📊 Visualización de Desglose de Puntuación: La tarjeta incluye una barra de progreso visual y el desglose detallado de cada criterio de calificación"
+        description: "� Visualización de Desglose de Puntuación: La tarjeta incluye una barra de progreso visual y el desglose detallado de cada criterio de calificación"
       },
       {
         type: "improvement",
@@ -114,17 +28,53 @@ export const changelog: VersionInfo[] = [
       },
       {
         type: "improvement",
-        description: "📱 Layout Optimizado: La tarjeta de vista previa es compacta y se ubica al lado derecho del campo 'Causa del fallo' en pantallas grandes, apilándose verticalmente en móviles"
+        description: "�📱 Layout Optimizado: La tarjeta de vista previa ahora es compacta y se ubica al lado derecho del campo 'Causa del fallo' en pantallas grandes"
       },
       {
         type: "improvement",
-        description: "🎯 Diseño Refinado: Tarjeta optimizada para el espacio disponible con elementos visuales simplificados y mejor responsividad"
+        description: "🎨 Diseño Refinado: Tarjeta más pequeña con elementos visuales simplificados, optimizada para el espacio disponible"
+      },
+      {
+        type: "improvement",
+        description: "📐 Responsividad Mejorada: En dispositivos móviles la tarjeta se apila verticalmente manteniendo la usabilidad"
+      },
+      {
+        type: "improvement",
+        description: "⏰ Visualización de Tiempo Mejorada: Los tiempos en modales de detalle ahora se muestran como '9h 58m' en lugar de '09:58' para evitar confusión"
+      },
+      {
+        type: "improvement",
+        description: "🎯 UX Clarificada: Formato de tiempo más intuitivo que distingue claramente horas y minutos de minutos y segundos"
+      },
+      {
+        type: "improvement",
+        description: "📊 Consistencia Visual: Aplicado el nuevo formato en todos los modales de Control de Casos y TODOs"
+      },
+      {
+        type: "improvement",
+        description: "🧹 Limpieza de Código: Eliminados todos los console.log innecesarios de desarrollo para optimizar el rendimiento"
+      },
+      {
+        type: "improvement",
+        description: "⚡ Performance Mejorada: Código más limpio sin logs de debug que afecten la producción"
+      },
+      {
+        type: "improvement",
+        description: "🔧 Mantenimiento: Conservados solo los console.error necesarios para debugging de errores críticos"
+      },
+      {
+        type: "improvement",
+        description: "🔄 Sincronización Cross-Módulo Mejorada: Optimizada invalidación de queries entre módulos al archivar, restaurar y eliminar casos/TODOs"
+      },
+      {
+        type: "improvement",
+        description: "⚡ UX de Sincronización: Los cambios en un módulo se reflejan automáticamente en todos los demás módulos relacionados"
       }
     ]
   },
   {
     version: "2.7.7",
-    date: "2025-01-08",
+    date: "2025-07-08",
     changes: [
       {
         type: "improvement",
@@ -142,7 +92,7 @@ export const changelog: VersionInfo[] = [
   },
   {
     version: "2.7.6",
-    date: "2025-01-08",
+    date: "2025-07-08",
     changes: [
       {
         type: "improvement",
@@ -160,7 +110,7 @@ export const changelog: VersionInfo[] = [
   },
   {
     version: "2.7.5",
-    date: "2025-01-08",
+    date: "2025-07-08",
     changes: [
       {
         type: "bugfix",
@@ -287,10 +237,6 @@ export const changelog: VersionInfo[] = [
       {
         type: "feature",
         description: "🎨 Interfaz de Usuario Moderna: Página de archivo con filtros, búsqueda y visualización detallada de elementos archivados"
-      },
-      {
-        type: "improvement",
-        description: "🗂️ Consolidación de Migraciones: Unificación de 6 migraciones SQL en una sola migración optimizada para mejor mantenimiento"
       }
     ]
   },

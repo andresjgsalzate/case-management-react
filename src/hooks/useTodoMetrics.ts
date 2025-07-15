@@ -34,14 +34,13 @@ export function useTodoMetrics() {
       const monthStart = new Date(today);
       monthStart.setMonth(today.getMonth() - 1);
 
-      // Obtener IDs de estados
+      // Obtener IDs de estados para filtros de control
       const { data: statuses } = await supabase
         .from('case_status_control')
         .select('id, name');
 
-      const pendingStatusId = statuses?.find(s => s.name === 'Pendiente')?.id;
-      const inProgressStatusId = statuses?.find(s => s.name === 'En Curso')?.id;
-      const completedStatusId = statuses?.find(s => s.name === 'Terminada')?.id;
+      const pendingStatusId = statuses?.find(s => s.name === 'PENDIENTE')?.id;
+      const inProgressStatusId = statuses?.find(s => s.name === 'EN CURSO')?.id;
 
       // Obtener todos los TODOs del usuario (según rol)
       let todosQuery = supabase
@@ -52,6 +51,7 @@ export function useTodoMetrics() {
           created_at,
           created_by_user_id,
           assigned_user_id,
+          is_completed,
           control:todo_control(
             id,
             status_id,
@@ -82,15 +82,24 @@ export function useTodoMetrics() {
 
       // Calcular métricas básicas
       const totalTodos = todos?.length || 0;
-      const pendingTodos = todos?.filter(t => t.control?.[0]?.status_id === pendingStatusId).length || 0;
-      const inProgressTodos = todos?.filter(t => t.control?.[0]?.status_id === inProgressStatusId).length || 0;
-      const completedTodos = todos?.filter(t => t.control?.[0]?.status_id === completedStatusId).length || 0;
+      
+      // Usar is_completed de la tabla todos para determinar completados
+      const completedTodos = todos?.filter(t => t.is_completed === true).length || 0;
+      
+      // Para pendientes e in progress, usar el control solo si existe, sino considerar pendiente
+      const pendingTodos = todos?.filter(t => 
+        !t.is_completed && (!t.control?.[0] || t.control?.[0]?.status_id === pendingStatusId)
+      ).length || 0;
+      
+      const inProgressTodos = todos?.filter(t => 
+        !t.is_completed && t.control?.[0]?.status_id === inProgressStatusId
+      ).length || 0;
 
-      // TODOs vencidos
+      // TODOs vencidos (solo los que NO están completados)
       const overdueTodos = todos?.filter(t => 
         t.due_date && 
         t.due_date < todayStr && 
-        t.control?.[0]?.status_id !== completedStatusId
+        !t.is_completed
       ).length || 0;
 
       // Obtener entradas de tiempo para cálculos temporales
@@ -133,9 +142,9 @@ export function useTodoMetrics() {
         return entryDate >= monthStart;
       }).reduce((sum, entry) => sum + (entry.duration_minutes || 0), 0) || 0;
 
-      // Tiempo promedio de completación
+      // Tiempo promedio de completación (usar is_completed en lugar del status)
       const completedTodosWithTime = todos?.filter(t => 
-        t.control?.[0]?.status_id === completedStatusId && 
+        t.is_completed && 
         t.control?.[0]?.total_time_minutes > 0
       ) || [];
 

@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
 import { 
   TodoControl, 
@@ -15,6 +15,7 @@ export function useTodoControl() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
+  const queryClient = useQueryClient();
 
   // Cargar controles de TODO
   const fetchControls = useCallback(async (filters?: { userId?: string; todoId?: string }) => {
@@ -89,9 +90,10 @@ export function useTodoControl() {
           priorityId: control.todo.priority_id,
           assignedUserId: control.todo.assigned_user_id,
           estimatedMinutes: control.todo.estimated_minutes,
-          tags: control.todo.tags || [],
           dueDate: control.todo.due_date,
-          createdBy: control.todo.created_by,
+          isCompleted: control.todo.is_completed,
+          completedAt: control.todo.completed_at,
+          createdBy: control.todo.created_by_user_id,
           createdAt: control.todo.created_at,
           updatedAt: control.todo.updated_at,
           priority: control.todo.priority ? {
@@ -338,6 +340,7 @@ export function useTodoControl() {
 
       const now = new Date().toISOString();
 
+      // Actualizar el control de TODO
       const { error: updateError } = await supabase
         .from('todo_control')
         .update({
@@ -351,11 +354,95 @@ export function useTodoControl() {
 
       if (updateError) throw updateError;
 
+      // CORRECCIÓN: Actualizar el campo is_completed en la tabla todos
+      if (control?.todoId) {
+        const { error: todoUpdateError } = await supabase
+          .from('todos')
+          .update({
+            is_completed: true,
+            updated_at: now
+          })
+          .eq('id', control.todoId);
+
+        if (todoUpdateError) {
+          console.error('Error updating todo is_completed status:', todoUpdateError);
+          throw new Error('Error al actualizar el estado de completado del TODO');
+        }
+      }
+
       await fetchControls();
+      
+      // Invalidar queries relacionadas para actualizar la interfaz
+      queryClient.invalidateQueries({ queryKey: ['todos'] });
+      queryClient.invalidateQueries({ queryKey: ['todoMetrics'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboardMetrics'] });
+      
       return true;
     } catch (err) {
       console.error('Error completing todo:', err);
       setError(err instanceof Error ? err.message : 'Error al completar TODO');
+      return false;
+    }
+  };
+
+  // Reactivar TODO (descompletar)
+  const reactivateTodo = async (controlId: string): Promise<boolean> => {
+    try {
+      setError(null);
+
+      // Obtener estado "PENDIENTE"
+      const { data: pendingStatus } = await supabase
+        .from('case_status_control')
+        .select('id')
+        .eq('name', 'PENDIENTE')
+        .single();
+
+      if (!pendingStatus) {
+        throw new Error('Estado "PENDIENTE" no encontrado');
+      }
+
+      const now = new Date().toISOString();
+      const control = controls.find(c => c.id === controlId);
+
+      // Actualizar el control de TODO
+      const { error: updateError } = await supabase
+        .from('todo_control')
+        .update({
+          status_id: pendingStatus.id,
+          completed_at: null,
+          updated_at: now
+        })
+        .eq('id', controlId);
+
+      if (updateError) throw updateError;
+
+      // Actualizar el campo is_completed en la tabla todos
+      if (control?.todoId) {
+        const { error: todoUpdateError } = await supabase
+          .from('todos')
+          .update({
+            is_completed: false,
+            updated_at: now
+          })
+          .eq('id', control.todoId);
+
+        if (todoUpdateError) {
+          console.error('Error updating todo is_completed status:', todoUpdateError);
+          throw new Error('Error al actualizar el estado de completado del TODO');
+        }
+      }
+
+      await fetchControls();
+      
+      // Invalidar queries relacionadas para actualizar la interfaz
+      queryClient.invalidateQueries({ queryKey: ['todos'] });
+      queryClient.invalidateQueries({ queryKey: ['todoMetrics'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboardMetrics'] });
+      
+      return true;
+    } catch (err) {
+      console.error('Error reactivating todo:', err);
+      setError(err instanceof Error ? err.message : 'Error al reactivar TODO');
       return false;
     }
   };
@@ -511,6 +598,7 @@ export function useTodoControl() {
     startTimer,
     pauseTimer,
     completeTodo,
+    reactivateTodo,
     addManualTime,
     getControlByTodoId,
     getMyControls,
@@ -628,9 +716,10 @@ export const useAllTodoControls = () => {
           priorityId: control.todo.priority_id,
           assignedUserId: control.todo.assigned_user_id,
           estimatedMinutes: control.todo.estimated_minutes,
-          tags: control.todo.tags || [],
           dueDate: control.todo.due_date,
-          createdBy: control.todo.created_by,
+          isCompleted: control.todo.is_completed,
+          completedAt: control.todo.completed_at,
+          createdBy: control.todo.created_by_user_id,
           createdAt: control.todo.created_at,
           updatedAt: control.todo.updated_at,
           priority: control.todo.priority ? {

@@ -79,9 +79,10 @@ export function useTodos() {
         priorityId: todo.priority_id,
         assignedUserId: todo.assigned_user_id,
         estimatedMinutes: todo.estimated_minutes,
-        tags: todo.tags || [],
         dueDate: todo.due_date,
-        createdBy: todo.created_by,
+        isCompleted: todo.is_completed,
+        completedAt: todo.completed_at,
+        createdBy: todo.created_by_user_id,
         createdAt: todo.created_at,
         updatedAt: todo.updated_at,
         priority: todo.priority ? {
@@ -271,7 +272,7 @@ await fetchTodos(); // Recargar la lista
     return todos.filter(todo => 
       todo.dueDate && 
       todo.dueDate < today && 
-      todo.control?.status?.name !== 'Terminada'
+      !todo.isCompleted // Usar is_completed en lugar del status del control
     );
   };
 
