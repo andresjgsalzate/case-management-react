@@ -96,28 +96,21 @@ export const useUpdateUser = () => {
 
   return useMutation({
     mutationFn: async ({ id, userData }: { id: string; userData: Partial<UserFormData> }): Promise<UserProfile> => {
-      const { data, error } = await supabase
-        .from('user_profiles')
-        .update({
-          email: userData.email,
-          full_name: userData.fullName,
-          role_id: userData.roleId,
-          is_active: userData.isActive,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', id)
-        .select(`
-          *,
-          role:roles (*)
-        `)
-        .single();
+      // Usar función RPC para bypass de RLS
+      const { data, error } = await supabase.rpc('admin_update_user', {
+        user_id: id,
+        user_email: userData.email!,
+        user_full_name: userData.fullName!,
+        user_role_id: userData.roleId!,
+        is_active: userData.isActive ?? true
+      });
 
       if (error) {
         console.error('Error updating user:', error);
         throw error;
       }
 
-      // Mapear de snake_case a camelCase
+      // Los datos ya vienen mapeados de la función RPC
       return {
         id: data.id,
         email: data.email,
@@ -153,23 +146,15 @@ export const useDeleteUser = () => {
 
   return useMutation({
     mutationFn: async (userId: string): Promise<void> => {
-      // Primero eliminar el perfil
-      const { error: profileError } = await supabase
-        .from('user_profiles')
-        .delete()
-        .eq('id', userId);
+      // Usar función RPC para bypass de RLS
+      const { error } = await supabase.rpc('admin_delete_user', {
+        user_id: userId
+      });
 
-      if (profileError) {
-        console.error('Error deleting user profile:', profileError);
-        throw profileError;
+      if (error) {
+        console.error('Error deleting user:', error);
+        throw error;
       }
-
-      // Luego eliminar del auth (opcional, depende de la política de la empresa)
-      // const { error: authError } = await supabase.auth.admin.deleteUser(userId);
-      // if (authError) {
-      //   console.error('Error deleting auth user:', authError);
-      //   throw authError;
-      // }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['users'] });

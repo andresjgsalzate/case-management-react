@@ -7,7 +7,6 @@ import {
   TodoFilters
 } from '../types';
 import { useAuth } from './useAuth';
-import { useTodoPermissions } from './useTodoPermissions';
 import { usePermissions } from './useUserProfile';
 
 export function useTodos() {
@@ -15,7 +14,6 @@ export function useTodos() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
-  const { canViewAllTodos } = useTodoPermissions();
   const { userProfile } = usePermissions();
 
   // Cargar TODOs con filtros
@@ -39,12 +37,9 @@ export function useTodos() {
         `)
         .order('created_at', { ascending: false });
 
-      // Aplicar filtros de permisos
-      // Si el usuario NO puede ver todos los TODOs, filtrar según su rol
-      if (!canViewAllTodos && userProfile?.id) {
-        // Solo mostrar TODOs asignados al usuario o creados por él
-        query = query.or(`assigned_user_id.eq.${userProfile.id},created_by_user_id.eq.${userProfile.id}`);
-      }
+      // Las políticas RLS de la base de datos ya manejan los filtros de permisos
+      // Los analistas solo verán TODOs que les pertenecen según las políticas RLS
+      // No necesitamos filtrar aquí porque la base de datos ya lo hace
 
       // Aplicar filtros adicionales
       if (filters) {
@@ -159,7 +154,7 @@ export function useTodos() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [userProfile]);
 
   // Crear nuevo TODO
   const createTodo = async (todoData: CreateTodoData): Promise<TodoItem | null> => {

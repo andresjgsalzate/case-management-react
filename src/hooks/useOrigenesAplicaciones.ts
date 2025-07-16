@@ -109,15 +109,12 @@ export const useCreateOrigen = () => {
 
   return useMutation({
     mutationFn: async (origenData: OrigenFormData): Promise<Origen> => {
-      const { data, error } = await supabase
-        .from('origenes')
-        .insert({
-          nombre: origenData.nombre,
-          descripcion: origenData.descripcion,
-          activo: origenData.activo,
-        })
-        .select()
-        .single();
+      // Usar función RPC para bypass de RLS
+      const { data, error } = await supabase.rpc('admin_create_origen', {
+        origen_name: origenData.nombre,
+        origen_description: origenData.descripcion || '',
+        is_active: origenData.activo ?? true
+      });
 
       if (error) {
         console.error('Error creating origen:', error);
@@ -141,17 +138,13 @@ export const useUpdateOrigen = () => {
 
   return useMutation({
     mutationFn: async ({ id, data }: { id: string; data: Partial<OrigenFormData> }): Promise<Origen> => {
-      const { data: result, error } = await supabase
-        .from('origenes')
-        .update({
-          nombre: data.nombre,
-          descripcion: data.descripcion,
-          activo: data.activo,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', id)
-        .select()
-        .single();
+      // Usar función RPC para bypass de RLS
+      const { data: result, error } = await supabase.rpc('admin_update_origen', {
+        origen_id: id,
+        origen_name: data.nombre!,
+        origen_description: data.descripcion || '',
+        is_active: data.activo ?? true
+      });
 
       if (error) {
         console.error('Error updating origen:', error);
@@ -176,10 +169,10 @@ export const useDeleteOrigen = () => {
 
   return useMutation({
     mutationFn: async (origenId: string): Promise<void> => {
-      const { error } = await supabase
-        .from('origenes')
-        .delete()
-        .eq('id', origenId);
+      // Usar función RPC para bypass de RLS
+      const { error } = await supabase.rpc('admin_delete_origen', {
+        origen_id: origenId
+      });
 
       if (error) {
         console.error('Error deleting origen:', error);
@@ -203,15 +196,12 @@ export const useCreateAplicacion = () => {
 
   return useMutation({
     mutationFn: async (aplicacionData: AplicacionFormData): Promise<Aplicacion> => {
-      const { data, error } = await supabase
-        .from('aplicaciones')
-        .insert({
-          nombre: aplicacionData.nombre,
-          descripcion: aplicacionData.descripcion,
-          activo: aplicacionData.activo,
-        })
-        .select()
-        .single();
+      // Usar función RPC para bypass de RLS
+      const { data, error } = await supabase.rpc('admin_create_aplicacion', {
+        aplicacion_name: aplicacionData.nombre,
+        aplicacion_description: aplicacionData.descripcion || '',
+        is_active: aplicacionData.activo ?? true
+      });
 
       if (error) {
         console.error('Error creating aplicacion:', error);
@@ -235,24 +225,28 @@ export const useUpdateAplicacion = () => {
 
   return useMutation({
     mutationFn: async ({ id, data }: { id: string; data: Partial<AplicacionFormData> }): Promise<Aplicacion> => {
-      const { data: result, error } = await supabase
-        .from('aplicaciones')
-        .update({
-          nombre: data.nombre,
-          descripcion: data.descripcion,
-          activo: data.activo,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', id)
-        .select()
-        .single();
+      // Usar función RPC para bypass de RLS
+      const { data: result, error } = await supabase.rpc('admin_update_aplicacion', {
+        aplicacion_id: id,
+        aplicacion_name: data.nombre!,
+        aplicacion_description: data.descripcion || '',
+        is_active: data.activo ?? true
+      });
 
       if (error) {
         console.error('Error updating aplicacion:', error);
         throw error;
       }
 
-      return mapAplicacionFromDB(result);
+      // Mapear el resultado JSON
+      return {
+        id: result.id,
+        nombre: result.nombre,
+        descripcion: result.descripcion,
+        activo: result.activo,
+        createdAt: result.created_at,
+        updatedAt: result.updated_at
+      };
     },
     onSuccess: (_, { id }) => {
       queryClient.invalidateQueries({ queryKey: ['aplicaciones'] });
@@ -270,10 +264,10 @@ export const useDeleteAplicacion = () => {
 
   return useMutation({
     mutationFn: async (aplicacionId: string): Promise<void> => {
-      const { error } = await supabase
-        .from('aplicaciones')
-        .delete()
-        .eq('id', aplicacionId);
+      // Usar función RPC para bypass de RLS
+      const { error } = await supabase.rpc('admin_delete_aplicacion', {
+        aplicacion_id: aplicacionId
+      });
 
       if (error) {
         console.error('Error deleting aplicacion:', error);

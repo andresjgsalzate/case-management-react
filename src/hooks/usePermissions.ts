@@ -71,24 +71,21 @@ export const useCreatePermission = () => {
 
   return useMutation({
     mutationFn: async (permissionData: PermissionFormData): Promise<Permission> => {
-      const { data, error } = await supabase
-        .from('permissions')
-        .insert({
-          name: permissionData.name,
-          description: permissionData.description,
-          resource: permissionData.resource,
-          action: permissionData.action,
-          is_active: permissionData.isActive,
-        })
-        .select()
-        .single();
+      // Usar función RPC para bypass de RLS
+      const { data, error } = await supabase.rpc('admin_create_permission', {
+        permission_name: permissionData.name,
+        permission_description: permissionData.description || '',
+        permission_resource: permissionData.resource,
+        permission_action: permissionData.action,
+        is_active: permissionData.isActive ?? true
+      });
 
       if (error) {
         console.error('Error creating permission:', error);
         throw error;
       }
 
-      // Mapear de snake_case a camelCase
+      // Los datos ya vienen mapeados de la función RPC
       return {
         id: data.id,
         name: data.name,
@@ -115,26 +112,22 @@ export const useUpdatePermission = () => {
 
   return useMutation({
     mutationFn: async ({ id, permissionData }: { id: string; permissionData: Partial<PermissionFormData> }): Promise<Permission> => {
-      const { data, error } = await supabase
-        .from('permissions')
-        .update({
-          name: permissionData.name,
-          description: permissionData.description,
-          resource: permissionData.resource,
-          action: permissionData.action,
-          is_active: permissionData.isActive,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', id)
-        .select()
-        .single();
+      // Usar función RPC para bypass de RLS
+      const { data, error } = await supabase.rpc('admin_update_permission', {
+        permission_id: id,
+        permission_name: permissionData.name!,
+        permission_description: permissionData.description || '',
+        permission_resource: permissionData.resource!,
+        permission_action: permissionData.action!,
+        is_active: permissionData.isActive ?? true
+      });
 
       if (error) {
         console.error('Error updating permission:', error);
         throw error;
       }
 
-      // Mapear de snake_case a camelCase
+      // Los datos ya vienen mapeados de la función RPC
       return {
         id: data.id,
         name: data.name,
@@ -162,26 +155,14 @@ export const useDeletePermission = () => {
 
   return useMutation({
     mutationFn: async (permissionId: string): Promise<void> => {
-      // Primero eliminar las asignaciones de roles
-      const { error: rolePermissionsError } = await supabase
-        .from('role_permissions')
-        .delete()
-        .eq('permission_id', permissionId);
+      // Usar función RPC para bypass de RLS
+      const { error } = await supabase.rpc('admin_delete_permission', {
+        permission_id: permissionId
+      });
 
-      if (rolePermissionsError) {
-        console.error('Error deleting role permissions:', rolePermissionsError);
-        throw rolePermissionsError;
-      }
-
-      // Luego eliminar el permiso
-      const { error: permissionError } = await supabase
-        .from('permissions')
-        .delete()
-        .eq('id', permissionId);
-
-      if (permissionError) {
-        console.error('Error deleting permission:', permissionError);
-        throw permissionError;
+      if (error) {
+        console.error('Error deleting permission:', error);
+        throw error;
       }
     },
     onSuccess: () => {

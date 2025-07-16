@@ -61,7 +61,7 @@ export default function TodosPage() {
     canEditTodos,
     canDeleteTodos,
     canControlTodos,
-    canViewAllTodos
+    canAccessTodoModule
   } = useTodoPermissions();
 
   const { archiveTodo, canArchive } = useArchive();
@@ -127,7 +127,7 @@ const {
   };
 
   // Verificar acceso al módulo
-  if (!canViewAllTodos) {
+  if (!canAccessTodoModule) {
     return (
       <PageWrapper>
         <div className="text-center py-12">

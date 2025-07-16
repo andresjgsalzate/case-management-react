@@ -29,8 +29,9 @@ export function useTodoPermissions() {
     const canControlTodos = permissions.includes('todo_time_tracking'); // Permiso correcto
 
     // Acceso al módulo si tiene cualquier permiso de TODO
+    // CORREGIDO: El acceso al módulo NO debe depender de view_all_todos
     const canAccessTodoModule = canViewTodos || canCreateTodos || canEditTodos || 
-                               canDeleteTodos || canManageTodos || canViewAllTodos || 
+                               canDeleteTodos || canManageTodos || 
                                canControlTodos;
 
     return {

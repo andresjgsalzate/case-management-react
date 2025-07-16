@@ -183,90 +183,39 @@ export const useUpdateRole = () => {
 
   return useMutation({
     mutationFn: async ({ id, roleData }: { id: string; roleData: Partial<RoleFormData> }): Promise<Role> => {
-      // Actualizar el rol
-      const { error: roleError } = await supabase
-        .from('roles')
-        .update({
-          name: roleData.name,
-          description: roleData.description,
-          is_active: roleData.isActive,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', id)
-        .select()
-        .single();
-
-      if (roleError) {
-        console.error('Error updating role:', roleError);
-        throw roleError;
-      }
-
-      // Si se proporcionaron permisos, actualizar las asignaciones
-      if (roleData.permissionIds) {
-        // Eliminar permisos existentes
-        const { error: deleteError } = await supabase
-          .from('role_permissions')
-          .delete()
-          .eq('role_id', id);
-
-        if (deleteError) {
-          console.error('Error deleting existing role permissions:', deleteError);
-          throw deleteError;
-        }
-
-        // Asignar nuevos permisos
-        if (roleData.permissionIds.length > 0) {
-          const rolePermissions = roleData.permissionIds.map(permissionId => ({
-            role_id: id,
-            permission_id: permissionId,
-          }));
-
-          const { error: permissionsError } = await supabase
-            .from('role_permissions')
-            .insert(rolePermissions);
-
-          if (permissionsError) {
-            console.error('Error assigning new permissions to role:', permissionsError);
-            throw permissionsError;
-          }
-        }
-      }
-
-      // Obtener el rol completo con permisos
-      const { data, error } = await supabase
-        .from('roles')
-        .select(`
-          *,
-          role_permissions (
-            permission:permissions (*)
-          )
-        `)
-        .eq('id', id)
-        .single();
+      // Usar función RPC para bypass de RLS
+      const { data, error } = await supabase.rpc('admin_update_role', {
+        role_id: id,
+        role_name: roleData.name!,
+        role_description: roleData.description || '',
+        is_active: roleData.isActive ?? true,
+        permission_ids: roleData.permissionIds || []
+      });
 
       if (error) {
-        console.error('Error fetching updated role:', error);
+        console.error('Error updating role:', error);
         throw error;
       }
 
-      // Mapear de snake_case a camelCase
+      // Mapear el resultado JSON a la estructura esperada
+      const result = data as any;
       return {
-        id: data.id,
-        name: data.name,
-        description: data.description,
-        isActive: data.is_active,
-        createdAt: data.created_at,
-        updatedAt: data.updated_at,
-        permissions: data.role_permissions?.map((rp: any) => ({
-          id: rp.permission.id,
-          name: rp.permission.name,
-          description: rp.permission.description,
-          resource: rp.permission.resource,
-          action: rp.permission.action,
-          isActive: rp.permission.is_active,
-          createdAt: rp.permission.created_at,
-          updatedAt: rp.permission.updated_at,
-        })) || []
+        id: result.id,
+        name: result.name,
+        description: result.description,
+        isActive: result.is_active,
+        createdAt: result.created_at,
+        updatedAt: result.updated_at,
+        permissions: result.permissions.map((p: any) => ({
+          id: p.id,
+          name: p.name,
+          description: p.description,
+          resource: p.resource,
+          action: p.action,
+          isActive: p.is_active,
+          createdAt: p.created_at || '',
+          updatedAt: p.updated_at || ''
+        }))
       };
     },
     onSuccess: (_, { id }) => {
