@@ -97,6 +97,7 @@ const RoleModal: React.FC<RoleModalProps> = ({ isOpen, onClose, role, isEdit = f
       'todos': '✅ Gestión de TODOs',
       'todo_priorities': '⚡ Prioridades de TODO',
       'todo_control': '⏰ Control de Tiempo TODO',
+      'notes': '📝 Gestión de Notas',
       'system': '🔧 Sistema'
     };
     return resourceNames[resource] || `📁 ${resource.charAt(0).toUpperCase() + resource.slice(1)}`;
@@ -111,11 +112,17 @@ const RoleModal: React.FC<RoleModalProps> = ({ isOpen, onClose, role, isEdit = f
       'view_own': '👁️ Ver Propios',
       'create': '➕ Crear',
       'edit': '✏️ Editar',
+      'edit_all': '✏️ Editar Todos',
       'update': '✏️ Actualizar',
       'delete': '🗑️ Eliminar',
+      'delete_all': '🗑️ Eliminar Todos',
       'manage': '⚙️ Gestionar',
       'assign': '👤 Asignar',
+      'archive': '📦 Archivar',
       'export': '📤 Exportar',
+      'associate_cases': '🔗 Asociar Casos',
+      'manage_tags': '🏷️ Gestionar Etiquetas',
+      'view_team': '👥 Ver Equipo',
       'time_tracking': '⏱️ Control de Tiempo'
     };
     return actionNames[action] || `🔧 ${action.charAt(0).toUpperCase() + action.slice(1)}`;

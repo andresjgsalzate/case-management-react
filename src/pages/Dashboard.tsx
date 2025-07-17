@@ -20,9 +20,14 @@ import { useTodoMetrics } from '@/hooks/useTodoMetrics';
 import { formatDateLocal } from '@/utils/caseUtils';
 import { LoadingSpinner, ErrorMessage } from '@/components/LoadingSpinner';
 import { PageWrapper } from '@/components/PageWrapper';
+import { NotesSearchComponent } from '@/components/NotesQuickSearch';
+import { useNotesPermissions } from '@/hooks/useNotesPermissions';
+import { useNavigate } from 'react-router-dom';
 
 export const Dashboard: React.FC = () => {
   const { data: cases, isLoading, error, refetch } = useCases();
+  const navigate = useNavigate();
+  const { canAccessNotesModule } = useNotesPermissions();
   
   // Hooks para métricas de tiempo
   const { data: timeMetrics, isLoading: timeLoading } = useTimeMetrics();
@@ -95,13 +100,27 @@ export const Dashboard: React.FC = () => {
   return (
     <PageWrapper>
       {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-          Dashboard
-        </h1>
-        <p className="mt-2 text-lg text-gray-600 dark:text-gray-400">
-          Resumen general del sistema de gestión de casos
-        </p>
+      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+            Dashboard
+          </h1>
+          <p className="mt-2 text-lg text-gray-600 dark:text-gray-400">
+            Resumen general del sistema de gestión de casos
+          </p>
+        </div>
+        
+        {/* Quick Search */}
+        {canAccessNotesModule && (
+          <div className="lg:w-80">
+            <NotesSearchComponent 
+              onNoteSelect={(noteId) => {
+                navigate(`/notes?highlight=${noteId}`);
+              }}
+              placeholder="Buscar en notas..."
+            />
+          </div>
+        )}
       </div>
 
       {/* Stats Grid - Optimized for wide screens */}

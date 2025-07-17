@@ -25,17 +25,28 @@ const RESOURCE_OPTIONS = [
   'cases',
   'origenes',
   'aplicaciones',
+  'notes',
   'admin',
 ];
 
 const ACTION_OPTIONS = [
   'create',
   'read',
+  'view',
+  'edit',
   'update',
   'delete',
   'manage',
   'view_all',
+  'edit_all',
+  'delete_all',
+  'assign',
+  'archive',
   'access',
+  'associate_cases',
+  'manage_tags',
+  'view_team',
+  'export'
 ];
 
 interface PermissionModalProps {

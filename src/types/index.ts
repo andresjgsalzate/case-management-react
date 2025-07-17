@@ -681,3 +681,115 @@ export interface RestoreActionData {
 // =============================================
 // FIN TIPOS MÓDULO ARCHIVO
 // =============================================
+
+// =============================================
+// TIPOS MÓDULO NOTAS
+// =============================================
+
+// =============================================
+// TIPOS MÓDULO NOTAS
+// =============================================
+
+// Tipos parciales para relaciones populadas
+export interface NoteCase {
+  id: string;
+  numeroCaso: string;
+  descripcion: string;
+}
+
+export interface NoteUser {
+  id: string;
+  fullName?: string;
+  email: string;
+}
+
+export interface Note {
+  id: string;
+  title: string;
+  content: string;
+  tags: string[];
+  caseId?: string;
+  createdBy: string;
+  assignedTo?: string;
+  isImportant: boolean;
+  isArchived: boolean;
+  archivedAt?: string;
+  archivedBy?: string;
+  reminderDate?: string;
+  isReminderSent: boolean;
+  createdAt: string;
+  updatedAt: string;
+  // Relaciones pobladas con tipos específicos
+  case?: NoteCase;
+  createdByUser?: NoteUser;
+  assignedToUser?: NoteUser;
+  archivedByUser?: NoteUser;
+}
+
+export interface CreateNoteData {
+  title: string;
+  content: string;
+  tags?: string[];
+  caseId?: string;
+  assignedTo?: string;
+  isImportant?: boolean;
+  reminderDate?: string;
+}
+
+export interface UpdateNoteData extends Partial<CreateNoteData> {
+  id: string;
+}
+
+export interface NoteFilters {
+  search?: string;
+  tags?: string[];
+  createdBy?: string;
+  assignedTo?: string;
+  caseId?: string;
+  isImportant?: boolean;
+  isArchived?: boolean;
+  hasReminder?: boolean;
+  dateFrom?: string;
+  dateTo?: string;
+}
+
+export interface NoteStats {
+  totalNotes: number;
+  myNotes: number;
+  assignedNotes: number;
+  importantNotes: number;
+  withReminders: number;
+  archivedNotes: number;
+}
+
+export interface NoteSearchResult {
+  id: string;
+  title: string;
+  content: string;
+  tags: string[];
+  caseId?: string;
+  createdBy: string;
+  assignedTo?: string;
+  isImportant: boolean;
+  isArchived: boolean;
+  createdAt: string;
+  updatedAt: string;
+  caseNumber?: string;
+  creatorName?: string;
+  assignedName?: string;
+}
+
+// Tipos para formularios
+export interface NoteFormData {
+  title: string;
+  content: string;
+  tags: string[];
+  caseId?: string;
+  assignedTo?: string;
+  isImportant: boolean;
+  reminderDate?: string;
+}
+
+// =============================================
+// FIN TIPOS MÓDULO NOTAS
+// =============================================

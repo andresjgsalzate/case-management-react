@@ -11,6 +11,72 @@ export interface VersionInfo {
 
 export const changelog: VersionInfo[] = [
   {
+    version: "2.8.0",
+    date: "2025-01-17",
+    changes: [
+      {
+        type: "feature",
+        description: "📝 Módulo de Notas Completo: Sistema integral de notas con recordatorios, etiquetas y asociación con casos"
+      },
+      {
+        type: "feature",
+        description: "🔍 Búsqueda Avanzada de Notas: Componente de búsqueda rápida con autocompletado y resaltado de términos"
+      },
+      {
+        type: "feature",
+        description: "⏰ Recordatorios Inteligentes: Sistema de recordatorios con fechas y horas separadas para mejor usabilidad"
+      },
+      {
+        type: "feature",
+        description: "🏷️ Sistema de Etiquetas: Gestión de tags para organizar y categorizar notas"
+      },
+      {
+        type: "feature",
+        description: "🔗 Asociación con Casos: Vinculación directa de notas con casos específicos del sistema"
+      },
+      {
+        type: "feature",
+        description: "📊 Estadísticas de Notas: Métricas detalladas con contadores por tipo (importantes, archivadas, recordatorios)"
+      },
+      {
+        type: "feature",
+        description: "🗂️ Archivado de Notas: Sistema de archivado soft-delete con opción de restauración"
+      },
+      {
+        type: "feature",
+        description: "🛡️ Permisos Granulares: Control de acceso basado en roles para creación, edición y eliminación de notas"
+      },
+      {
+        type: "improvement",
+        description: "🎨 Selector de Casos Mejorado: Campo de búsqueda con autocompletado que muestra solo números de caso"
+      },
+      {
+        type: "improvement",
+        description: "📅 Campos de Fecha Separados: Fecha y hora en campos independientes para mejor experiencia de usuario"
+      },
+      {
+        type: "improvement",
+        description: "💻 Búsqueda Global: Componente de búsqueda rápida integrado en Dashboard y página de notas"
+      },
+      {
+        type: "improvement",
+        description: "🔄 Vistas Múltiples: Pestañas para filtrar notas (todas, propias, asignadas, importantes, archivadas)"
+      },
+      {
+        type: "improvement",
+        description: "📱 Interfaz Responsive: Diseño adaptativo optimizado para móvil, tablet y escritorio"
+      },
+      {
+        type: "improvement",
+        description: "🎯 Navegación Contextual: Scroll automático a notas específicas desde búsqueda"
+      },
+      {
+        type: "improvement",
+        description: "🌙 Modo Oscuro: Soporte completo para tema oscuro en todos los componentes de notas"
+      }
+    ]
+  },
+  {
     version: "2.7.10",
     date: "2025-01-15", 
     changes: [

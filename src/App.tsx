@@ -23,6 +23,7 @@ import { DebugPage } from '@/pages/DebugPage';
 import { NotFoundPage } from '@/pages/NotFound';
 import CaseControlPage from '@/pages/CaseControl';
 import TodosPage from '@/pages/TodosPage';
+import { NotesPage } from '@/pages/NotesPage';
 import { ArchivePage } from '@/pages/ArchivePage';
 
 function App() {
@@ -120,6 +121,9 @@ function AppContent() {
         
         {/* TODO Module */}
         <Route path="/todos" element={<TodosPage />} />
+        
+        {/* Notes Module */}
+        <Route path="/notes" element={<NotesPage />} />
         
         {/* Case Control Module */}
         <Route path="/case-control" element={<CaseControlPage />} />

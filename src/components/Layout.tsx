@@ -17,7 +17,8 @@ import {
   MoonIcon,
   ClockIcon,
   ListBulletIcon,
-  ArchiveBoxIcon
+  ArchiveBoxIcon,
+  ChatBubbleLeftRightIcon
 } from '@heroicons/react/24/outline';
 import { VersionDisplay } from './VersionDisplay';
 import { VersionModal } from './VersionModal';
@@ -25,6 +26,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { usePermissions } from '@/hooks/useUserProfile';
 import { useCaseControlPermissions } from '@/hooks/useCaseControlPermissions';
 import { useTodoPermissions } from '@/hooks/useTodoPermissions';
+import { useNotesPermissions } from '@/hooks/useNotesPermissions';
 import { RLSError } from './RLSError';
 import { useThemeStore } from '@/stores/themeStore';
 import { mapRoleToDisplayName } from '@/utils/roleUtils';
@@ -39,6 +41,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
   const { userProfile, canManageUsers, canManageRoles, canManagePermissions, canManageOrigenes, canManageAplicaciones, canViewUsers, canViewRoles, canViewPermissions, canViewOrigenes, canViewAplicaciones, hasRLSError, isAdmin } = usePermissions();
   const { canAccessModule: canAccessCaseControl } = useCaseControlPermissions();
   const { canAccessTodoModule } = useTodoPermissions();
+  const { canAccessNotesModule } = useNotesPermissions();
   const { isDarkMode, toggleTheme } = useThemeStore();
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showVersionModal, setShowVersionModal] = useState(false);
@@ -63,11 +66,15 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
       baseNavigation.push({ name: 'TODOs', href: '/todos', icon: ListBulletIcon });
     }
 
+    if (canAccessNotesModule) {
+      baseNavigation.push({ name: 'Notas', href: '/notes', icon: ChatBubbleLeftRightIcon });
+    }
+
     // Agregar Archivo si el usuario puede acceder
     baseNavigation.push({ name: 'Archivo', href: '/archive', icon: ArchiveBoxIcon });
 
     return baseNavigation;
-  }, [canAccessCaseControl, canAccessTodoModule]);
+  }, [canAccessCaseControl, canAccessTodoModule, canAccessNotesModule]);
 
   // Secciones de administración agrupadas
   const adminSections = React.useMemo(() => {
