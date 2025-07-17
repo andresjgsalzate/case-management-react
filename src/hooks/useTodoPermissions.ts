@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { usePermissions } from './useUserProfile';
 
 export function useTodoPermissions() {
-  const { userProfile } = usePermissions();
+  const { userProfile, isAuditor } = usePermissions();
 
   return useMemo(() => {
     if (!userProfile?.role?.permissions) {
@@ -21,18 +21,18 @@ export function useTodoPermissions() {
     const permissions = userProfile.role.permissions.map(p => p.name);
 
     const canViewTodos = permissions.includes('view_todos');
-    const canCreateTodos = permissions.includes('create_todos');
-    const canEditTodos = permissions.includes('edit_todos');
-    const canDeleteTodos = permissions.includes('delete_todos');
-    const canManageTodos = permissions.includes('manage_todos');
-    const canViewAllTodos = permissions.includes('view_all_todos');
-    const canControlTodos = permissions.includes('todo_time_tracking'); // Permiso correcto
+    const canCreateTodos = permissions.includes('create_todos') && !isAuditor();
+    const canEditTodos = permissions.includes('edit_todos') && !isAuditor();
+    const canDeleteTodos = permissions.includes('delete_todos') && !isAuditor();
+    const canManageTodos = permissions.includes('manage_todos') && !isAuditor();
+    const canViewAllTodos = permissions.includes('view_all_todos') || isAuditor();
+    const canControlTodos = permissions.includes('todo_time_tracking') && !isAuditor();
 
     // Acceso al módulo si tiene cualquier permiso de TODO
     // CORREGIDO: El acceso al módulo NO debe depender de view_all_todos
     const canAccessTodoModule = canViewTodos || canCreateTodos || canEditTodos || 
                                canDeleteTodos || canManageTodos || 
-                               canControlTodos;
+                               canControlTodos || isAuditor();
 
     return {
       canViewTodos,
@@ -44,5 +44,5 @@ export function useTodoPermissions() {
       canControlTodos,
       canAccessTodoModule
     };
-  }, [userProfile]);
+  }, [userProfile, isAuditor]);
 }

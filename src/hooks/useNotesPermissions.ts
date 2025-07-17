@@ -6,7 +6,7 @@ import { usePermissions } from './useUserProfile';
  * Sigue el mismo patrón que otros módulos del sistema
  */
 export const useNotesPermissions = () => {
-  const { userProfile, isAdmin, hasPermission } = usePermissions();
+  const { userProfile, isAdmin, isAuditor, hasPermission } = usePermissions();
 
   return useMemo(() => {
     if (!userProfile?.role?.permissions) {
@@ -30,23 +30,23 @@ export const useNotesPermissions = () => {
 
     // Verificar permisos específicos
     const canViewNotes = hasPermission('notes', 'view');
-    const canViewAllNotes = hasPermission('notes', 'view_all') || isAdmin();
-    const canCreateNotes = hasPermission('notes', 'create');
-    const canEditNotes = hasPermission('notes', 'edit');
-    const canEditAllNotes = hasPermission('notes', 'edit_all') || isAdmin();
-    const canDeleteNotes = hasPermission('notes', 'delete');
-    const canDeleteAllNotes = hasPermission('notes', 'delete_all') || isAdmin();
-    const canAssignNotes = hasPermission('notes', 'assign');
-    const canArchiveNotes = hasPermission('notes', 'archive');
-    const canManageTags = hasPermission('notes', 'manage_tags') || isAdmin();
-    const canAssociateCases = hasPermission('notes', 'associate_cases');
-    const canViewTeamNotes = hasPermission('notes', 'view_team');
-    const canExportNotes = hasPermission('notes', 'export');
+    const canViewAllNotes = hasPermission('notes', 'view_all') || isAdmin() || isAuditor();
+    const canCreateNotes = hasPermission('notes', 'create') && !isAuditor();
+    const canEditNotes = hasPermission('notes', 'edit') && !isAuditor();
+    const canEditAllNotes = (hasPermission('notes', 'edit_all') || isAdmin()) && !isAuditor();
+    const canDeleteNotes = hasPermission('notes', 'delete') && !isAuditor();
+    const canDeleteAllNotes = (hasPermission('notes', 'delete_all') || isAdmin()) && !isAuditor();
+    const canAssignNotes = hasPermission('notes', 'assign') && !isAuditor();
+    const canArchiveNotes = hasPermission('notes', 'archive') && !isAuditor();
+    const canManageTags = (hasPermission('notes', 'manage_tags') || isAdmin()) && !isAuditor();
+    const canAssociateCases = hasPermission('notes', 'associate_cases') && !isAuditor();
+    const canViewTeamNotes = hasPermission('notes', 'view_team') || isAuditor();
+    const canExportNotes = hasPermission('notes', 'export') || isAuditor();
 
     // Acceso al módulo si tiene cualquier permiso relacionado con notas
     const canAccessNotesModule = canViewNotes || canCreateNotes || canEditNotes || 
                                 canDeleteNotes || canViewAllNotes || canAssignNotes ||
-                                canArchiveNotes || canViewTeamNotes;
+                                canArchiveNotes || canViewTeamNotes || isAuditor();
 
     return {
       canViewNotes,

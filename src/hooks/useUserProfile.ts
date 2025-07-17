@@ -155,6 +155,11 @@ export const usePermissions = () => {
     return userProfile?.role?.name === 'supervisor' || false;
   };
 
+  const isAuditor = (): boolean => {
+    if (hasRLSError) return false;
+    return userProfile?.role?.name === 'auditor' || false;
+  };
+
   const canAccessAdmin = (): boolean => {
     return hasPermission('admin', 'access') || isAdmin() || isSupervisor();
   };
@@ -208,7 +213,7 @@ export const usePermissions = () => {
     return userProfile.role.permissions.some(
       permission => 
         permission.name === 'cases.read.all' && permission.isActive
-    ) || isAdmin();
+    ) || isAdmin() || isAuditor();
   };
 
   return {
@@ -216,6 +221,7 @@ export const usePermissions = () => {
     hasPermission,
     isAdmin,
     isSupervisor,
+    isAuditor,
     canAccessAdmin,
     // Funciones de visualización
     canViewUsers,

@@ -91,8 +91,8 @@ CREATE TABLE public.case_control (
   created_at timestamp with time zone DEFAULT now(),
   updated_at timestamp with time zone DEFAULT now(),
   CONSTRAINT case_control_pkey PRIMARY KEY (id),
-  CONSTRAINT case_control_status_id_fkey FOREIGN KEY (status_id) REFERENCES public.case_status_control(id),
   CONSTRAINT case_control_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.user_profiles(id),
+  CONSTRAINT case_control_status_id_fkey FOREIGN KEY (status_id) REFERENCES public.case_status_control(id),
   CONSTRAINT case_control_case_id_fkey FOREIGN KEY (case_id) REFERENCES public.cases(id)
 );
 CREATE TABLE public.case_status_control (
@@ -124,9 +124,9 @@ CREATE TABLE public.cases (
   updated_at timestamp with time zone DEFAULT now(),
   user_id uuid,
   CONSTRAINT cases_pkey PRIMARY KEY (id),
-  CONSTRAINT cases_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id),
   CONSTRAINT cases_origen_id_fkey FOREIGN KEY (origen_id) REFERENCES public.origenes(id),
-  CONSTRAINT cases_aplicacion_id_fkey FOREIGN KEY (aplicacion_id) REFERENCES public.aplicaciones(id)
+  CONSTRAINT cases_aplicacion_id_fkey FOREIGN KEY (aplicacion_id) REFERENCES public.aplicaciones(id),
+  CONSTRAINT cases_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id)
 );
 CREATE TABLE public.manual_time_entries (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
@@ -138,9 +138,31 @@ CREATE TABLE public.manual_time_entries (
   created_at timestamp with time zone DEFAULT now(),
   created_by uuid NOT NULL,
   CONSTRAINT manual_time_entries_pkey PRIMARY KEY (id),
-  CONSTRAINT manual_time_entries_case_control_id_fkey FOREIGN KEY (case_control_id) REFERENCES public.case_control(id),
   CONSTRAINT manual_time_entries_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.user_profiles(id),
+  CONSTRAINT manual_time_entries_case_control_id_fkey FOREIGN KEY (case_control_id) REFERENCES public.case_control(id),
   CONSTRAINT manual_time_entries_created_by_fkey FOREIGN KEY (created_by) REFERENCES public.user_profiles(id)
+);
+CREATE TABLE public.notes (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  title character varying NOT NULL,
+  content text NOT NULL,
+  tags ARRAY DEFAULT '{}'::text[],
+  case_id uuid,
+  created_by uuid NOT NULL,
+  assigned_to uuid,
+  is_important boolean DEFAULT false,
+  is_archived boolean DEFAULT false,
+  archived_at timestamp with time zone,
+  archived_by uuid,
+  reminder_date timestamp with time zone,
+  is_reminder_sent boolean DEFAULT false,
+  created_at timestamp with time zone DEFAULT now(),
+  updated_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT notes_pkey PRIMARY KEY (id),
+  CONSTRAINT notes_archived_by_fkey FOREIGN KEY (archived_by) REFERENCES public.user_profiles(id),
+  CONSTRAINT notes_assigned_to_fkey FOREIGN KEY (assigned_to) REFERENCES public.user_profiles(id),
+  CONSTRAINT notes_created_by_fkey FOREIGN KEY (created_by) REFERENCES public.user_profiles(id),
+  CONSTRAINT notes_case_id_fkey FOREIGN KEY (case_id) REFERENCES public.cases(id)
 );
 CREATE TABLE public.origenes (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
@@ -210,8 +232,8 @@ CREATE TABLE public.todo_control (
   updated_at timestamp with time zone DEFAULT now(),
   CONSTRAINT todo_control_pkey PRIMARY KEY (id),
   CONSTRAINT todo_control_status_id_fkey FOREIGN KEY (status_id) REFERENCES public.case_status_control(id),
-  CONSTRAINT todo_control_todo_id_fkey FOREIGN KEY (todo_id) REFERENCES public.todos(id),
-  CONSTRAINT todo_control_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.user_profiles(id)
+  CONSTRAINT todo_control_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.user_profiles(id),
+  CONSTRAINT todo_control_todo_id_fkey FOREIGN KEY (todo_id) REFERENCES public.todos(id)
 );
 CREATE TABLE public.todo_manual_time_entries (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
@@ -223,9 +245,9 @@ CREATE TABLE public.todo_manual_time_entries (
   created_at timestamp with time zone DEFAULT now(),
   created_by uuid NOT NULL,
   CONSTRAINT todo_manual_time_entries_pkey PRIMARY KEY (id),
-  CONSTRAINT todo_manual_time_entries_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.user_profiles(id),
+  CONSTRAINT todo_manual_time_entries_created_by_fkey FOREIGN KEY (created_by) REFERENCES public.user_profiles(id),
   CONSTRAINT todo_manual_time_entries_todo_control_id_fkey FOREIGN KEY (todo_control_id) REFERENCES public.todo_control(id),
-  CONSTRAINT todo_manual_time_entries_created_by_fkey FOREIGN KEY (created_by) REFERENCES public.user_profiles(id)
+  CONSTRAINT todo_manual_time_entries_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.user_profiles(id)
 );
 CREATE TABLE public.todo_priorities (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
@@ -251,8 +273,8 @@ CREATE TABLE public.todo_time_entries (
   created_at timestamp with time zone DEFAULT now(),
   updated_at timestamp with time zone DEFAULT now(),
   CONSTRAINT todo_time_entries_pkey PRIMARY KEY (id),
-  CONSTRAINT todo_time_entries_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.user_profiles(id),
-  CONSTRAINT todo_time_entries_todo_control_id_fkey FOREIGN KEY (todo_control_id) REFERENCES public.todo_control(id)
+  CONSTRAINT todo_time_entries_todo_control_id_fkey FOREIGN KEY (todo_control_id) REFERENCES public.todo_control(id),
+  CONSTRAINT todo_time_entries_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.user_profiles(id)
 );
 CREATE TABLE public.todos (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
@@ -268,8 +290,8 @@ CREATE TABLE public.todos (
   created_at timestamp with time zone DEFAULT now(),
   updated_at timestamp with time zone DEFAULT now(),
   CONSTRAINT todos_pkey PRIMARY KEY (id),
-  CONSTRAINT todos_priority_id_fkey FOREIGN KEY (priority_id) REFERENCES public.todo_priorities(id),
   CONSTRAINT todos_assigned_user_id_fkey FOREIGN KEY (assigned_user_id) REFERENCES public.user_profiles(id),
+  CONSTRAINT todos_priority_id_fkey FOREIGN KEY (priority_id) REFERENCES public.todo_priorities(id),
   CONSTRAINT todos_created_by_user_id_fkey FOREIGN KEY (created_by_user_id) REFERENCES public.user_profiles(id)
 );
 CREATE TABLE public.user_profiles (
