@@ -41,7 +41,6 @@ export const CasesPage: React.FC = () => {
     caseNumber: ''
   });
 
-  // Debug: log the current state
   React.useEffect(() => {
 }, [cases, isLoading, error, origenes, aplicaciones]);
 

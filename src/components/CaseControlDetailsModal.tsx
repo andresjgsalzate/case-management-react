@@ -59,8 +59,7 @@ export const CaseControlDetailsModal: React.FC<CaseControlDetailsModalProps> = (
   const manualTimeEntries = manualTimeEntriesQuery.data || [];
   const loading = timeEntriesQuery.isLoading || manualTimeEntriesQuery.isLoading;
 
-  // Debug logging
-useEffect(() => {
+  useEffect(() => {
     // Los queries se ejecutan automáticamente cuando cambia el ID
   }, []);
 

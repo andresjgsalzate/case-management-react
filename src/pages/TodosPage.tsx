@@ -77,8 +77,7 @@ export default function TodosPage() {
     checkArchivePermissions();
   }, [canArchive]);
 
-  // Debug: log de permisos
-const { 
+  const { 
     todos, 
     loading: todosLoading, 
     error: todosError,

@@ -19,7 +19,6 @@ import { UsersPage } from '@/pages/admin/UsersPage';
 import { RolesPage } from '@/pages/admin/RolesPage';
 import { PermissionsPage } from '@/pages/admin/PermissionsPage';
 import { ConfigurationPage } from '@/pages/admin/ConfigurationPage';
-import { DebugPage } from '@/pages/DebugPage';
 import { NotFoundPage } from '@/pages/NotFound';
 import CaseControlPage from '@/pages/CaseControl';
 import TodosPage from '@/pages/TodosPage';
@@ -140,7 +139,6 @@ function AppContent() {
         {/* Test Routes - SOLO PARA ADMINS */}
         <Route path="/auth-test" element={<AdminOnlyRoute><AuthTestPage /></AdminOnlyRoute>} />
         <Route path="/data-test" element={<AdminOnlyRoute><DataTestPage /></AdminOnlyRoute>} />
-        <Route path="/debug" element={<AdminOnlyRoute><DebugPage /></AdminOnlyRoute>} />
         
         <Route path="*" element={<NotFoundPage />} />
       </Routes>

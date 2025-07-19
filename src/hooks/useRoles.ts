@@ -31,16 +31,21 @@ export const useRoles = () => {
         isActive: role.is_active,
         createdAt: role.created_at,
         updatedAt: role.updated_at,
-        permissions: role.role_permissions?.map((rp: any) => ({
-          id: rp.permission.id,
-          name: rp.permission.name,
-          description: rp.permission.description,
-          resource: rp.permission.resource,
-          action: rp.permission.action,
-          isActive: rp.permission.is_active,
-          createdAt: rp.permission.created_at,
-          updatedAt: rp.permission.updated_at,
-        })) || [],
+        permissions: role.role_permissions?.map((rp: any) => {
+          if (!rp.permission) {
+            return null;
+          }
+          return {
+            id: rp.permission.id,
+            name: rp.permission.name,
+            description: rp.permission.description,
+            resource: rp.permission.resource,
+            action: rp.permission.action,
+            isActive: rp.permission.is_active,
+            createdAt: rp.permission.created_at,
+            updatedAt: rp.permission.updated_at,
+          };
+        }).filter(Boolean) || [], // Filter out null permissions
         userCount: role.user_profiles?.[0]?.count || 0
       }));
     },
@@ -76,16 +81,19 @@ export const useRole = (roleId: string) => {
         isActive: data.is_active,
         createdAt: data.created_at,
         updatedAt: data.updated_at,
-        permissions: data.role_permissions?.map((rp: any) => ({
-          id: rp.permission.id,
-          name: rp.permission.name,
-          description: rp.permission.description,
-          resource: rp.permission.resource,
-          action: rp.permission.action,
-          isActive: rp.permission.is_active,
-          createdAt: rp.permission.created_at,
-          updatedAt: rp.permission.updated_at,
-        })) || []
+        permissions: data.role_permissions
+          ?.map((rp: any) => rp.permission)
+          .filter(Boolean)
+          .map((permission: any) => ({
+            id: permission.id,
+            name: permission.name,
+            description: permission.description,
+            resource: permission.resource,
+            action: permission.action,
+            isActive: permission.is_active,
+            createdAt: permission.created_at,
+            updatedAt: permission.updated_at,
+          })) || []
       };
     },
     enabled: !!roleId,

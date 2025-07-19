@@ -146,7 +146,6 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
       items: [
         { name: 'Test Auth', href: '/auth-test', icon: UserIcon },
         { name: 'Test Datos', href: '/data-test', icon: DocumentTextIcon },
-        { name: 'Debug', href: '/debug', icon: CogIcon },
       ]
     };
   }, [userProfile, isAdmin]);
