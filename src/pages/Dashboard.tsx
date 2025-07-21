@@ -20,14 +20,9 @@ import { useTodoMetrics } from '@/hooks/useTodoMetrics';
 import { formatDateLocal } from '@/utils/caseUtils';
 import { LoadingSpinner, ErrorMessage } from '@/components/LoadingSpinner';
 import { PageWrapper } from '@/components/PageWrapper';
-import { NotesSearchComponent } from '@/components/NotesQuickSearch';
-import { useNotesPermissions } from '@/hooks/useNotesPermissions';
-import { useNavigate } from 'react-router-dom';
 
 export const Dashboard: React.FC = () => {
   const { data: cases, isLoading, error, refetch } = useCases();
-  const navigate = useNavigate();
-  const { canAccessNotesModule } = useNotesPermissions();
   
   // Hooks para métricas de tiempo
   const { data: timeMetrics, isLoading: timeLoading } = useTimeMetrics();
@@ -110,7 +105,7 @@ export const Dashboard: React.FC = () => {
           </p>
         </div>
         
-        {/* Quick Search */}
+        {/* Quick Search
         {canAccessNotesModule && (
           <div className="lg:w-80">
             <NotesSearchComponent 
@@ -120,9 +115,9 @@ export const Dashboard: React.FC = () => {
               placeholder="Buscar en notas..."
             />
           </div>
-        )}
+        )} */}
       </div>
-
+ 
       {/* Stats Grid - Optimized for wide screens */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 2xl:grid-cols-4 gap-6">
         <div className="card p-6">
