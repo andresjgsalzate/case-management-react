@@ -16,6 +16,7 @@ import { formatDateLocal } from '@/utils/caseUtils';
 import { PageWrapper } from '@/components/PageWrapper';
 import { ConfirmationModal } from '@/components/ConfirmationModal';
 import { useNotification } from '@/components/NotificationSystem';
+import { usePermissions } from '@/hooks/useUserProfile';
 
 export const CasesPage: React.FC = () => {
   const { data: cases, isLoading, error, refetch } = useCases();
@@ -23,6 +24,20 @@ export const CasesPage: React.FC = () => {
   const { data: aplicaciones } = useAplicaciones();
   const deleteCase = useDeleteCase();
   const { showSuccess, showError } = useNotification();
+  const { hasPermission, isAdmin } = usePermissions();
+
+  // Verificar permisos de eliminación
+  const canDeleteOwnCases = () => {
+    return hasPermission('cases', 'delete') || hasPermission('cases', 'delete_own') || 
+           // También verificar por el nombre completo del permiso
+           (cases && cases.length > 0 && hasPermission('cases.delete.own', '')) || isAdmin();
+  };
+
+  const canDeleteAllCases = () => {
+    return hasPermission('cases', 'delete_all') || 
+           // También verificar por el nombre completo del permiso
+           (cases && cases.length > 0 && hasPermission('cases.delete.all', '')) || isAdmin();
+  };
 
   // Estados de filtros
   const [searchTerm, setSearchTerm] = useState('');
@@ -337,12 +352,14 @@ export const CasesPage: React.FC = () => {
                         >
                           <PencilIcon className="h-4 w-4" />
                         </Link>
-                        <button
-                          onClick={() => handleDelete(caso.id, caso.numeroCaso)}
-                          className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
-                        >
-                          <TrashIcon className="h-4 w-4" />
-                        </button>
+                        {(canDeleteAllCases() || canDeleteOwnCases()) && (
+                          <button
+                            onClick={() => handleDelete(caso.id, caso.numeroCaso)}
+                            className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
+                          >
+                            <TrashIcon className="h-4 w-4" />
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>

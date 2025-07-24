@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { User, AuthError } from '@supabase/supabase-js';
-import toast from 'react-hot-toast';
+import { useNotification } from '@/components/NotificationSystem';
 
 interface AuthState {
   user: User | null;
@@ -27,6 +27,7 @@ export const useAuth = () => {
     loading: true,
     error: null,
   });
+  const { showSuccess, showError } = useNotification();
 
   const queryClient = useQueryClient();
 
@@ -111,12 +112,12 @@ const { data, error } = await supabase.auth.signInWithPassword({
 return data;
     },
     onSuccess: () => {
-      toast.success('¡Bienvenido de vuelta!');
+      showSuccess('¡Bienvenido de vuelta!');
       queryClient.invalidateQueries({ queryKey: ['auth'] });
     },
     onError: (error: AuthError) => {
       console.error('❌ Error en sign in:', error);
-      toast.error(getAuthErrorMessage(error));
+      showError(getAuthErrorMessage(error));
     },
   });
 
@@ -142,15 +143,15 @@ return data;
     },
     onSuccess: (data) => {
       if (data.user && !data.user.email_confirmed_at) {
-        toast.success('¡Cuenta creada! Revisa tu email para confirmar tu cuenta.');
+        showSuccess('¡Cuenta creada! Revisa tu email para confirmar tu cuenta.');
       } else {
-        toast.success('¡Cuenta creada exitosamente!');
+        showSuccess('¡Cuenta creada exitosamente!');
       }
       queryClient.invalidateQueries({ queryKey: ['auth'] });
     },
     onError: (error: AuthError) => {
       console.error('❌ Error en sign up:', error);
-      toast.error(getAuthErrorMessage(error));
+      showError(getAuthErrorMessage(error));
     },
   });
 
@@ -180,11 +181,11 @@ const { error } = await supabase.auth.signOut({
         queryClient.clear();
       }, 100);
       
-      toast.success('Sesión cerrada correctamente');
+      showSuccess('Sesión cerrada correctamente');
     },
     onError: (error: AuthError) => {
       console.error('❌ Error en sign out:', error);
-      toast.error('Error al cerrar sesión');
+      showError('Error al cerrar sesión');
     },
   });
 
@@ -202,11 +203,11 @@ const { error } = await supabase.auth.resetPasswordForEmail(email, {
 
 },
     onSuccess: () => {
-      toast.success('Correo de recuperación enviado. Revisa tu bandeja de entrada.');
+      showSuccess('Correo de recuperación enviado. Revisa tu bandeja de entrada.');
     },
     onError: (error: AuthError) => {
       console.error('❌ Error en reset password:', error);
-      toast.error(getAuthErrorMessage(error));
+      showError(getAuthErrorMessage(error));
     },
   });
 
@@ -224,11 +225,11 @@ const { error } = await supabase.auth.updateUser({
 
 },
     onSuccess: () => {
-      toast.success('Contraseña actualizada correctamente');
+      showSuccess('Contraseña actualizada correctamente');
     },
     onError: (error: AuthError) => {
       console.error('❌ Error en update password:', error);
-      toast.error(getAuthErrorMessage(error));
+      showError(getAuthErrorMessage(error));
     },
   });
 

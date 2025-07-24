@@ -12,6 +12,7 @@ import { CaseControl } from '@/types';
 import { useTimeEntries, useManualTimeEntries, useAddManualTime, useDeleteManualTime, useDeleteTimeEntry } from '@/hooks/useCaseControl';
 import { formatDate, formatTimeDetailed, formatDateLocal } from '@/utils/caseUtils';
 import { useNotification } from './NotificationSystem';
+import { usePermissions } from '@/hooks/useUserProfile';
 
 interface CaseControlDetailsModalProps {
   isOpen: boolean;
@@ -32,6 +33,15 @@ export const CaseControlDetailsModal: React.FC<CaseControlDetailsModalProps> = (
   caseControl
 }) => {
   const { showSuccess, showError } = useNotification();
+  const { hasPermission, isAdmin } = usePermissions();
+  
+  // Verificar permisos para editar tiempo
+  const canEditTime = () => {
+    return hasPermission('case_control', 'edit_time') || 
+           hasPermission('case_control', 'add_manual_time') || 
+           isAdmin();
+  };
+  
   const timeEntriesQuery = useTimeEntries(caseControl?.id || '');
   const manualTimeEntriesQuery = useManualTimeEntries(caseControl?.id || '');
   const addManualTimeMutation = useAddManualTime();
@@ -277,14 +287,16 @@ await addManualTimeMutation.mutateAsync({
                     {entry.description}
                   </p>
                 </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => handleDeleteManualTime(entry.id)}
-                  className="text-red-500 hover:text-red-700"
-                >
-                  <TrashIcon className="h-4 w-4" />
-                </Button>
+                {canEditTime() && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleDeleteManualTime(entry.id)}
+                    className="text-red-500 hover:text-red-700"
+                  >
+                    <TrashIcon className="h-4 w-4" />
+                  </Button>
+                )}
               </div>
             ))}
           </div>

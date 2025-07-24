@@ -211,6 +211,27 @@ export const usePermissions = () => {
     return hasPermission('aplicaciones', 'manage') || isAdmin();
   };
 
+  // Funciones para estados de control
+  const canViewCaseStatuses = (): boolean => {
+    return hasPermission('case_statuses', 'read') || hasPermission('case_statuses', 'manage') || isAdmin();
+  };
+
+  const canCreateCaseStatuses = (): boolean => {
+    return hasPermission('case_statuses', 'create') || hasPermission('case_statuses', 'manage') || isAdmin();
+  };
+
+  const canUpdateCaseStatuses = (): boolean => {
+    return hasPermission('case_statuses', 'update') || hasPermission('case_statuses', 'manage') || isAdmin();
+  };
+
+  const canDeleteCaseStatuses = (): boolean => {
+    return hasPermission('case_statuses', 'delete') || hasPermission('case_statuses', 'manage') || isAdmin();
+  };
+
+  const canManageCaseStatuses = (): boolean => {
+    return hasPermission('case_statuses', 'manage') || isAdmin();
+  };
+
   const canViewAllCases = (): boolean => {
     // Verificar directamente por el nombre del permiso completo
     if (hasRLSError || !userProfile?.role?.permissions) return false;
@@ -234,12 +255,17 @@ export const usePermissions = () => {
     canViewPermissions,
     canViewOrigenes,
     canViewAplicaciones,
+    canViewCaseStatuses,
     // Funciones de administración
     canManageUsers,
     canManageRoles,
     canManagePermissions,
     canManageOrigenes,
     canManageAplicaciones,
+    canCreateCaseStatuses,
+    canUpdateCaseStatuses,
+    canDeleteCaseStatuses,
+    canManageCaseStatuses,
     canViewAllCases,
     hasRLSError,
   };

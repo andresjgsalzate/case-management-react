@@ -424,7 +424,17 @@ const CaseStatusModal: React.FC<CaseStatusModalProps> = ({ isOpen, onClose, case
 };
 
 export const ConfigurationPage: React.FC = () => {
-  const { canManageOrigenes, canManageAplicaciones, canViewOrigenes, canViewAplicaciones } = usePermissions();
+  const { 
+    canManageOrigenes, 
+    canManageAplicaciones, 
+    canViewOrigenes, 
+    canViewAplicaciones,
+    canViewCaseStatuses,
+    canCreateCaseStatuses,
+    canUpdateCaseStatuses,
+    canDeleteCaseStatuses,
+    canManageCaseStatuses
+  } = usePermissions();
   const { showSuccess, showError } = useNotification();
   
   const { data: origenes } = useOrigenes();
@@ -472,17 +482,7 @@ export const ConfigurationPage: React.FC = () => {
     caseStatus: null
   });
 
-  // Verificar permisos - agregar verificación para control de casos
-  const canManageCaseStatuses = () => {
-    // Por ahora usamos el mismo permiso que aplicaciones, pero se puede cambiar
-    return canManageAplicaciones() || canViewAplicaciones();
-  };
-
-  const canViewCaseStatuses = () => {
-    return canViewAplicaciones() || canManageAplicaciones();
-  };
-
-  if (!canViewOrigenes() && !canManageOrigenes() && !canViewAplicaciones() && !canManageAplicaciones() && !canManageCaseStatuses()) {
+  if (!canViewOrigenes() && !canManageOrigenes() && !canViewAplicaciones() && !canManageAplicaciones() && !canViewCaseStatuses() && !canManageCaseStatuses()) {
     return (
       <div className="text-center py-12">
         <CogIcon className="mx-auto h-12 w-12 text-gray-400" />
@@ -641,11 +641,11 @@ export const ConfigurationPage: React.FC = () => {
     }
   };
 
-  const canAccessCurrentTab = () => {
+  const canCreateInCurrentTab = () => {
     switch (activeTab) {
-      case 'origenes': return canViewOrigenes() || canManageOrigenes();
-      case 'aplicaciones': return canViewAplicaciones() || canManageAplicaciones();
-      case 'case-statuses': return canViewCaseStatuses() || canManageCaseStatuses();
+      case 'origenes': return canManageOrigenes();
+      case 'aplicaciones': return canManageAplicaciones();
+      case 'case-statuses': return canCreateCaseStatuses() || canManageCaseStatuses();
       default: return false;
     }
   };
@@ -722,7 +722,7 @@ export const ConfigurationPage: React.FC = () => {
         <Button
           onClick={getButtonHandler()}
           className="flex items-center"
-          disabled={!canAccessCurrentTab()}
+          disabled={!canCreateInCurrentTab()}
         >
           <PlusIcon className="h-5 w-5 mr-2" />
           {getButtonText()}
@@ -777,18 +777,25 @@ export const ConfigurationPage: React.FC = () => {
                   </td>
                   <td className="px-4 lg:px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <div className="flex justify-end space-x-2">
-                      <button
-                        onClick={() => handleEditOrigen(origen)}
-                        className="text-primary-600 hover:text-primary-900 dark:text-primary-400 dark:hover:text-primary-300"
-                      >
-                        <PencilIcon className="h-5 w-5" />
-                      </button>
-                      <button
-                        onClick={() => handleDeleteOrigen(origen)}
-                        className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
-                      >
-                        <TrashIcon className="h-5 w-5" />
-                      </button>
+                      {canManageOrigenes() && (
+                        <>
+                          <button
+                            onClick={() => handleEditOrigen(origen)}
+                            className="text-primary-600 hover:text-primary-900 dark:text-primary-400 dark:hover:text-primary-300"
+                          >
+                            <PencilIcon className="h-5 w-5" />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteOrigen(origen)}
+                            className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
+                          >
+                            <TrashIcon className="h-5 w-5" />
+                          </button>
+                        </>
+                      )}
+                      {!canManageOrigenes() && canViewOrigenes() && (
+                        <span className="text-gray-400 text-sm">Solo lectura</span>
+                      )}
                     </div>
                   </td>
                 </tr>
@@ -859,18 +866,25 @@ export const ConfigurationPage: React.FC = () => {
                   </td>
                   <td className="px-4 lg:px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <div className="flex justify-end space-x-2">
-                      <button
-                        onClick={() => handleEditAplicacion(aplicacion)}
-                        className="text-primary-600 hover:text-primary-900 dark:text-primary-400 dark:hover:text-primary-300"
-                      >
-                        <PencilIcon className="h-5 w-5" />
-                      </button>
-                      <button
-                        onClick={() => handleDeleteAplicacion(aplicacion)}
-                        className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
-                      >
-                        <TrashIcon className="h-5 w-5" />
-                      </button>
+                      {canManageAplicaciones() && (
+                        <>
+                          <button
+                            onClick={() => handleEditAplicacion(aplicacion)}
+                            className="text-primary-600 hover:text-primary-900 dark:text-primary-400 dark:hover:text-primary-300"
+                          >
+                            <PencilIcon className="h-5 w-5" />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteAplicacion(aplicacion)}
+                            className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
+                          >
+                            <TrashIcon className="h-5 w-5" />
+                          </button>
+                        </>
+                      )}
+                      {!canManageAplicaciones() && canViewAplicaciones() && (
+                        <span className="text-gray-400 text-sm">Solo lectura</span>
+                      )}
                     </div>
                   </td>
                 </tr>
@@ -955,18 +969,25 @@ export const ConfigurationPage: React.FC = () => {
                   </td>
                   <td className="px-4 lg:px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <div className="flex justify-end space-x-2">
-                      <button
-                        onClick={() => handleEditCaseStatus(status)}
-                        className="text-primary-600 hover:text-primary-900 dark:text-primary-400 dark:hover:text-primary-300"
-                      >
-                        <PencilIcon className="h-5 w-5" />
-                      </button>
-                      <button
-                        onClick={() => handleDeleteCaseStatus(status)}
-                        className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
-                      >
-                        <TrashIcon className="h-5 w-5" />
-                      </button>
+                      {(canUpdateCaseStatuses() || canManageCaseStatuses()) && (
+                        <button
+                          onClick={() => handleEditCaseStatus(status)}
+                          className="text-primary-600 hover:text-primary-900 dark:text-primary-400 dark:hover:text-primary-300"
+                        >
+                          <PencilIcon className="h-5 w-5" />
+                        </button>
+                      )}
+                      {(canDeleteCaseStatuses() || canManageCaseStatuses()) && (
+                        <button
+                          onClick={() => handleDeleteCaseStatus(status)}
+                          className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
+                        >
+                          <TrashIcon className="h-5 w-5" />
+                        </button>
+                      )}
+                      {!canUpdateCaseStatuses() && !canDeleteCaseStatuses() && !canManageCaseStatuses() && canViewCaseStatuses() && (
+                        <span className="text-gray-400 text-sm">Solo lectura</span>
+                      )}
                     </div>
                   </td>
                 </tr>

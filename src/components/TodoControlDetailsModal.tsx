@@ -13,6 +13,7 @@ import { TodoControl } from '../types';
 import { useTodoControl } from '../hooks/useTodoControl';
 import { formatDate, formatTimeDetailed, formatDateLocal } from '../utils/caseUtils';
 import { useNotification } from './NotificationSystem';
+import { usePermissions } from '../hooks/useUserProfile';
 
 interface TodoControlDetailsModalProps {
   isOpen: boolean;
@@ -33,6 +34,14 @@ export const TodoControlDetailsModal: React.FC<TodoControlDetailsModalProps> = (
   todoControl
 }) => {
   const { showSuccess, showError } = useNotification();
+  const { hasPermission, isAdmin } = usePermissions();
+  
+  // Verificar permisos para editar tiempo
+  const canEditTime = () => {
+    return hasPermission('case_control', 'edit_time') || 
+           hasPermission('todo_control', 'time_tracking') || 
+           isAdmin();
+  };
   const { 
     getTimeEntries, 
     getManualTimeEntries, 
@@ -353,12 +362,14 @@ export const TodoControlDetailsModal: React.FC<TodoControlDetailsModalProps> = (
                             </div>
                           </div>
                         </div>
-                        <button
-                          onClick={() => handleDeleteTimeEntry(entry.id)}
-                          className="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300"
-                        >
-                          <TrashIcon className="h-4 w-4" />
-                        </button>
+                        {canEditTime() && (
+                          <button
+                            onClick={() => handleDeleteTimeEntry(entry.id)}
+                            className="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300"
+                          >
+                            <TrashIcon className="h-4 w-4" />
+                          </button>
+                        )}
                       </div>
                     ))}
                   </div>
@@ -388,12 +399,14 @@ export const TodoControlDetailsModal: React.FC<TodoControlDetailsModalProps> = (
                             </div>
                           </div>
                         </div>
-                        <button
-                          onClick={() => handleDeleteManualTime(entry.id)}
-                          className="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300"
-                        >
-                          <TrashIcon className="h-4 w-4" />
-                        </button>
+                        {canEditTime() && (
+                          <button
+                            onClick={() => handleDeleteManualTime(entry.id)}
+                            className="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300"
+                          >
+                            <TrashIcon className="h-4 w-4" />
+                          </button>
+                        )}
                       </div>
                     ))}
                   </div>

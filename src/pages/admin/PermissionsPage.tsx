@@ -25,6 +25,7 @@ const RESOURCE_OPTIONS = [
   'cases',
   'origenes',
   'aplicaciones',
+  'case_statuses',
   'notes',
   'admin',
 ];
@@ -315,13 +316,15 @@ export const PermissionsPage: React.FC = () => {
             Administra los permisos del sistema
           </p>
         </div>
-        <Button
-          onClick={handleCreate}
-          className="flex items-center"
-        >
-          <PlusIcon className="h-5 w-5 mr-2" />
-          Nuevo Permiso
-        </Button>
+        {canManagePermissions() && (
+          <Button
+            onClick={handleCreate}
+            className="flex items-center"
+          >
+            <PlusIcon className="h-5 w-5 mr-2" />
+            Nuevo Permiso
+          </Button>
+        )}
       </div>
 
       {/* Filters */}
@@ -416,18 +419,25 @@ export const PermissionsPage: React.FC = () => {
                 </td>
                 <td className="px-4 lg:px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                   <div className="flex justify-end space-x-2">
-                    <button
-                      onClick={() => handleEdit(permission)}
-                      className="text-primary-600 hover:text-primary-900 dark:text-primary-400 dark:hover:text-primary-300"
-                    >
-                      <PencilIcon className="h-5 w-5" />
-                    </button>
-                    <button
-                      onClick={() => handleDelete(permission)}
-                      className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
-                    >
-                      <TrashIcon className="h-5 w-5" />
-                    </button>
+                    {canManagePermissions() && (
+                      <>
+                        <button
+                          onClick={() => handleEdit(permission)}
+                          className="text-primary-600 hover:text-primary-900 dark:text-primary-400 dark:hover:text-primary-300"
+                        >
+                          <PencilIcon className="h-5 w-5" />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(permission)}
+                          className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
+                        >
+                          <TrashIcon className="h-5 w-5" />
+                        </button>
+                      </>
+                    )}
+                    {!canManagePermissions() && canViewPermissions() && (
+                      <span className="text-gray-400 text-sm">Solo lectura</span>
+                    )}
                   </div>
                 </td>
               </tr>

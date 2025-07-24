@@ -8,7 +8,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/lib/supabase';
 import { Button } from '@/components/Button';
 import { Input } from '@/components/Input';
-import toast from 'react-hot-toast';
+import { useNotification } from '@/components/NotificationSystem';
 
 const resetPasswordSchema = z.object({
   password: z.string().min(6, 'La contraseña debe tener al menos 6 caracteres'),
@@ -28,6 +28,7 @@ export const ResetPasswordPage: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { updatePassword } = useAuth();
+  const { showError } = useNotification();
 
   const {
     register,
@@ -55,7 +56,7 @@ if (type === 'recovery' && accessToken && refreshToken) {
           if (error) {
             console.error('❌ Error al establecer sesión de recovery:', error);
             setIsTokenValid(false);
-            toast.error('El enlace de recuperación es inválido o ha expirado');
+            showError('El enlace de recuperación es inválido o ha expirado');
             return;
           }
 
@@ -63,16 +64,16 @@ if (type === 'recovery' && accessToken && refreshToken) {
 setIsTokenValid(true);
           } else {
             setIsTokenValid(false);
-            toast.error('No se pudo establecer la sesión de recuperación');
+            showError('No se pudo establecer la sesión de recuperación');
           }
         } catch (error) {
           console.error('❌ Error procesando tokens de recovery:', error);
           setIsTokenValid(false);
-          toast.error('Error al procesar el enlace de recuperación');
+          showError('Error al procesar el enlace de recuperación');
         }
       } else {
 setIsTokenValid(false);
-        toast.error('Enlace de recuperación inválido');
+        showError('Enlace de recuperación inválido');
       }
     };
 
@@ -81,7 +82,7 @@ setIsTokenValid(false);
 
   const onSubmit = async (data: ResetPasswordForm) => {
     if (!isTokenValid) {
-      toast.error('Sesión de recuperación inválida');
+      showError('Sesión de recuperación inválida');
       return;
     }
 
