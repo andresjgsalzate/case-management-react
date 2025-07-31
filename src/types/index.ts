@@ -793,3 +793,62 @@ export interface NoteFormData {
 // =============================================
 // FIN TIPOS MÓDULO NOTAS
 // =============================================
+
+// =============================================
+// TIPOS MÓDULO DISPOSICIÓN SCRIPTS
+// =============================================
+
+export interface DisposicionScripts {
+  id: string;
+  fecha: string;
+  caseId: string;
+  nombreScript: string;
+  numeroRevisionSvn?: string;
+  aplicacionId: string;
+  observaciones?: string;
+  userId: string;
+  createdAt: string;
+  updatedAt: string;
+  // Relaciones pobladas
+  case?: Case;
+  aplicacion?: Aplicacion;
+  user?: UserProfile;
+}
+
+export interface DisposicionScriptsFormData {
+  fecha: string;
+  caseId: string;
+  nombreScript: string;
+  numeroRevisionSvn?: string;
+  aplicacionId: string;
+  observaciones?: string;
+}
+
+// Para las tarjetas de agrupamiento por mes
+export interface DisposicionMensual {
+  year: number;
+  month: number;
+  monthName: string;
+  disposiciones: DisposicionPorCaso[];
+  totalDisposiciones: number;
+}
+
+export interface DisposicionPorCaso {
+  numeroCaso: string;
+  aplicacionNombre: string;
+  cantidad: number;
+  caseId: string;
+  aplicacionId: string;
+}
+
+export interface DisposicionFilters {
+  year?: number;
+  month?: number;
+  aplicacionId?: string;
+  caseId?: string;
+  busqueda?: string;
+}
+
+// =============================================
+// FIN TIPOS MÓDULO DISPOSICIÓN SCRIPTS
+// =============================================

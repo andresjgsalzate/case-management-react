@@ -35,7 +35,7 @@ export const useAuth = () => {
   const { data: user, isLoading, error: queryError } = useQuery({
     queryKey: ['auth', 'user'],
     queryFn: async () => {
-// Timeout para evitar cuelgues indefinidos
+      // Timeout para evitar cuelgues indefinidos
       const timeoutPromise = new Promise((_, reject) => {
         setTimeout(() => reject(new Error('Timeout al conectar con Supabase')), 10000);
       });
@@ -45,18 +45,41 @@ export const useAuth = () => {
       try {
         const { data: { user }, error } = await Promise.race([authPromise, timeoutPromise]) as any;
         
+        // Si hay error pero es porque no hay sesión, devolver null en lugar de arrojar error
         if (error) {
+          // Estos errores son normales cuando no hay sesión activa
+          if (error.message?.includes('Auth session missing') || 
+              error.message?.includes('No session') ||
+              error.message?.includes('session_not_found')) {
+            return null;
+          }
+          
           console.error('❌ Error auth:', error);
           throw error;
         }
         
-return user;
-      } catch (error) {
+        return user;
+      } catch (error: any) {
+        // Si es un error de sesión faltante, devolver null en lugar de arrojar error
+        if (error.message?.includes('Auth session missing') || 
+            error.message?.includes('No session') ||
+            error.message?.includes('session_not_found')) {
+          return null;
+        }
+        
         console.error('💥 Error fatal en auth:', error);
         throw error;
       }
     },
-    retry: 1,
+    retry: (failureCount, error: any) => {
+      // No reintentar si es un error de sesión faltante
+      if (error?.message?.includes('Auth session missing') || 
+          error?.message?.includes('No session') ||
+          error?.message?.includes('session_not_found')) {
+        return false;
+      }
+      return failureCount < 1;
+    },
     retryDelay: 2000,
     staleTime: 5 * 60 * 1000, // 5 minutos
     gcTime: 10 * 60 * 1000, // 10 minutos
@@ -89,10 +112,19 @@ subscription.unsubscribe();
 
   // Actualizar estado cuando cambie la query
   useEffect(() => {
+    // Solo establecer error si no es un error de sesión faltante
+    let actualError: AuthError | null = null;
+    if (queryError && 
+        !queryError.message?.includes('Auth session missing') && 
+        !queryError.message?.includes('No session') &&
+        !queryError.message?.includes('session_not_found')) {
+      actualError = queryError as AuthError;
+    }
+
     setAuthState({
       user: user ?? null,
       loading: isLoading,
-      error: queryError as AuthError ?? null,
+      error: actualError,
     });
   }, [user, isLoading, queryError]);
 

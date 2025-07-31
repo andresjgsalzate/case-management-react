@@ -11,6 +11,72 @@ export interface VersionInfo {
 
 export const changelog: VersionInfo[] = [
   {
+    version: "2.9.0",
+    date: "2025-01-31",
+    changes: [
+      {
+        type: "feature",
+        description: "🎉 Módulo de Disposiciones de Scripts: Sistema completo para gestionar disposiciones de scripts por caso y aplicación"
+      },
+      {
+        type: "feature",
+        description: "📊 Gestión Integral de Disposiciones: CRUD completo con formularios inteligentes para crear, editar y eliminar disposiciones de scripts"
+      },
+      {
+        type: "feature",
+        description: "📋 Agrupamiento por Mes: Vista organizada de disposiciones agrupadas por mes con tarjetas informativas y resúmenes estadísticos"
+      },
+      {
+        type: "feature",
+        description: "📈 Exportación a CSV: Generación de reportes mensuales en formato CSV con codificación BOM UTF-8 para Excel"
+      },
+      {
+        type: "feature",
+        description: "🔐 Sistema de Permisos Granular: Control de acceso basado en roles - usuarios no admin solo pueden eliminar sus propias disposiciones"
+      },
+      {
+        type: "feature",
+        description: "🎯 Auto-selección de Aplicación: Los formularios auto-seleccionan la aplicación del caso elegido, eliminando redundancia de datos"
+      },
+      {
+        type: "feature",
+        description: "📊 Vista de Tabla Optimizada: Formato tabular compacto con columnas Caso | Aplicación | Cantidad para visualización eficiente"
+      },
+      {
+        type: "feature",
+        description: "🗂️ Tabla de Gestión Completa: Vista administrativa con búsqueda, filtros, paginación y acciones masivas"
+      },
+      {
+        type: "feature",
+        description: "📝 Campos Especializados: Soporte para nombre de script, número de revisión SVN, observaciones y validaciones específicas"
+      },
+      {
+        type: "feature",
+        description: "🔍 Búsqueda y Filtros: Sistema de búsqueda por caso, script, aplicación y filtros por fecha para localización rápida"
+      },
+      {
+        type: "improvement",
+        description: "💫 UX Mejorada en Formularios: Campo de aplicación se deshabilita automáticamente cuando se selecciona un caso con aplicación asociada"
+      },
+      {
+        type: "improvement",
+        description: "🔍 Indicadores Visuales: Texto explicativo '(Seleccionada automáticamente del caso)' para mayor claridad en formularios"
+      },
+      {
+        type: "improvement",
+        description: "🌙 Colores Adaptativos: Badges y elementos optimizados para mejor contraste en modo oscuro"
+      },
+      {
+        type: "improvement",
+        description: "📱 Responsive Optimizado: Tablas y formularios adaptados para diferentes tamaños de pantalla"
+      },
+      {
+        type: "improvement",
+        description: "📊 Estadísticas Dinámicas: Contadores automáticos de casos únicos y total de disposiciones por mes"
+      }
+    ]
+  },
+  {
     version: "2.8.0",
     date: "2025-01-17",
     changes: [

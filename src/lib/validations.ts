@@ -61,3 +61,49 @@ export const caseFiltersSchema = z.object({
 });
 
 export type CaseFiltersSchema = z.infer<typeof caseFiltersSchema>;
+
+// Schema para Disposición Scripts
+export const disposicionScriptsSchema = z.object({
+  fecha: z
+    .string()
+    .min(1, 'La fecha es requerida')
+    .refine((date: string) => {
+      const selectedDate = new Date(date);
+      const today = new Date();
+      today.setHours(23, 59, 59, 999); // Fin del día actual
+      return selectedDate <= today;
+    }, 'La fecha no puede ser futura'),
+  caseId: z
+    .string()
+    .min(1, 'Debe seleccionar un caso existente'),
+  nombreScript: z
+    .string()
+    .min(1, 'El nombre del script es requerido')
+    .max(100, 'El nombre del script no puede exceder 100 caracteres'),
+  numeroRevisionSvn: z
+    .string()
+    .max(50, 'El número de revisión SVN no puede exceder 50 caracteres')
+    .optional()
+    .or(z.literal('')),
+  aplicacionId: z
+    .string()
+    .min(1, 'Debe seleccionar una aplicación'),
+  observaciones: z
+    .string()
+    .max(1000, 'Las observaciones no pueden exceder 1000 caracteres')
+    .optional()
+    .or(z.literal('')),
+});
+
+export type DisposicionScriptsSchema = z.infer<typeof disposicionScriptsSchema>;
+
+// Schema para filtros de disposiciones
+export const disposicionFiltersSchema = z.object({
+  year: z.number().optional(),
+  month: z.number().min(1).max(12).optional(),
+  aplicacionId: z.string().optional(),
+  caseId: z.string().optional(),
+  busqueda: z.string().optional(),
+});
+
+export type DisposicionFiltersSchema = z.infer<typeof disposicionFiltersSchema>;

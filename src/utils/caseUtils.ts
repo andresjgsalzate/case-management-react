@@ -44,6 +44,15 @@ export function getComplexityColor(clasificacion: CaseComplexity): string {
 export function formatDate(date: string | Date | null | undefined): string {
   if (!date) return 'Fecha no disponible';
   
+  // Si es un string en formato YYYY-MM-DD, formatearlo directamente sin crear Date
+  if (typeof date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(date)) {
+    const [year, month, day] = date.split('-');
+    if (year && month && day) {
+      return `${day}/${month}/${year}`;
+    }
+  }
+  
+  // Para otros formatos, usar Date (timestamps, etc.)
   const dateObj = typeof date === 'string' ? new Date(date) : date;
   
   // Verificar si la fecha es válida
