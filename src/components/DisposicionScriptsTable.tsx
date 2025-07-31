@@ -93,7 +93,6 @@ export const DisposicionScriptsTable: React.FC<DisposicionScriptsTableProps> = (
             {disposiciones.map((disposicion) => {
               const canEditThis = canEditSpecific ? canEditSpecific(disposicion) : canEdit;
               const canDeleteThis = canDeleteSpecific ? canDeleteSpecific(disposicion) : canDelete;
-              const showActions = canEditThis || canDeleteThis;
               
               return (
                 <tr key={disposicion.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
