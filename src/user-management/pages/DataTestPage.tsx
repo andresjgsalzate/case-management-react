@@ -8,7 +8,6 @@ import {
   XCircleIcon, 
   ExclamationTriangleIcon,
   CircleStackIcon,
-  TableCellsIcon,
   UserGroupIcon,
   DocumentTextIcon,
   ClockIcon,
