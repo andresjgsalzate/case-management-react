@@ -26,13 +26,13 @@ export function useTodoMetrics() {
       setLoading(true);
       setError(null);
 
-      // Fechas para cálculos
+      // Fechas para cálculos - SOLO MES ACTUAL
       const today = new Date();
       const todayStr = today.toISOString().split('T')[0];
       const weekStart = new Date(today);
       weekStart.setDate(today.getDate() - 7);
-      const monthStart = new Date(today);
-      monthStart.setMonth(today.getMonth() - 1);
+      // Cambio: usar el PRIMER DÍA del mes actual, no el mes pasado
+      const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
 
       // Obtener IDs de estados para filtros de control
       const { data: statuses } = await supabase

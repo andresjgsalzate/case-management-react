@@ -801,7 +801,8 @@ export interface NoteFormData {
 export interface DisposicionScripts {
   id: string;
   fecha: string;
-  caseId: string;
+  caseNumber: string; // Cambio: ahora usamos el número de caso en lugar del ID
+  caseId?: string; // Opcional: puede ser null si el caso fue archivado
   nombreScript: string;
   numeroRevisionSvn?: string;
   aplicacionId: string;
@@ -810,14 +811,27 @@ export interface DisposicionScripts {
   createdAt: string;
   updatedAt: string;
   // Relaciones pobladas
-  case?: Case;
+  case?: Case | ArchivedCaseInfo; // Puede ser un caso activo o info de caso archivado
   aplicacion?: Aplicacion;
   user?: UserProfile;
+  isCaseArchived?: boolean; // Indica si el caso está archivado
+}
+
+// Tipo para información de casos archivados en disposiciones
+export interface ArchivedCaseInfo {
+  id: null;
+  numero_caso: string;
+  descripcion: string;
+  clasificacion: string;
+  created_at: null;
+  updated_at: null;
+  is_archived: true;
 }
 
 export interface DisposicionScriptsFormData {
   fecha: string;
-  caseId: string;
+  caseNumber: string; // Cambio: ahora usamos el número de caso
+  caseId?: string; // Opcional: para casos activos, se obtiene automáticamente
   nombreScript: string;
   numeroRevisionSvn?: string;
   aplicacionId: string;
@@ -837,15 +851,17 @@ export interface DisposicionPorCaso {
   numeroCaso: string;
   aplicacionNombre: string;
   cantidad: number;
-  caseId: string;
+  caseId?: string; // Opcional: puede ser null si el caso fue archivado
   aplicacionId: string;
+  isCaseArchived?: boolean; // Indica si el caso está archivado
 }
 
 export interface DisposicionFilters {
   year?: number;
   month?: number;
   aplicacionId?: string;
-  caseId?: string;
+  caseNumber?: string; // Cambio: usar número de caso en lugar de ID
+  caseId?: string; // Mantener para compatibilidad con casos activos
   busqueda?: string;
 }
 

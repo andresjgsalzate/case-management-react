@@ -8,6 +8,8 @@ export interface TimeMetrics {
   totalHours: number;
   averageTimePerCase: number;
   activeTimers: number;
+  currentMonth: string; // Nuevo campo para indicar el mes actual
+  currentYear: number;  // Nuevo campo para indicar el año actual
 }
 
 export interface UserTimeMetrics {
@@ -41,45 +43,111 @@ export interface ApplicationTimeMetrics {
   casesCount: number;
 }
 
-// Hook para métricas generales de tiempo
+// Función helper para obtener fechas del mes actual
+const getCurrentMonthRange = () => {
+  const now = new Date();
+  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+  const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+  
+  return {
+    start: startOfMonth.toISOString(),
+    end: endOfMonth.toISOString()
+  };
+};
+
+// Hook para métricas generales de tiempo (SOLO DEL MES ACTUAL)
 export const useTimeMetrics = () => {
   const { canViewAllCases, userProfile } = usePermissions();
   
   return useQuery({
-    queryKey: ['timeMetrics', userProfile?.id],
+    queryKey: ['timeMetrics', userProfile?.id, new Date().getMonth(), new Date().getFullYear()],
     queryFn: async (): Promise<TimeMetrics> => {
-      // Usar la vista case_control_detailed como fuente única de datos
-      let query = supabase
+      const { start: monthStart, end: monthEnd } = getCurrentMonthRange();
+      
+      // Obtener casos activos (para contadores base)
+      let caseQuery = supabase
         .from('case_control_detailed')
-        .select('total_time_minutes, is_timer_active, case_id');
+        .select('case_id, is_timer_active');
 
       // Si el usuario NO puede ver todos los casos, filtrar solo los suyos
       if (!canViewAllCases() && userProfile?.id) {
-        query = query.eq('user_id', userProfile.id);
+        caseQuery = caseQuery.eq('user_id', userProfile.id);
       }
 
-      const { data: caseData, error } = await query;
+      const { data: caseData, error: caseError } = await caseQuery;
 
-      if (error) {
-        console.error('Error fetching case control data:', error);
+      if (caseError) {
+        console.error('Error fetching case control data:', caseError);
+        const now = new Date();
         return {
           totalTimeMinutes: 0,
           totalHours: 0,
           averageTimePerCase: 0,
           activeTimers: 0,
+          currentMonth: now.toLocaleString('es-ES', { month: 'long' }),
+          currentYear: now.getFullYear(),
         };
       }
 
-      // Calcular métricas
-      const totalTimeMinutes = (caseData || []).reduce((sum, entry) => sum + (entry.total_time_minutes || 0), 0);
+      // Obtener time entries del mes actual
+      let timeQuery = supabase
+        .from('time_entries')
+        .select('duration_minutes, case_control_id, case_control!inner(user_id)')
+        .gte('start_time', monthStart)
+        .lte('start_time', monthEnd)
+        .not('duration_minutes', 'is', null);
+
+      // Si el usuario NO puede ver todos los casos, filtrar solo los suyos
+      if (!canViewAllCases() && userProfile?.id) {
+        timeQuery = timeQuery.eq('case_control.user_id', userProfile.id);
+      }
+
+      const { data: timeEntries, error: timeError } = await timeQuery;
+
+      if (timeError) {
+        console.error('Error fetching time entries:', timeError);
+      }
+
+      // Obtener manual time entries del mes actual
+      let manualQuery = supabase
+        .from('manual_time_entries')
+        .select('duration_minutes, case_control_id, case_control!inner(user_id)')
+        .gte('date', monthStart.split('T')[0])
+        .lte('date', monthEnd.split('T')[0]);
+
+      // Si el usuario NO puede ver todos los casos, filtrar solo los suyos
+      if (!canViewAllCases() && userProfile?.id) {
+        manualQuery = manualQuery.eq('case_control.user_id', userProfile.id);
+      }
+
+      const { data: manualEntries, error: manualError } = await manualQuery;
+
+      if (manualError) {
+        console.error('Error fetching manual time entries:', manualError);
+      }
+
+      // Calcular métricas solo del mes actual
+      const timeMinutesFromTimer = (timeEntries || []).reduce((sum, entry) => sum + (entry.duration_minutes || 0), 0);
+      const timeMinutesFromManual = (manualEntries || []).reduce((sum, entry) => sum + (entry.duration_minutes || 0), 0);
+      const totalTimeMinutes = timeMinutesFromTimer + timeMinutesFromManual;
+      
       const activeTimers = (caseData || []).filter(entry => entry.is_timer_active).length;
-      const casesCount = caseData?.length || 0;
+      
+      // Contar casos únicos que tuvieron tiempo en el mes actual
+      const casesWithTimeThisMonth = new Set([
+        ...(timeEntries || []).map(e => e.case_control_id),
+        ...(manualEntries || []).map(e => e.case_control_id)
+      ]).size;
+
+      const now = new Date();
 
       return {
         totalTimeMinutes,
         totalHours: Math.round((totalTimeMinutes / 60) * 100) / 100,
-        averageTimePerCase: casesCount > 0 ? Math.round((totalTimeMinutes / casesCount) * 100) / 100 : 0,
+        averageTimePerCase: casesWithTimeThisMonth > 0 ? Math.round((totalTimeMinutes / casesWithTimeThisMonth) * 100) / 100 : 0,
         activeTimers,
+        currentMonth: now.toLocaleString('es-ES', { month: 'long' }),
+        currentYear: now.getFullYear(),
       };
     },
     enabled: !!userProfile, // Solo ejecutar cuando tengamos el perfil del usuario
@@ -87,29 +155,67 @@ export const useTimeMetrics = () => {
   });
 };
 
-// Hook para tiempo por usuario
+// Hook para tiempo por usuario (SOLO DEL MES ACTUAL)
 export const useUserTimeMetrics = () => {
   const { canViewAllCases, userProfile } = usePermissions();
   
   return useQuery({
-    queryKey: ['userTimeMetrics', userProfile?.id],
+    queryKey: ['userTimeMetrics', userProfile?.id, new Date().getMonth(), new Date().getFullYear()],
     queryFn: async (): Promise<UserTimeMetrics[]> => {
-      // Usar la vista case_control_detailed para obtener datos de usuarios
-      let query = supabase
-        .from('case_control_detailed')
-        .select('user_id, assigned_user_name, total_time_minutes, case_id')
-        .not('user_id', 'is', null);
+      const { start: monthStart, end: monthEnd } = getCurrentMonthRange();
+      
+      // Obtener time entries del mes actual
+      let timeQuery = supabase
+        .from('time_entries')
+        .select(`
+          duration_minutes,
+          case_control_id,
+          case_control!inner(
+            user_id,
+            case_id,
+            user_profiles!inner(id, full_name)
+          )
+        `)
+        .gte('start_time', monthStart)
+        .lte('start_time', monthEnd)
+        .not('duration_minutes', 'is', null);
 
       // Si el usuario NO puede ver todos los casos, filtrar solo los suyos
       if (!canViewAllCases() && userProfile?.id) {
-        query = query.eq('user_id', userProfile.id);
+        timeQuery = timeQuery.eq('case_control.user_id', userProfile.id);
       }
 
-      const { data: caseData, error } = await query;
+      const { data: timeEntries, error: timeError } = await timeQuery;
 
-      if (error) {
-        console.error('Error fetching user time metrics:', error);
+      if (timeError) {
+        console.error('Error fetching time entries:', timeError);
         return [];
+      }
+
+      // Obtener manual time entries del mes actual
+      let manualQuery = supabase
+        .from('manual_time_entries')
+        .select(`
+          duration_minutes,
+          case_control_id,
+          case_control!inner(
+            user_id,
+            case_id,
+            user_profiles!inner(id, full_name)
+          )
+        `)
+        .gte('date', monthStart.split('T')[0])
+        .lte('date', monthEnd.split('T')[0]);
+
+      // Si el usuario NO puede ver todos los casos, filtrar solo los suyos
+      if (!canViewAllCases() && userProfile?.id) {
+        manualQuery = manualQuery.eq('case_control.user_id', userProfile.id);
+      }
+
+      const { data: manualEntries, error: manualError } = await manualQuery;
+
+      if (manualError) {
+        console.error('Error fetching manual time entries:', manualError);
       }
 
       // Procesar los datos para agrupar por usuario
@@ -120,9 +226,11 @@ export const useUserTimeMetrics = () => {
         casesWorked: Set<string>;
       }>();
 
-      (caseData || []).forEach((entry: any) => {
-        const userId = entry.user_id;
-        const userName = entry.assigned_user_name || 'Usuario sin nombre';
+      // Procesar time entries
+      (timeEntries || []).forEach((entry: any) => {
+        const userId = entry.case_control?.user_id;
+        const userName = entry.case_control?.user_profiles?.full_name || 'Usuario sin nombre';
+        const caseId = entry.case_control?.case_id;
         
         if (userId) {
           if (!userMetrics.has(userId)) {
@@ -135,9 +243,35 @@ export const useUserTimeMetrics = () => {
           }
           
           const userMetric = userMetrics.get(userId)!;
-          userMetric.totalTimeMinutes += entry.total_time_minutes || 0;
-          if (entry.case_id) {
-            userMetric.casesWorked.add(entry.case_id);
+          userMetric.totalTimeMinutes += entry.duration_minutes || 0;
+          
+          if (caseId) {
+            userMetric.casesWorked.add(caseId);
+          }
+        }
+      });
+
+      // Procesar manual entries
+      (manualEntries || []).forEach((entry: any) => {
+        const userId = entry.case_control?.user_id;
+        const userName = entry.case_control?.user_profiles?.full_name || 'Usuario sin nombre';
+        const caseId = entry.case_control?.case_id;
+        
+        if (userId) {
+          if (!userMetrics.has(userId)) {
+            userMetrics.set(userId, {
+              userId,
+              userName,
+              totalTimeMinutes: 0,
+              casesWorked: new Set(),
+            });
+          }
+          
+          const userMetric = userMetrics.get(userId)!;
+          userMetric.totalTimeMinutes += entry.duration_minutes || 0;
+          
+          if (caseId) {
+            userMetric.casesWorked.add(caseId);
           }
         }
       });
@@ -154,28 +288,69 @@ export const useUserTimeMetrics = () => {
   });
 };
 
-// Hook para tiempo por caso
+// Hook para tiempo por caso (SOLO DEL MES ACTUAL)
 export const useCaseTimeMetrics = () => {
   const { canViewAllCases, userProfile } = usePermissions();
   
   return useQuery({
-    queryKey: ['caseTimeMetrics', userProfile?.id],
+    queryKey: ['caseTimeMetrics', userProfile?.id, new Date().getMonth(), new Date().getFullYear()],
     queryFn: async (): Promise<CaseTimeMetrics[]> => {
-      // Usar la vista case_control_detailed para obtener datos de casos
-      let query = supabase
-        .from('case_control_detailed')
-        .select('case_id, case_number, case_description, total_time_minutes, status_name, status_color');
+      const { start: monthStart, end: monthEnd } = getCurrentMonthRange();
+      
+      // Obtener time entries del mes actual con información del caso
+      let timeQuery = supabase
+        .from('time_entries')
+        .select(`
+          duration_minutes,
+          case_control_id,
+          case_control!inner(
+            user_id,
+            case_id,
+            cases!inner(numero_caso, descripcion),
+            case_status_control!inner(name, color)
+          )
+        `)
+        .gte('start_time', monthStart)
+        .lte('start_time', monthEnd)
+        .not('duration_minutes', 'is', null);
 
       // Si el usuario NO puede ver todos los casos, filtrar solo los suyos
       if (!canViewAllCases() && userProfile?.id) {
-        query = query.eq('user_id', userProfile.id);
+        timeQuery = timeQuery.eq('case_control.user_id', userProfile.id);
       }
 
-      const { data: caseData, error } = await query;
+      const { data: timeEntries, error: timeError } = await timeQuery;
 
-      if (error) {
-        console.error('Error fetching case time metrics:', error);
+      if (timeError) {
+        console.error('Error fetching time entries:', timeError);
         return [];
+      }
+
+      // Obtener manual time entries del mes actual con información del caso
+      let manualQuery = supabase
+        .from('manual_time_entries')
+        .select(`
+          duration_minutes,
+          case_control_id,
+          case_control!inner(
+            user_id,
+            case_id,
+            cases!inner(numero_caso, descripcion),
+            case_status_control!inner(name, color)
+          )
+        `)
+        .gte('date', monthStart.split('T')[0])
+        .lte('date', monthEnd.split('T')[0]);
+
+      // Si el usuario NO puede ver todos los casos, filtrar solo los suyos
+      if (!canViewAllCases() && userProfile?.id) {
+        manualQuery = manualQuery.eq('case_control.user_id', userProfile.id);
+      }
+
+      const { data: manualEntries, error: manualError } = await manualQuery;
+
+      if (manualError) {
+        console.error('Error fetching manual time entries:', manualError);
       }
 
       // Procesar los datos para agrupar por caso
@@ -188,23 +363,53 @@ export const useCaseTimeMetrics = () => {
         statusColor?: string;
       }>();
 
-      (caseData || []).forEach((entry: any) => {
-        const caseId = entry.case_id;
+      // Procesar time entries
+      (timeEntries || []).forEach((entry: any) => {
+        const caseId = entry.case_control?.case_id;
+        const caseNumber = entry.case_control?.cases?.numero_caso;
+        const description = entry.case_control?.cases?.descripcion;
+        const statusName = entry.case_control?.case_status_control?.name;
+        const statusColor = entry.case_control?.case_status_control?.color;
         
         if (caseId) {
           if (!caseMetrics.has(caseId)) {
             caseMetrics.set(caseId, {
               caseId,
-              caseNumber: entry.case_number || 'N/A',
-              description: entry.case_description || 'Sin descripción',
+              caseNumber: caseNumber || 'N/A',
+              description: description || 'Sin descripción',
               totalTimeMinutes: 0,
-              status: entry.status_name || 'Sin estado',
-              statusColor: entry.status_color || '#6b7280',
+              status: statusName || 'Sin estado',
+              statusColor: statusColor || '#6b7280',
             });
           }
           
           const caseMetric = caseMetrics.get(caseId)!;
-          caseMetric.totalTimeMinutes += entry.total_time_minutes || 0;
+          caseMetric.totalTimeMinutes += entry.duration_minutes || 0;
+        }
+      });
+
+      // Procesar manual entries
+      (manualEntries || []).forEach((entry: any) => {
+        const caseId = entry.case_control?.case_id;
+        const caseNumber = entry.case_control?.cases?.numero_caso;
+        const description = entry.case_control?.cases?.descripcion;
+        const statusName = entry.case_control?.case_status_control?.name;
+        const statusColor = entry.case_control?.case_status_control?.color;
+        
+        if (caseId) {
+          if (!caseMetrics.has(caseId)) {
+            caseMetrics.set(caseId, {
+              caseId,
+              caseNumber: caseNumber || 'N/A',
+              description: description || 'Sin descripción',
+              totalTimeMinutes: 0,
+              status: statusName || 'Sin estado',
+              statusColor: statusColor || '#6b7280',
+            });
+          }
+          
+          const caseMetric = caseMetrics.get(caseId)!;
+          caseMetric.totalTimeMinutes += entry.duration_minutes || 0;
         }
       });
 
@@ -216,28 +421,67 @@ export const useCaseTimeMetrics = () => {
   });
 };
 
-// Hook para métricas por estado
+// Hook para métricas por estado (SOLO DEL MES ACTUAL)
 export const useStatusMetrics = () => {
   const { canViewAllCases, userProfile } = usePermissions();
   
   return useQuery({
-    queryKey: ['statusMetrics', userProfile?.id],
+    queryKey: ['statusMetrics', userProfile?.id, new Date().getMonth(), new Date().getFullYear()],
     queryFn: async (): Promise<StatusMetrics[]> => {
-      // Usar la vista case_control_detailed para obtener datos de estados
-      let query = supabase
-        .from('case_control_detailed')
-        .select('status_id, status_name, status_color, total_time_minutes, case_id');
+      const { start: monthStart, end: monthEnd } = getCurrentMonthRange();
+      
+      // Obtener time entries del mes actual con información del estado
+      let timeQuery = supabase
+        .from('time_entries')
+        .select(`
+          duration_minutes,
+          case_control_id,
+          case_control!inner(
+            user_id,
+            case_id,
+            case_status_control!inner(id, name, color)
+          )
+        `)
+        .gte('start_time', monthStart)
+        .lte('start_time', monthEnd)
+        .not('duration_minutes', 'is', null);
 
       // Si el usuario NO puede ver todos los casos, filtrar solo los suyos
       if (!canViewAllCases() && userProfile?.id) {
-        query = query.eq('user_id', userProfile.id);
+        timeQuery = timeQuery.eq('case_control.user_id', userProfile.id);
       }
 
-      const { data: caseData, error } = await query;
+      const { data: timeEntries, error: timeError } = await timeQuery;
 
-      if (error) {
-        console.error('Error fetching status metrics:', error);
+      if (timeError) {
+        console.error('Error fetching time entries:', timeError);
         return [];
+      }
+
+      // Obtener manual time entries del mes actual con información del estado
+      let manualQuery = supabase
+        .from('manual_time_entries')
+        .select(`
+          duration_minutes,
+          case_control_id,
+          case_control!inner(
+            user_id,
+            case_id,
+            case_status_control!inner(id, name, color)
+          )
+        `)
+        .gte('date', monthStart.split('T')[0])
+        .lte('date', monthEnd.split('T')[0]);
+
+      // Si el usuario NO puede ver todos los casos, filtrar solo los suyos
+      if (!canViewAllCases() && userProfile?.id) {
+        manualQuery = manualQuery.eq('case_control.user_id', userProfile.id);
+      }
+
+      const { data: manualEntries, error: manualError } = await manualQuery;
+
+      if (manualError) {
+        console.error('Error fetching manual time entries:', manualError);
       }
 
       // Procesar métricas por estado
@@ -250,15 +494,19 @@ export const useStatusMetrics = () => {
         casesSet: Set<string>;
       }>();
 
-      (caseData || []).forEach((entry: any) => {
-        const statusId = entry.status_id;
+      // Procesar time entries
+      (timeEntries || []).forEach((entry: any) => {
+        const statusId = entry.case_control?.case_status_control?.id;
+        const statusName = entry.case_control?.case_status_control?.name;
+        const statusColor = entry.case_control?.case_status_control?.color;
+        const caseId = entry.case_control?.case_id;
         
         if (statusId) {
           if (!statusMetrics.has(statusId)) {
             statusMetrics.set(statusId, {
               statusId,
-              statusName: entry.status_name || 'Sin estado',
-              statusColor: entry.status_color || '#6b7280',
+              statusName: statusName || 'Sin estado',
+              statusColor: statusColor || '#6b7280',
               casesCount: 0,
               totalTimeMinutes: 0,
               casesSet: new Set(),
@@ -266,10 +514,39 @@ export const useStatusMetrics = () => {
           }
           
           const statusMetric = statusMetrics.get(statusId)!;
-          statusMetric.totalTimeMinutes += entry.total_time_minutes || 0;
+          statusMetric.totalTimeMinutes += entry.duration_minutes || 0;
           
-          if (entry.case_id && !statusMetric.casesSet.has(entry.case_id)) {
-            statusMetric.casesSet.add(entry.case_id);
+          if (caseId && !statusMetric.casesSet.has(caseId)) {
+            statusMetric.casesSet.add(caseId);
+            statusMetric.casesCount++;
+          }
+        }
+      });
+
+      // Procesar manual entries
+      (manualEntries || []).forEach((entry: any) => {
+        const statusId = entry.case_control?.case_status_control?.id;
+        const statusName = entry.case_control?.case_status_control?.name;
+        const statusColor = entry.case_control?.case_status_control?.color;
+        const caseId = entry.case_control?.case_id;
+        
+        if (statusId) {
+          if (!statusMetrics.has(statusId)) {
+            statusMetrics.set(statusId, {
+              statusId,
+              statusName: statusName || 'Sin estado',
+              statusColor: statusColor || '#6b7280',
+              casesCount: 0,
+              totalTimeMinutes: 0,
+              casesSet: new Set(),
+            });
+          }
+          
+          const statusMetric = statusMetrics.get(statusId)!;
+          statusMetric.totalTimeMinutes += entry.duration_minutes || 0;
+          
+          if (caseId && !statusMetric.casesSet.has(caseId)) {
+            statusMetric.casesSet.add(caseId);
             statusMetric.casesCount++;
           }
         }
@@ -288,29 +565,69 @@ export const useStatusMetrics = () => {
   });
 };
 
-// Hook para tiempo por aplicación
+// Hook para tiempo por aplicación (SOLO DEL MES ACTUAL)
 export const useApplicationTimeMetrics = () => {
   const { canViewAllCases, userProfile } = usePermissions();
   
   return useQuery({
-    queryKey: ['applicationTimeMetrics', userProfile?.id],
+    queryKey: ['applicationTimeMetrics', userProfile?.id, new Date().getMonth(), new Date().getFullYear()],
     queryFn: async (): Promise<ApplicationTimeMetrics[]> => {
-      // Usar la vista case_control_detailed para obtener datos de aplicaciones
-      let query = supabase
-        .from('case_control_detailed')
-        .select('application_name, total_time_minutes, case_id')
-        .not('application_name', 'is', null);
+      const { start: monthStart, end: monthEnd } = getCurrentMonthRange();
+      
+      // Obtener time entries del mes actual con información de la aplicación
+      let timeQuery = supabase
+        .from('time_entries')
+        .select(`
+          duration_minutes,
+          case_control_id,
+          case_control!inner(
+            user_id,
+            case_id,
+            cases!inner(aplicacion_id, aplicaciones!inner(nombre))
+          )
+        `)
+        .gte('start_time', monthStart)
+        .lte('start_time', monthEnd)
+        .not('duration_minutes', 'is', null)
+        .not('case_control.cases.aplicaciones.nombre', 'is', null);
 
       // Si el usuario NO puede ver todos los casos, filtrar solo los suyos
       if (!canViewAllCases() && userProfile?.id) {
-        query = query.eq('user_id', userProfile.id);
+        timeQuery = timeQuery.eq('case_control.user_id', userProfile.id);
       }
 
-      const { data: caseData, error } = await query;
+      const { data: timeEntries, error: timeError } = await timeQuery;
 
-      if (error) {
-        console.error('Error fetching application time metrics:', error);
+      if (timeError) {
+        console.error('Error fetching time entries:', timeError);
         return [];
+      }
+
+      // Obtener manual time entries del mes actual con información de la aplicación
+      let manualQuery = supabase
+        .from('manual_time_entries')
+        .select(`
+          duration_minutes,
+          case_control_id,
+          case_control!inner(
+            user_id,
+            case_id,
+            cases!inner(aplicacion_id, aplicaciones!inner(nombre))
+          )
+        `)
+        .gte('date', monthStart.split('T')[0])
+        .lte('date', monthEnd.split('T')[0])
+        .not('case_control.cases.aplicaciones.nombre', 'is', null);
+
+      // Si el usuario NO puede ver todos los casos, filtrar solo los suyos
+      if (!canViewAllCases() && userProfile?.id) {
+        manualQuery = manualQuery.eq('case_control.user_id', userProfile.id);
+      }
+
+      const { data: manualEntries, error: manualError } = await manualQuery;
+
+      if (manualError) {
+        console.error('Error fetching manual time entries:', manualError);
       }
 
       // Procesar los datos para agrupar por aplicación
@@ -321,11 +638,13 @@ export const useApplicationTimeMetrics = () => {
         casesSet: Set<string>;
       }>();
 
-      (caseData || []).forEach((entry: any) => {
-        const applicationName = entry.application_name;
+      // Procesar time entries
+      (timeEntries || []).forEach((entry: any) => {
+        const applicationName = entry.case_control?.cases?.aplicaciones?.nombre;
+        const caseId = entry.case_control?.case_id;
         
         if (applicationName) {
-          // Usar el nombre como ID único (ya que no tenemos access directo al ID)
+          // Usar el nombre como ID único
           const appId = applicationName;
           
           if (!appMetrics.has(appId)) {
@@ -338,10 +657,37 @@ export const useApplicationTimeMetrics = () => {
           }
           
           const appMetric = appMetrics.get(appId)!;
-          appMetric.totalTimeMinutes += entry.total_time_minutes || 0;
+          appMetric.totalTimeMinutes += entry.duration_minutes || 0;
           
-          if (entry.case_id) {
-            appMetric.casesSet.add(entry.case_id);
+          if (caseId) {
+            appMetric.casesSet.add(caseId);
+          }
+        }
+      });
+
+      // Procesar manual entries
+      (manualEntries || []).forEach((entry: any) => {
+        const applicationName = entry.case_control?.cases?.aplicaciones?.nombre;
+        const caseId = entry.case_control?.case_id;
+        
+        if (applicationName) {
+          // Usar el nombre como ID único
+          const appId = applicationName;
+          
+          if (!appMetrics.has(appId)) {
+            appMetrics.set(appId, {
+              applicationId: appId,
+              applicationName: applicationName,
+              totalTimeMinutes: 0,
+              casesSet: new Set(),
+            });
+          }
+          
+          const appMetric = appMetrics.get(appId)!;
+          appMetric.totalTimeMinutes += entry.duration_minutes || 0;
+          
+          if (caseId) {
+            appMetric.casesSet.add(caseId);
           }
         }
       });

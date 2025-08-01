@@ -100,7 +100,7 @@ export const exportAllDisposicionScripts = async (disposiciones: DisposicionScri
 
     const data = disposiciones.map(d => [
       formatFechaString(d.fecha),
-      d.case?.numeroCaso || 'N/A',
+      d.case ? ('numeroCaso' in d.case ? d.case.numeroCaso : d.case.numero_caso) : d.caseNumber || 'N/A',
       d.case?.descripcion || 'N/A',
       d.nombreScript,
       d.numeroRevisionSvn || '',

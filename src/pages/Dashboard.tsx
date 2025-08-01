@@ -187,9 +187,16 @@ export const Dashboard: React.FC = () => {
 
       {/* Time Metrics */}
       <div>
-        <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
-          Métricas de Tiempo
-        </h2>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+            Métricas de Tiempo
+          </h2>
+          {timeMetrics && (
+            <div className="text-sm text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 px-3 py-1 rounded-full">
+              📅 {timeMetrics.currentMonth} {timeMetrics.currentYear}
+            </div>
+          )}
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 2xl:grid-cols-4 gap-6">
           <div className="card p-6">
             <div className="flex items-center">
@@ -198,7 +205,7 @@ export const Dashboard: React.FC = () => {
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                  Tiempo Total
+                  Tiempo Total (Este Mes)
                 </p>
                 <p className="text-2xl font-bold text-gray-900 dark:text-white">
                   {timeLoading || todoLoading ? '...' : 
@@ -225,7 +232,7 @@ export const Dashboard: React.FC = () => {
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                  Tiempo Total por Caso
+                  Tiempo por Casos (Este Mes)
                 </p>
                 <p className="text-2xl font-bold text-gray-900 dark:text-white">
                   {timeLoading ? '...' : timeMetrics ? `${timeMetrics.totalHours.toFixed(1)}h` : '0h'}
@@ -244,7 +251,7 @@ export const Dashboard: React.FC = () => {
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                  Tiempo Total por TODOs
+                  Tiempo por TODOs (Este Mes)
                 </p>
                 <p className="text-2xl font-bold text-gray-900 dark:text-white">
                   {todoLoading ? '...' : todoMetrics ? `${(todoMetrics.totalTimeMonth / 60).toFixed(1)}h` : '0h'}
@@ -263,7 +270,7 @@ export const Dashboard: React.FC = () => {
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                  Aplicaciones
+                  Aplicaciones (Este Mes)
                 </p>
                 <p className="text-2xl font-bold text-gray-900 dark:text-white">
                   {appTimeLoading ? '...' : appTimeMetrics ? appTimeMetrics.length : '0'}

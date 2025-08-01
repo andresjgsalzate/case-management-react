@@ -374,6 +374,7 @@ export const DisposicionScriptsPage: React.FC = () => {
         initialData={selectedDisposicion ? {
           fecha: selectedDisposicion.fecha,
           caseId: selectedDisposicion.caseId,
+          caseNumber: selectedDisposicion.caseNumber,
           nombreScript: selectedDisposicion.nombreScript,
           numeroRevisionSvn: selectedDisposicion.numeroRevisionSvn,
           aplicacionId: selectedDisposicion.aplicacionId,

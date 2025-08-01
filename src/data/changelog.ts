@@ -11,6 +11,40 @@ export interface VersionInfo {
 
 export const changelog: VersionInfo[] = [
   {
+    version: "2.9.1",
+    date: "2025-01-31",
+    changes: [
+      {
+        type: "improvement",
+        description: "📊 Dashboard Métricas Mes Actual: Optimización de filtros por mes actual en todas las métricas del Dashboard"
+      },
+      {
+        type: "improvement",
+        description: "📅 Filtrado Temporal Inteligente: Las métricas ahora muestran solo datos del mes actual, evitando acumulación de tiempo de meses anteriores"
+      },
+      {
+        type: "improvement",
+        description: "🔄 Actualización Automática por Mes: Al cambiar de mes, todas las métricas se resetean automáticamente para mostrar solo el nuevo mes"
+      },
+      {
+        type: "improvement",
+        description: "🎯 Precisión en Tiempo de Casos: Los casos en curso ya no acumulan tiempo de meses anteriores, mostrando solo el tiempo del mes actual"
+      },
+      {
+        type: "improvement",
+        description: "📈 Indicadores Visuales de Mes: Badges informativos que muestran claramente que las métricas corresponden al mes actual"
+      },
+      {
+        type: "improvement",
+        description: "⚡ Optimización de Consultas: Filtrado directo en tablas time_entries y manual_time_entries para mejor rendimiento"
+      },
+      {
+        type: "improvement",
+        description: "🔧 Refactorización de Hooks: Todos los hooks de métricas (useTimeMetrics, useUserTimeMetrics, useCaseTimeMetrics, useStatusMetrics, useApplicationTimeMetrics) actualizados con filtrado mensual"
+      }
+    ]
+  },
+  {
     version: "2.9.0",
     date: "2025-01-31",
     changes: [

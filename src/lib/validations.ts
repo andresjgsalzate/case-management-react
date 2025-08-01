@@ -73,9 +73,13 @@ export const disposicionScriptsSchema = z.object({
       today.setHours(23, 59, 59, 999); // Fin del día actual
       return selectedDate <= today;
     }, 'La fecha no puede ser futura'),
+  caseNumber: z
+    .string()
+    .min(1, 'Debe ingresar un número de caso válido')
+    .regex(/^[A-Z0-9-]+$/, 'El número de caso solo puede contener letras mayúsculas, números y guiones'),
   caseId: z
     .string()
-    .min(1, 'Debe seleccionar un caso existente'),
+    .optional(), // Opcional: se obtiene automáticamente del número de caso
   nombreScript: z
     .string()
     .min(1, 'El nombre del script es requerido')

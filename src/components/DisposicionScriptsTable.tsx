@@ -107,7 +107,7 @@ export const DisposicionScriptsTable: React.FC<DisposicionScriptsTableProps> = (
                   {/* Caso - ancho fijo mediano */}
                   <td className="w-32 px-4 py-4 text-sm">
                     <div className="font-medium text-gray-900 dark:text-white text-xs leading-tight">
-                      #{disposicion.case?.numeroCaso || 'N/A'}
+                      #{disposicion.case ? ('numeroCaso' in disposicion.case ? disposicion.case.numeroCaso : disposicion.case.numero_caso) : disposicion.caseNumber || 'N/A'}
                     </div>
                     {disposicion.case?.descripcion && (
                       <div className="text-gray-500 dark:text-gray-400 text-xs leading-tight mt-1 overflow-hidden" style={{

@@ -14,16 +14,11 @@ export const useDisposicionesScripts = (filters?: DisposicionFilters) => {
   return useQuery({
     queryKey: ['disposiciones-scripts', filters],
     queryFn: async (): Promise<DisposicionScripts[]> => {
+      // Usar la nueva vista que maneja casos activos y archivados
       let query = supabase
-        .from('disposiciones_scripts')
+        .from('disposiciones_scripts_with_case')
         .select(`
           *,
-          case:cases!inner(
-            id,
-            numero_caso,
-            descripcion,
-            aplicacion:aplicaciones(id, nombre)
-          ),
           aplicacion:aplicaciones!inner(id, nombre),
           user:user_profiles(id, full_name, email)
         `)
@@ -45,6 +40,10 @@ export const useDisposicionesScripts = (filters?: DisposicionFilters) => {
         query = query.eq('aplicacion_id', filters.aplicacionId);
       }
 
+      if (filters?.caseNumber) {
+        query = query.eq('case_number', filters.caseNumber);
+      }
+
       if (filters?.caseId) {
         query = query.eq('case_id', filters.caseId);
       }
@@ -59,6 +58,7 @@ export const useDisposicionesScripts = (filters?: DisposicionFilters) => {
       return data?.map(item => ({
         id: item.id,
         fecha: item.fecha,
+        caseNumber: item.case_number,
         caseId: item.case_id,
         nombreScript: item.nombre_script,
         numeroRevisionSvn: item.numero_revision_svn,
@@ -67,21 +67,22 @@ export const useDisposicionesScripts = (filters?: DisposicionFilters) => {
         userId: item.user_profile_id,
         createdAt: item.created_at,
         updatedAt: item.updated_at,
-        case: item.case ? {
-          id: item.case.id,
-          numeroCaso: item.case.numero_caso,
-          descripcion: item.case.descripcion,
-          fecha: '', // No necesitamos todos los campos para la relación
+        isCaseArchived: item.is_case_archived,
+        case: item.case_info ? {
+          id: item.case_info.id,
+          numeroCaso: item.case_info.numero_caso,
+          descripcion: item.case_info.descripcion,
+          fecha: item.case_info.created_at || '',
           historialCaso: 1,
           conocimientoModulo: 1,
           manipulacionDatos: 1,
           claridadDescripcion: 1,
           causaFallo: 1,
           puntuacion: 5,
-          clasificacion: 'Baja Complejidad' as const,
-          createdAt: '',
-          updatedAt: '',
-          aplicacion: item.case.aplicacion
+          clasificacion: item.case_info.clasificacion as any || 'Baja Complejidad',
+          createdAt: item.case_info.created_at || '',
+          updatedAt: item.case_info.updated_at || '',
+          is_archived: item.case_info.is_archived
         } : undefined,
         aplicacion: item.aplicacion ? {
           id: item.aplicacion.id,
@@ -108,15 +109,9 @@ export const useDisposicionScripts = (id: string) => {
     queryKey: ['disposicion-scripts', id],
     queryFn: async (): Promise<DisposicionScripts | null> => {
       const { data, error } = await supabase
-        .from('disposiciones_scripts')
+        .from('disposiciones_scripts_with_case')
         .select(`
           *,
-          case:cases!inner(
-            id,
-            numero_caso,
-            descripcion,
-            aplicacion:aplicaciones(id, nombre)
-          ),
           aplicacion:aplicaciones!inner(id, nombre),
           user:user_profiles(id, full_name, email)
         `)
@@ -133,6 +128,7 @@ export const useDisposicionScripts = (id: string) => {
       return {
         id: data.id,
         fecha: data.fecha,
+        caseNumber: data.case_number,
         caseId: data.case_id,
         nombreScript: data.nombre_script,
         numeroRevisionSvn: data.numero_revision_svn,
@@ -141,21 +137,22 @@ export const useDisposicionScripts = (id: string) => {
         userId: data.user_profile_id,
         createdAt: data.created_at,
         updatedAt: data.updated_at,
-        case: data.case ? {
-          id: data.case.id,
-          numeroCaso: data.case.numero_caso,
-          descripcion: data.case.descripcion,
-          fecha: '',
+        isCaseArchived: data.is_case_archived,
+        case: data.case_info ? {
+          id: data.case_info.id,
+          numeroCaso: data.case_info.numero_caso,
+          descripcion: data.case_info.descripcion,
+          fecha: data.case_info.created_at || '',
           historialCaso: 1,
           conocimientoModulo: 1,
           manipulacionDatos: 1,
           claridadDescripcion: 1,
           causaFallo: 1,
           puntuacion: 5,
-          clasificacion: 'Baja Complejidad' as const,
-          createdAt: '',
-          updatedAt: '',
-          aplicacion: data.case.aplicacion
+          clasificacion: data.case_info.clasificacion as any || 'Baja Complejidad',
+          createdAt: data.case_info.created_at || '',
+          updatedAt: data.case_info.updated_at || '',
+          is_archived: data.case_info.is_archived
         } : undefined,
         aplicacion: data.aplicacion ? {
           id: data.aplicacion.id,
@@ -183,10 +180,12 @@ export const useDisposicionScriptsPorMes = (year?: number) => {
     queryKey: ['disposiciones-por-mes', year],
     queryFn: async (): Promise<DisposicionMensual[]> => {
       let query = supabase
-        .from('disposiciones_scripts')
+        .from('disposiciones_scripts_with_case')
         .select(`
           fecha,
-          case:cases!inner(numero_caso, id),
+          case_number,
+          case_id,
+          is_case_archived,
           aplicacion:aplicaciones!inner(nombre, id)
         `);
 
@@ -225,15 +224,16 @@ export const useDisposicionScriptsPorMes = (year?: number) => {
         const grupoPorCaso: { [caseKey: string]: DisposicionPorCaso } = {};
         
         disposiciones.forEach(disp => {
-          const caseKey = `${disp.case.numero_caso}-${disp.aplicacion.nombre}`;
+          const caseKey = `${disp.case_number}-${disp.aplicacion.nombre}`;
           
           if (!grupoPorCaso[caseKey]) {
             grupoPorCaso[caseKey] = {
-              numeroCaso: disp.case.numero_caso,
+              numeroCaso: disp.case_number,
               aplicacionNombre: disp.aplicacion.nombre,
               cantidad: 0,
-              caseId: disp.case.id,
+              caseId: disp.case_id, // Puede ser null si está archivado
               aplicacionId: disp.aplicacion.id,
+              isCaseArchived: disp.is_case_archived,
             };
           }
           grupoPorCaso[caseKey].cantidad++;
@@ -283,9 +283,22 @@ export const useCreateDisposicionScripts = () => {
         throw new Error('Perfil de usuario no encontrado');
       }
 
+      // Buscar el case_id basado en el número de caso
+      let caseId = data.caseId;
+      if (!caseId && data.caseNumber) {
+        const { data: caseData } = await supabase
+          .from('cases')
+          .select('id')
+          .eq('numero_caso', data.caseNumber)
+          .single();
+        
+        caseId = caseData?.id || null;
+      }
+
       const insertData = {
         fecha: data.fecha,
-        case_id: data.caseId,
+        case_number: data.caseNumber,
+        case_id: caseId, // Puede ser null si el caso está archivado
         nombre_script: data.nombreScript,
         numero_revision_svn: data.numeroRevisionSvn || null,
         aplicacion_id: data.aplicacionId,
@@ -298,12 +311,7 @@ export const useCreateDisposicionScripts = () => {
       const { data: result, error } = await supabase
         .from('disposiciones_scripts')
         .insert(insertData)
-        .select(`
-          *,
-          case:cases!inner(numero_caso, descripcion),
-          aplicacion:aplicaciones!inner(nombre),
-          user:user_profiles(full_name, email)
-        `)
+        .select()
         .single();
 
       if (error) {
@@ -311,20 +319,38 @@ export const useCreateDisposicionScripts = () => {
         throw error;
       }
 
+      // Obtener el registro completo usando la vista
+      const { data: fullRecord, error: fetchError } = await supabase
+        .from('disposiciones_scripts_with_case')
+        .select(`
+          *,
+          aplicacion:aplicaciones!inner(nombre),
+          user:user_profiles(full_name, email)
+        `)
+        .eq('id', result.id)
+        .single();
+
+      if (fetchError) {
+        console.error('Error fetching created disposicion:', fetchError);
+        throw fetchError;
+      }
+
       return {
-        id: result.id,
-        fecha: result.fecha,
-        caseId: result.case_id,
-        nombreScript: result.nombre_script,
-        numeroRevisionSvn: result.numero_revision_svn,
-        aplicacionId: result.aplicacion_id,
-        observaciones: result.observaciones,
-        userId: result.user_profile_id,
-        createdAt: result.created_at,
-        updatedAt: result.updated_at,
-        case: result.case,
-        aplicacion: result.aplicacion,
-        user: result.user,
+        id: fullRecord.id,
+        fecha: fullRecord.fecha,
+        caseNumber: fullRecord.case_number,
+        caseId: fullRecord.case_id,
+        nombreScript: fullRecord.nombre_script,
+        numeroRevisionSvn: fullRecord.numero_revision_svn,
+        aplicacionId: fullRecord.aplicacion_id,
+        observaciones: fullRecord.observaciones,
+        userId: fullRecord.user_profile_id,
+        createdAt: fullRecord.created_at,
+        updatedAt: fullRecord.updated_at,
+        isCaseArchived: fullRecord.is_case_archived,
+        case: fullRecord.case_info,
+        aplicacion: fullRecord.aplicacion,
+        user: fullRecord.user,
       };
     },
     onSuccess: () => {
@@ -342,9 +368,22 @@ export const useUpdateDisposicionScripts = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Usuario no autenticado');
 
+      // Buscar el case_id basado en el número de caso
+      let caseId = data.caseId;
+      if (!caseId && data.caseNumber) {
+        const { data: caseData } = await supabase
+          .from('cases')
+          .select('id')
+          .eq('numero_caso', data.caseNumber)
+          .single();
+        
+        caseId = caseData?.id || null;
+      }
+
       const updateData = {
         fecha: data.fecha,
-        case_id: data.caseId,
+        case_number: data.caseNumber,
+        case_id: caseId, // Puede ser null si el caso está archivado
         nombre_script: data.nombreScript,
         numero_revision_svn: data.numeroRevisionSvn || null,
         aplicacion_id: data.aplicacionId,
@@ -357,12 +396,7 @@ export const useUpdateDisposicionScripts = () => {
         .from('disposiciones_scripts')
         .update(updateData)
         .eq('id', id)
-        .select(`
-          *,
-          case:cases!inner(numero_caso, descripcion),
-          aplicacion:aplicaciones!inner(nombre),
-          user:user_profiles(full_name, email)
-        `)
+        .select()
         .single();
 
       if (error) {
@@ -370,20 +404,38 @@ export const useUpdateDisposicionScripts = () => {
         throw error;
       }
 
+      // Obtener el registro completo usando la vista
+      const { data: fullRecord, error: fetchError } = await supabase
+        .from('disposiciones_scripts_with_case')
+        .select(`
+          *,
+          aplicacion:aplicaciones!inner(nombre),
+          user:user_profiles(full_name, email)
+        `)
+        .eq('id', result.id)
+        .single();
+
+      if (fetchError) {
+        console.error('Error fetching updated disposicion:', fetchError);
+        throw fetchError;
+      }
+
       return {
-        id: result.id,
-        fecha: result.fecha,
-        caseId: result.case_id,
-        nombreScript: result.nombre_script,
-        numeroRevisionSvn: result.numero_revision_svn,
-        aplicacionId: result.aplicacion_id,
-        observaciones: result.observaciones,
-        userId: result.user_profile_id,
-        createdAt: result.created_at,
-        updatedAt: result.updated_at,
-        case: result.case,
-        aplicacion: result.aplicacion,
-        user: result.user,
+        id: fullRecord.id,
+        fecha: fullRecord.fecha,
+        caseNumber: fullRecord.case_number,
+        caseId: fullRecord.case_id,
+        nombreScript: fullRecord.nombre_script,
+        numeroRevisionSvn: fullRecord.numero_revision_svn,
+        aplicacionId: fullRecord.aplicacion_id,
+        observaciones: fullRecord.observaciones,
+        userId: fullRecord.user_profile_id,
+        createdAt: fullRecord.created_at,
+        updatedAt: fullRecord.updated_at,
+        isCaseArchived: fullRecord.is_case_archived,
+        case: fullRecord.case_info,
+        aplicacion: fullRecord.aplicacion,
+        user: fullRecord.user,
       };
     },
     onSuccess: () => {

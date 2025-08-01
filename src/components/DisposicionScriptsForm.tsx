@@ -45,7 +45,7 @@ export const DisposicionScriptsForm: React.FC<DisposicionScriptsFormProps> = ({
     resolver: zodResolver(disposicionScriptsSchema),
     defaultValues: {
       fecha: new Date().toISOString().split('T')[0],
-      caseId: '',
+      caseNumber: '',
       nombreScript: '',
       numeroRevisionSvn: '',
       aplicacionId: '',
@@ -53,33 +53,36 @@ export const DisposicionScriptsForm: React.FC<DisposicionScriptsFormProps> = ({
     },
   });
 
-  const watchedCaseId = watch('caseId');
+  const watchedCaseNumber = watch('caseNumber');
 
   // Efecto para cargar datos iniciales
   useEffect(() => {
     if (isOpen && initialData) {
       reset({
         fecha: initialData.fecha,
-        caseId: initialData.caseId,
+        caseNumber: initialData.caseNumber,
         nombreScript: initialData.nombreScript,
         numeroRevisionSvn: initialData.numeroRevisionSvn || '',
         aplicacionId: initialData.aplicacionId,
         observaciones: initialData.observaciones || '',
       });
 
-      // Encontrar y seleccionar el caso
-      if (initialData.caseId && cases.length > 0) {
-        const foundCase = cases.find(c => c.id === initialData.caseId);
-        if (foundCase) {
-          setSelectedCase(foundCase);
-          setCaseSearch(foundCase.numeroCaso);
+      // Buscar el caso por número
+      if (initialData.caseNumber) {
+        setCaseSearch(initialData.caseNumber);
+        if (cases.length > 0) {
+          const foundCase = cases.find(c => c.numeroCaso === initialData.caseNumber);
+          if (foundCase) {
+            setSelectedCase(foundCase);
+            setValue('caseId', foundCase.id);
+          }
         }
       }
     } else if (isOpen && !initialData) {
       // Limpiar formulario para nueva disposición
       reset({
         fecha: new Date().toISOString().split('T')[0],
-        caseId: '',
+        caseNumber: '',
         nombreScript: '',
         numeroRevisionSvn: '',
         aplicacionId: '',
@@ -90,13 +93,14 @@ export const DisposicionScriptsForm: React.FC<DisposicionScriptsFormProps> = ({
     }
   }, [isOpen, initialData, cases, reset]);
 
-  // Efecto para actualizar caso seleccionado cuando cambia caseId
+  // Efecto para actualizar caso seleccionado cuando cambia caseNumber
   useEffect(() => {
-    if (watchedCaseId && cases.length > 0) {
-      const foundCase = cases.find(c => c.id === watchedCaseId);
-      if (foundCase && (!selectedCase || selectedCase.id !== foundCase.id)) {
+    if (watchedCaseNumber && cases.length > 0) {
+      const foundCase = cases.find(c => c.numeroCaso === watchedCaseNumber);
+      if (foundCase && (!selectedCase || selectedCase.numeroCaso !== foundCase.numeroCaso)) {
         setSelectedCase(foundCase);
         setCaseSearch(foundCase.numeroCaso);
+        setValue('caseId', foundCase.id);
         
         // Auto-seleccionar la aplicación del caso si existe y no estamos en modo edición con datos iniciales
         if (foundCase.aplicacionId && !isEdit) {
@@ -104,7 +108,7 @@ export const DisposicionScriptsForm: React.FC<DisposicionScriptsFormProps> = ({
         }
       }
     }
-  }, [watchedCaseId, cases, selectedCase, setValue, isEdit]);
+  }, [watchedCaseNumber, cases, selectedCase, setValue, isEdit]);
 
   // Filtrar casos por búsqueda
   const filteredCases = cases.filter(caso => 
@@ -116,7 +120,8 @@ export const DisposicionScriptsForm: React.FC<DisposicionScriptsFormProps> = ({
   const handleCaseSelect = (caso: Case) => {
     setSelectedCase(caso);
     setCaseSearch(caso.numeroCaso);
-    setValue('caseId', caso.id);
+    setValue('caseNumber', caso.numeroCaso);
+    setValue('caseId', caso.id); // Se mantiene para casos activos
     
     // Auto-seleccionar la aplicación del caso si existe
     if (caso.aplicacionId) {
@@ -128,21 +133,31 @@ export const DisposicionScriptsForm: React.FC<DisposicionScriptsFormProps> = ({
 
   // Manejar cambio en búsqueda de casos
   const handleCaseSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
+    const value = e.target.value.toUpperCase(); // Convertir a mayúsculas
     setCaseSearch(value);
+    setValue('caseNumber', value);
     
-    if (!value) {
+    // Buscar caso exacto
+    const exactMatch = cases.find(c => c.numeroCaso === value);
+    if (exactMatch) {
+      setSelectedCase(exactMatch);
+      setValue('caseId', exactMatch.id);
+      if (exactMatch.aplicacionId) {
+        setValue('aplicacionId', exactMatch.aplicacionId);
+      }
+    } else {
       setSelectedCase(null);
-      setValue('caseId', '');
+      setValue('caseId', ''); // Limpiar caseId si no hay coincidencia exacta
     }
     
-    setShowCaseDropdown(value.length > 0);
+    setShowCaseDropdown(value.length > 0 && !exactMatch);
   };
 
   // Limpiar selección de caso
   const clearCaseSelection = () => {
     setSelectedCase(null);
     setCaseSearch('');
+    setValue('caseNumber', '');
     setValue('caseId', '');
   };
 
@@ -180,7 +195,7 @@ export const DisposicionScriptsForm: React.FC<DisposicionScriptsFormProps> = ({
         {/* Búsqueda de casos */}
         <div className="relative">
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            Caso *
+            Número de Caso *
           </label>
           <div className="relative">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -190,10 +205,10 @@ export const DisposicionScriptsForm: React.FC<DisposicionScriptsFormProps> = ({
               type="text"
               value={caseSearch}
               onChange={handleCaseSearchChange}
-              onFocus={() => setShowCaseDropdown(caseSearch.length > 0)}
+              onFocus={() => setShowCaseDropdown(caseSearch.length > 0 && !selectedCase)}
               onBlur={() => setTimeout(() => setShowCaseDropdown(false), 200)}
-              placeholder="Buscar caso por número o descripción..."
-              className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
+              placeholder="Ingrese número de caso (ej: CASO-2024-001) o busque..."
+              className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:placeholder-gray-400 uppercase"
               disabled={loading || casesLoading}
             />
             {selectedCase && (
@@ -201,6 +216,7 @@ export const DisposicionScriptsForm: React.FC<DisposicionScriptsFormProps> = ({
                 type="button"
                 onClick={clearCaseSelection}
                 className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                disabled={loading}
               >
                 <XMarkIcon className="h-5 w-5 text-gray-400 hover:text-gray-600" />
               </button>
@@ -210,7 +226,7 @@ export const DisposicionScriptsForm: React.FC<DisposicionScriptsFormProps> = ({
           {/* Dropdown de casos */}
           {showCaseDropdown && filteredCases.length > 0 && (
             <div className="absolute z-10 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md shadow-lg max-h-60 overflow-y-auto">
-              {filteredCases.map((caso) => (
+              {filteredCases.slice(0, 10).map((caso) => (
                 <button
                   key={caso.id}
                   type="button"
@@ -233,12 +249,12 @@ export const DisposicionScriptsForm: React.FC<DisposicionScriptsFormProps> = ({
 
           {/* Caso seleccionado */}
           {selectedCase && (
-            <div className="mt-2 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-md">
+            <div className="mt-2 p-3 bg-green-50 dark:bg-green-900/20 rounded-md">
               <div className="text-sm">
-                <span className="font-medium text-blue-900 dark:text-blue-100">
-                  Caso seleccionado:
+                <span className="font-medium text-green-900 dark:text-green-100">
+                  ✓ Caso encontrado:
                 </span>
-                <div className="mt-1 text-blue-800 dark:text-blue-200">
+                <div className="mt-1 text-green-800 dark:text-green-200">
                   <div className="font-medium">#{selectedCase.numeroCaso}</div>
                   <div className="text-sm">{selectedCase.descripcion}</div>
                   <div className="text-xs mt-1">
@@ -250,14 +266,27 @@ export const DisposicionScriptsForm: React.FC<DisposicionScriptsFormProps> = ({
             </div>
           )}
 
-          {/* Campo oculto para el ID del caso */}
+          {/* Warning para casos no encontrados */}
+          {caseSearch && !selectedCase && caseSearch.length > 3 && (
+            <div className="mt-2 p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-md">
+              <div className="text-sm text-yellow-800 dark:text-yellow-200">
+                ⚠️ Caso no encontrado en casos activos. Puede ser un caso archivado - se guardará el número ingresado.
+              </div>
+            </div>
+          )}
+
+          {/* Campos ocultos */}
+          <input
+            {...register('caseNumber')}
+            type="hidden"
+          />
           <input
             {...register('caseId')}
             type="hidden"
           />
-          {errors.caseId && (
+          {errors.caseNumber && (
             <p className="mt-1 text-sm text-red-600 dark:text-red-400">
-              {errors.caseId.message}
+              {errors.caseNumber.message}
             </p>
           )}
         </div>
