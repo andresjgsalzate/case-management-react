@@ -1,30 +1,29 @@
 import { useEffect, useState } from 'react';
 import { Routes, Route } from 'react-router-dom';
-import { NotificationProvider } from '@/components/NotificationSystem';
+import { NotificationProvider } from '@/shared/components/notifications/NotificationSystem';
 import { useThemeStore } from '@/stores/themeStore';
-import { Layout } from '@/components/Layout';
-import { ConfigurationRequired } from '@/components/ConfigurationRequired';
-import { ProtectedRoute } from '@/components/ProtectedRoute';
-import { AdminOnlyRoute } from '@/components/AdminOnlyRoute';
-import { AccessDenied } from '@/components/AccessDenied';
-import { LoadingSpinner } from '@/components/LoadingSpinner';
-import { useSystemAccess } from '@/hooks/useSystemAccess';
-import { Dashboard } from '@/pages/Dashboard';
-import { CasesPage } from '@/pages/Cases';
-import { NewCasePage } from '@/pages/NewCase';
-import { ResetPasswordPage } from '@/pages/ResetPassword';
-import { AuthTestPage } from '@/pages/AuthTestPage';
-import { DataTestPage } from '@/pages/DataTestPage';
-import { UsersPage } from '@/pages/admin/UsersPage';
-import { RolesPage } from '@/pages/admin/RolesPage';
-import { PermissionsPage } from '@/pages/admin/PermissionsPage';
-import { ConfigurationPage } from '@/pages/admin/ConfigurationPage';
-import { NotFoundPage } from '@/pages/NotFound';
-import CaseControlPage from '@/pages/CaseControl';
-import TodosPage from '@/pages/TodosPage';
-import { NotesPage } from '@/pages/NotesPage';
-import { ArchivePage } from '@/pages/ArchivePage';
-import { DisposicionScriptsPage } from '@/pages/DisposicionScriptsPage';
+import { Layout } from '@/shared/components/layout/Layout';
+import { ConfigurationRequired } from '@/shared/components/guards/ConfigurationRequired';
+import { ProtectedRoute } from '@/shared/components/guards/ProtectedRoute';
+import { AdminOnlyRoute } from '@/shared/components/guards/AdminOnlyRoute';
+import { AccessDenied } from '@/shared/components/guards/AccessDenied';
+import { LoadingSpinner } from '@/shared/components/ui/LoadingSpinner';
+import { useSystemAccess } from '@/user-management/hooks/useSystemAccess';
+import { Dashboard } from '@/dashboard-analytics/pages/Dashboard';
+import { CasesPage } from '@/case-management/pages/CasesPage';
+import { NewCasePage } from '@/case-management/pages/NewCasePage';
+import { ResetPasswordPage } from '@/user-management/pages/ResetPassword';
+import { AuthTestPage } from '@/user-management/pages/AuthTestPage';
+import DataTestPage from '@/user-management/pages/DataTestPage';
+import { UsersPage } from '@/user-management/pages/admin/UsersPage';
+import { RolesPage } from '@/user-management/pages/admin/RolesPage';
+import { PermissionsPage } from '@/user-management/pages/admin/PermissionsPage';
+import { ConfigurationPage } from '@/user-management/pages/admin/ConfigurationPage';
+import CaseControlPage from '@/time-control/pages/CaseControl';
+import TodosPage from '@/task-management/pages/TodosPage';
+import { NotesPage } from '@/notes-knowledge/pages/NotesPage';
+import { ArchivePage } from '@/archive-management/pages/ArchivePage';
+import { DisposicionScriptsPage } from '@/disposicion-scripts/pages/DisposicionScriptsPage';
 
 function App() {
   const { isDarkMode } = useThemeStore();
@@ -144,7 +143,7 @@ function AppContent() {
         <Route path="/auth-test" element={<AdminOnlyRoute><AuthTestPage /></AdminOnlyRoute>} />
         <Route path="/data-test" element={<AdminOnlyRoute><DataTestPage /></AdminOnlyRoute>} />
         
-        <Route path="*" element={<NotFoundPage />} />
+        <Route path="*" element={<div>Página no encontrada</div>} />
       </Routes>
     </Layout>
   );

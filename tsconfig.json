@@ -21,9 +21,19 @@
     "noFallthroughCasesInSwitch": true,
 
     /* Path mapping */
-    "baseUrl": ".",
+    "baseUrl": "./src",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./*"],
+      "@/case-management/*": ["case-management/*"],
+      "@/time-control/*": ["time-control/*"],
+      "@/task-management/*": ["task-management/*"],
+      "@/notes-knowledge/*": ["notes-knowledge/*"],
+      "@/disposicion-scripts/*": ["disposicion-scripts/*"],
+      "@/archive-management/*": ["archive-management/*"],
+      "@/user-management/*": ["user-management/*"],
+      "@/dashboard-analytics/*": ["dashboard-analytics/*"],
+      "@/shared/*": ["shared/*"],
+      "@/stores/*": ["stores/*"]
     }
   },
   "include": ["src"],
