@@ -11,6 +11,106 @@ export interface VersionInfo {
 
 export const changelog: VersionInfo[] = [
   {
+    version: "2.10.0",
+    date: "2025-08-01",
+    changes: [
+      {
+        type: "feature",
+        description: "📚 Módulo de Documentación Completo: Sistema integral de documentación con Base de Conocimiento avanzada"
+      },
+      {
+        type: "feature",
+        description: "🏷️ Sistema de Etiquetas Inteligente: Creación instantánea de etiquetas presionando Enter con colores automáticos"
+      },
+      {
+        type: "feature",
+        description: "🎨 Paleta de Colores Automática: 12 colores predefinidos con algoritmo anti-repetición para evitar colores duplicados seguidos"
+      },
+      {
+        type: "feature",
+        description: "🔍 Categorización Inteligente: Auto-clasificación de etiquetas por palabras clave (Priority, Technology, Technical, Module, Custom)"
+      },
+      {
+        type: "feature",
+        description: "👁️ Vista de Casos Mejorada: Agregado botón 'Ver' en la lista de casos para visualización detallada sin edición"
+      },
+      {
+        type: "feature",
+        description: "📋 Página de Visualización de Casos: Nueva interfaz de solo lectura con información completa del caso"
+      },
+      {
+        type: "feature",
+        description: "⚙️ Administración de Etiquetas: Panel administrativo completo para gestión CRUD de etiquetas del sistema"
+      },
+      {
+        type: "feature",
+        description: "📊 Estadísticas de Uso de Etiquetas: Contadores de uso y gestión visual de etiquetas en el panel administrativo"
+      },
+      {
+        type: "feature",
+        description: "🎯 Navegación Contextual: Integración completa con el sistema de navegación existente y permisos por rol"
+      },
+      {
+        type: "improvement",
+        description: "🚀 UX Optimizada: Eliminación de formularios complejos en favor de creación instantánea de etiquetas"
+      },
+      {
+        type: "improvement",
+        description: "📱 Diseño Responsive: Interfaz completamente adaptativa para documentación en todos los dispositivos"
+      },
+      {
+        type: "improvement",
+        description: "🔒 Sistema de Permisos: Control granular de acceso a documentación basado en roles de usuario"
+      },
+      {
+        type: "improvement",
+        description: "⚡ Algoritmo Anti-Repetición: Sistema inteligente que evita repetir los últimos 3 colores usados en etiquetas"
+      },
+      {
+        type: "improvement",
+        description: "🎨 Feedback Visual: Indicadores dinámicos y tooltips informativos en el selector de etiquetas"
+      },
+      {
+        type: "improvement",
+        description: "🔄 Sincronización en Tiempo Real: Actualización automática de etiquetas disponibles tras creación instantánea"
+      }
+    ]
+  },
+  {
+    version: "2.9.2",
+    date: "2025-08-01",
+    changes: [
+      {
+        type: "bugfix",
+        description: "� Fix Navegación de Casos: Corregida la ruta '/cases' para que muestre la lista de casos en lugar de la página de nuevo caso"
+      },
+      {
+        type: "improvement",
+        description: "📋 Orden de Menú Mejorado: Reorganizado el menú lateral con un orden más lógico (Dashboard, Casos, Nuevo Caso, Control de Casos, Disposiciones, TODOs, Notas, Base de Conocimiento, Archivo)"
+      },
+      {
+        type: "bugfix",
+        description: "�👤 Fix Usuario en Documentación: Corregido error que mostraba IDs de usuario en lugar de nombres en la Base de Conocimiento"
+      },
+      {
+        type: "bugfix",
+        description: "🔧 Fix Tabla Perfiles: Corrección en búsqueda de perfiles de usuario, ahora usa la tabla 'user_profiles' correcta en lugar de 'profiles'"
+      },
+      {
+        type: "improvement",
+        description: "🧹 Limpieza de Código: Eliminados todos los console.log innecesarios de desarrollo para optimizar el rendimiento"
+      },
+      {
+        type: "improvement",
+        description: "📂 Limpieza de Archivos: Eliminados archivos temporales .md, .sql y scripts de desarrollo que ya no son necesarios"
+      },
+      {
+        type: "improvement",
+        description: "✅ Documentación Funcional: La funcionalidad de búsqueda y visualización de documentos ahora funciona correctamente mostrando nombres de usuarios"
+      }
+    ]
+  },
+  {
     version: "2.9.1",
     date: "2025-01-31",
     changes: [

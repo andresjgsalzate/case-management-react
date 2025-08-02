@@ -1,456 +1,399 @@
-# 🚀 Sistema de Gestión de Casos - React v2.7.5
+# 🚀 Sistema de Gestión de Casos - v2.10.0
 
-Una aplicación moderna para la gestión integral de casos con control de tiempo, basada en React, TypeScript y Supabase.
+> **Una aplicación moderna y completa para la gestión integral de casos, control de tiempo, documentación y administración de tareas empresariales.**
 
-## 🌐 Acceso al Sistema
+<div align="center">
 
-**🚀 Aplicación en Producción**: https://case-management-ctl.netlify.app
+[![React](https://img.shields.io/badge/React-18.2.0-blue?logo=react)](https://reactjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue?logo=typescript)](https://www.typescriptlang.org/)
+[![Supabase](https://img.shields.io/badge/Supabase-Backend-green?logo=supabase)](https://supabase.com/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind-CSS-38B2AC?logo=tailwind-css)](https://tailwindcss.com/)
+[![Netlify](https://img.shields.io/badge/Netlify-Deployed-00C7B7?logo=netlify)](https://case-management-ctl.netlify.app)
 
-### URLs del Proyecto:
-- **Producción**: https://case-management-ctl.netlify.app
-- **Admin Panel**: https://app.netlify.com/projects/case-management-ctl
-- **Repositorio**: https://github.com/andresjgsalzate/case-management-react
+**🌐 [Ver Aplicación en Vivo](https://case-management-ctl.netlify.app)**
 
-## ✨ Características Principales
-
-### � **Sincronización Cross-Módulo (v2.7.5)**
-- **Invalidación Automática**: Los cambios en un módulo se reflejan instantáneamente en otros
-- **Eliminación Sincronizada**: Eliminar casos desde Casos actualiza Control de Casos automáticamente
-- **Archivo Bidireccional**: Archivar desde Control de Casos actualiza la vista de Casos
-- **UX Sin Interrupciones**: No más necesidad de recargar páginas manualmente
-
-### 🎨 **Modales Mejorados (v2.7.5)**
-- **Portal DOM**: Renderizado en nivel superior para evitar conflictos de z-index
-- **Visualización Perfecta**: Modales siempre aparecen por encima de cualquier elemento
-- **Fondo Mejorado**: Efecto blur y opacidad optimizada para mejor UX
-- **Bloqueo de Scroll**: El body se bloquea cuando hay modales abiertos
-
-### 🗄️ **Sistema de Archivo Completo (v2.7.0-2.7.4)**
-- **Restauración con Historial**: Los casos y TODOs restaurados mantienen todo el historial de tiempos
-- **Archivo Inteligente**: Preserva datos originales y métricas en formato JSON
-- **Eliminación Permanente**: Solo administradores pueden eliminar permanentemente
-- **Auditoría Completa**: Registro de todas las operaciones de archivo y restauración
-
-### �📊 **Dashboard Mejorado (v2.6.0)**
-- **Métricas de Tiempo Combinadas**: Tiempo total que suma casos y TODOs
-- **Métricas Específicas**: Tiempo separado por casos y TODOs
-- **Visualización Optimizada**: Eliminación de métricas redundantes
-- **Análisis Integral**: Vista unificada del trabajo realizado
-
-### 📈 **Sistema de Reportes Completo (v2.5.0)**
-- **Reportes de Control de Casos**: Exportación Excel con métricas detalladas de tiempo por caso y día
-- **Reportes de TODOs**: Sistema completo de reportes para TODOs con análisis de eficiencia y cumplimiento
-- **Métricas Avanzadas**: Tiempo estimado vs real, cálculo de eficiencia, estado de cumplimiento
-- **Respeto de Permisos**: Ambos sistemas respetan las reglas de permisos de usuario
-
-### �📱 **Interfaz Mejorada (v2.4.0)**
-- **Menú lateral colapsable** con logo como botón de toggle
-- **Iconos optimizados** para mejor visibilidad en modo colapsado
-- **Transiciones suaves** y tooltips informativos
-- **Responsive design** adaptativo
-
-### 🎯 **Gestión de TODOs (v2.3.0+)**
-- **CRUD completo** de tareas con prioridades y etiquetas
-- **Control de tiempo** integrado con timer automático
-- **Estimación de tiempo** y seguimiento de cumplimiento
-- **Estados y asignación** de usuarios
-- **Reportes de eficiencia** con métricas detalladas
-
-### 📝 **Gestión de Casos**
-- **CRUD completo** de casos con validación robusta
-- **Clasificación automática** basada en puntuación (Baja/Media/Alta complejidad)
-- **Filtros avanzados** y búsqueda en tiempo real
-- **Exportación** a Excel/CSV
-
-### ⏱️ **Control de Casos y Tiempo**
-- **Sistema de Control de Casos**: Asignación y seguimiento del tiempo de trabajo
-- **Timer Integrado**: Cronómetro en tiempo real con inicio, pausa y detención
-- **Registro de Tiempo Manual**: Adición de tiempo trabajado con descripción y fecha
-- **Estados de Control**: Seguimiento del progreso (Pendiente, En Curso, Escalada, Terminada)
-- **Reportes Detallados**: Exportación Excel con datos agrupados por caso y día
-- **Gestión de Permisos**: Control granular de acceso a funcionalidades
-
-### 📋 **Gestión de TODOs Avanzada**
-- **Control de Tiempo Completo**: Timer automático y registro manual para tareas
-- **Análisis de Eficiencia**: Comparación tiempo estimado vs tiempo real
-- **Estados de Cumplimiento**: Clasificación automática del rendimiento
-- **Reportes Especializados**: Excel con métricas específicas para TODOs
-- **Gestión de Prioridades**: Sistema de niveles con análisis por importancia
-- **Etiquetas y Categorización**: Organización flexible de tareas
-
-### 👥 **Gestión de Usuarios Simplificada** (RENOVADO en v2.0.0)
-- **Registro Directo**: Usuarios se registran por su cuenta en el sistema
-- **Activación por Admin**: Administradores activan usuarios registrados
-- **Control de Roles**: Asignación y cambio de roles por administradores
-- **Activación Rápida**: Botones para promover usuarios pendientes
-- **Flujo Ultra-Simple**: Registro → Activación → Acceso (solo 3 pasos)
-- **Sin Dependencias**: No requiere configuración de email ni SMTP
-- **Mayor Confiabilidad**: Eliminación completa de sistemas de invitación complejos
-
-### 📊 **Dashboard Optimizado** (RENOVADO en v1.6.0)
-- **Layout 100% Ancho**: Aprovechamiento total del espacio horizontal disponible
-- **Métricas en Tiempo Real**: Dashboard completamente reescrito con datos precisos
-- **Vista Unificada**: Uso exclusivo de `case_control_detailed` para consistencia
-- **Performance Mejorada**: Consultas optimizadas y carga más rápida
-
-### 🔐 **Seguridad y Autenticación**
-- **Autenticación segura** con Supabase Auth
-- **Sistema de roles y permisos** granular
-- **RLS (Row Level Security)** implementado
-- **Validaciones en tiempo real**
-
-### 🎨 **Experiencia de Usuario**
-- **Dashboard** con métricas y estadísticas
-- **Modo oscuro/claro**
-- **Diseño responsivo**
-- **Notificaciones optimizadas** (sin duplicados)
-- **Performance optimizada** con React Query
-
-## 🛠️ Stack Tecnológico
-
-- **Frontend**: React 18 + TypeScript + Vite
-- **Estilos**: Tailwind CSS
-- **Backend**: Supabase (PostgreSQL + Auth + Storage)
-- **Estado**: TanStack Query + Zustand
-- **Formularios**: React Hook Form + Zod
-- **Tablas**: TanStack Table
-- **Routing**: React Router DOM
-- **Iconos**: Heroicons
-- **Notificaciones**: React Hot Toast
-
-## 🚀 Inicio Rápido
-
-### Prerrequisitos
-
-- Node.js 18+ 
-- npm o yarn
-- Cuenta de Supabase
-
-### Instalación
-
-1. **Clona el repositorio**
-   ```bash
-   git clone <repository-url>
-   cd case-management-react
-   ```
-
-2. **Instala las dependencias**
-   ```bash
-   npm install
-   ```
-
-3. **Configura las variables de entorno**
-   ```bash
-   cp .env.example .env
-   ```
-   
-   Edita `.env` con tus credenciales de Supabase:
-   ```env
-   VITE_SUPABASE_URL=tu_supabase_url
-   VITE_SUPABASE_ANON_KEY=tu_supabase_anon_key
-   ```
-
-4. **Configura Supabase**
-   - Ejecuta las migraciones en `supabase/migrations/001_initial.sql`
-   - Configura la autenticación en tu proyecto de Supabase
-
-5. **Inicia el servidor de desarrollo**
-   ```bash
-   npm run dev
-   ```
-
-## 📁 Estructura del Proyecto
-
-```
-src/
-├── components/              # Componentes reutilizables
-│   ├── CaseForm.tsx        # Formulario de casos
-│   ├── CaseControlDetailsModal.tsx  # Modal de detalles de control
-│   ├── CaseAssignmentModal.tsx      # Modal de asignación de casos
-│   ├── TimerControl.tsx    # Control de timer
-│   ├── Layout.tsx          # Layout principal
-│   └── ThemeToggle.tsx     # Toggle de tema
-├── pages/                  # Páginas principales
-│   ├── Dashboard.tsx       # Panel principal
-│   ├── Cases.tsx           # Lista de casos
-│   ├── NewCase.tsx         # Crear/editar caso
-│   ├── CaseControl.tsx     # Control de casos
-│   ├── TodosPage.tsx       # Gestión de TODOs (NUEVO)
-│   └── admin/              # Páginas de administración
-├── hooks/                  # Hooks personalizados
-│   ├── useCases.ts         # Gestión de casos
-│   ├── useCaseControl.ts   # Control de casos
-│   ├── useTodos.ts         # Gestión de TODOs (NUEVO)
-│   ├── useTodoControl.ts   # Control de TODOs (NUEVO)
-│   ├── useTimerCounter.ts  # Contador de timer
-│   └── useAuth.ts          # Autenticación
-├── lib/                    # Configuraciones
-│   ├── supabase.ts         # Cliente de Supabase
-│   └── validations.ts      # Esquemas de validación
-├── stores/                 # Estado global
-│   └── themeStore.ts       # Estado del tema
-├── types/                  # Tipos TypeScript
-│   └── index.ts            # Tipos principales (actualizado)
-├── utils/                  # Utilidades
-│   ├── caseUtils.ts        # Utilidades de casos
-│   └── exportUtils.ts      # Exportación de reportes (mejorado)
-└── components/             # Componentes reutilizables
-```
-
-## 🎯 Funcionalidades Principales
-
-### 📊 Sistema de Reportes Avanzado
-
-El sistema incluye **reportes especializados** para ambos módulos:
-
-#### **Reportes de Control de Casos:**
-- **Datos por Caso y Día**: Agrupación inteligente de tiempo trabajado
-- **Tiempo Automático y Manual**: Registro completo de actividades
-- **Información Contextual**: Usuario, estado, aplicación, fechas
-- **Formato Excel**: Exportación con columnas optimizadas
-
-#### **Reportes de TODOs:**
-- **Análisis de Eficiencia**: Comparación tiempo estimado vs real
-- **Estado de Cumplimiento**: Clasificación automática del rendimiento
-- **Métricas por Prioridad**: Análisis ordenado por importancia
-- **Gestión de Etiquetas**: Categorización y organización
-- **Formato Especializado**: Columnas específicas para gestión de tareas
-
-#### **Características Comunes:**
-- **Respeto de Permisos**: Acceso controlado según roles
-- **Generación Automática**: Un clic para obtener reportes completos
-- **Formato Profesional**: Excel con anchos de columna optimizados
-- **Ordenamiento Inteligente**: Datos organizados por relevancia
-
-### 🎯 Gestión de TODOs Completa
-
-El sistema incluye un **módulo completo de gestión de tareas**:
-
-#### **Funcionalidades de TODOs:**
-- **Crear y Gestionar**: CRUD completo de tareas
-- **Prioridades**: Sistema de niveles (Alta, Media, Baja)
-- **Estimación de Tiempo**: Planificación de tareas
-- **Control de Tiempo**: Timer integrado y registro manual
-- **Estados**: Seguimiento del progreso de tareas
-- **Asignación**: Distribución de tareas entre usuarios
-- **Etiquetas**: Categorización flexible
-- **Fechas de Vencimiento**: Control de plazos
-
-#### **Métricas y Análisis:**
-- **Eficiencia**: Porcentaje de cumplimiento temporal
-- **Cumplimiento**: Estado automático basado en tiempos
-- **Reportes Detallados**: Análisis completo en Excel
-- **Dashboard**: Métricas en tiempo real
-
-### Gestión de Usuarios Simplificada
-
-El sistema incluye un **flujo directo de registro y activación**:
-
-#### **Para Usuarios:**
-- **Registro Directo**: Creación de cuenta con email y contraseña
-- **Acceso Condicional**: Acceso al sistema solo después de activación por admin
-- **Roles Asignados**: Permisos definidos por el administrador
-
-#### **Para Administradores:**
-- **Panel de Gestión**: Vista completa de usuarios registrados
-- **Activación Simple**: Botones de activación rápida por rol
-- **Control Total**: Edición de datos, roles y estados
-- **Sin Complicaciones**: No requiere configuración de email
-
-#### **Flujo de Usuario:**
-```
-Usuario se Registra → Admin Activa → Usuario Accede
-```
-
-### Clasificación de Casos
-
-El sistema clasifica automáticamente los casos basándose en 5 criterios:
-
-1. **Historial del caso** (1-3 puntos)
-2. **Conocimiento del módulo** (1-3 puntos)
-3. **Manipulación de datos** (1-3 puntos)
-4. **Claridad de la descripción** (1-3 puntos)
-5. **Causa del fallo** (1-3 puntos)
-
-**Clasificación final:**
-- **Baja Complejidad**: 5-5 puntos
-- **Media Complejidad**: 6-11 puntos
-- **Alta Complejidad**: 12-15 puntos
-
-### Dashboard
-
-- Resumen de estadísticas
-- Casos recientes
-- Acciones rápidas
-- Métricas por complejidad
-
-### Gestión de Casos
-
-- Crear nuevos casos
-- Editar casos existentes
-- Filtrar por fecha, clasificación
-- Búsqueda en tiempo real
-- Exportar a Excel
-
-## 🔧 Scripts Disponibles
-
-```bash
-# Desarrollo
-npm run dev
-
-# Construcción
-npm run build
-
-# Vista previa de producción
-npm run preview
-
-# Linting
-npm run lint
-```
-
-## 🌐 Configuración de Supabase
-
-### 1. Crear Proyecto
-1. Ve a [supabase.com](https://supabase.com)
-2. Crea un nuevo proyecto
-3. Obtén tu URL y clave anónima
-
-### 2. Ejecutar Migraciones
-Ejecuta el SQL en `supabase/migrations/001_initial.sql` en el SQL Editor de Supabase.
-
-### 3. Configurar Autenticación
-- Habilita el proveedor de email en Authentication > Settings
-- Configura las URLs de redirección si es necesario
-
-## 🎨 Personalización
-
-### Colores
-Los colores se pueden personalizar en `tailwind.config.js`:
-
-```js
-theme: {
-  extend: {
-    colors: {
-      primary: {
-        50: '#eff6ff',
-        500: '#3b82f6',
-        600: '#2563eb',
-        700: '#1d4ed8',
-      },
-      // Colores de complejidad personalizables
-    },
-  },
-}
-```
-
-### Tema Oscuro
-El tema oscuro se maneja automáticamente con Tailwind CSS y Zustand.
-
-## 📊 Características Técnicas
-
-### 🔧 Tecnologías Principales
-- **Validación**: Esquemas Zod para validación robusta
-- **Estado**: React Query para datos del servidor, Zustand para estado local
-- **Tipos**: TypeScript estricto con tipos personalizados
-- **Performance**: Lazy loading, memoización, optimizaciones de bundle
-- **Accesibilidad**: Componentes accesibles con ARIA labels
-- **SEO**: Meta tags y estructura semántica
-
-### 📊 Sistema de Reportes
-- **Exportación Excel**: Generación automática con XLSX
-- **Filtrado de Datos**: Respeto de permisos de usuario
-- **Formato Optimizado**: Anchos de columna y ordenamiento inteligente
-- **Múltiples Módulos**: Reportes para Casos y TODOs
-- **Métricas Avanzadas**: Análisis de tiempo y eficiencia
-
-### 🎯 Gestión de Permisos
-- **Control Granular**: Permisos específicos por funcionalidad
-- **Seguridad RLS**: Row Level Security en Supabase
-- **Roles Dinámicos**: Asignación flexible de permisos
-- **Consistencia**: Mismo sistema para todos los módulos
-
-## 🆕 Novedades Recientes
-
-### 🎉 **Versión 2.7.5 - Sincronización y Modales Mejorados**
-- **🔄 Sincronización Cross-Módulo**: Invalidación automática de queries entre módulos
-- **🗂️ Modales Perfeccionados**: Solucionados problemas de z-index y transparencia
-- **🎨 Portal DOM**: Renderizado mejorado para evitar conflictos visuales
-- **⚡ UX Optimizada**: Bloqueo de scroll y efectos visuales mejorados
-
-### 🎉 **Versión 2.7.4 - Sistema de Archivo Completo**
-- **🔄 Recarga Automática**: Casos archivados desaparecen automáticamente de Control de Casos
-- **📱 UX Mejorada**: Sincronización automática después de operaciones de archivado
-- **⚡ Páginas Sincronizadas**: TODOs, Control de Casos y Archivo completamente coordinados
-
-### 🎉 **Versión 2.7.0-2.7.3 - Módulo de Archivo**
-- **🗄️ Sistema Integral**: Archivado y gestión completa de casos y TODOs terminados
-- **🔄 Restauración Completa**: Mantiene historial de tiempos al restaurar elementos
-- **🗑️ Eliminación Permanente**: Solo administradores con confirmación y auditoría
-- **📊 Estadísticas**: Métricas detalladas con contadores y datos mensuales
-
-### 🎉 **Versión 2.6.0 - Dashboard Mejorado**
-- **📊 Métricas Combinadas**: Tiempo total que suma casos y TODOs
-- **📈 Métricas Específicas**: Tiempo separado por casos y TODOs
-- **🎯 Visualización Optimizada**: Eliminación de métricas redundantes
-- **🔄 Análisis Integral**: Vista unificada del trabajo realizado
-
-### 🎉 **Versión 2.5.0 - Sistema de Reportes TODO**
-- **📊 Reportes Completos**: Generación de reportes Excel para TODOs con métricas avanzadas
-- **📈 Análisis de Eficiencia**: Comparación tiempo estimado vs tiempo real
-- **🎯 Estado de Cumplimiento**: Clasificación automática del rendimiento
-- **🔐 Permisos Respetados**: Mismo sistema de seguridad que Control de Casos
-
-### 🎉 **Versión 2.4.0 - Menú Colapsable**
-- **📱 Sidebar Responsive**: Menú lateral colapsable con logo como toggle
-- **🎯 UX Mejorada**: Transiciones suaves y tooltips informativos
-- **📐 Iconos Optimizados**: Mejor visibilidad en modo colapsado
-- **🔧 Navegación Corregida**: Enlaces de configuración funcionales
-
-### 🎉 **Versión 2.3.0 - Módulo de TODOs**
-- **📋 Gestión Completa**: CRUD de tareas con prioridades y etiquetas
-- **⏱️ Control de Tiempo**: Timer integrado y registro manual
-- **🎯 Estimación**: Planificación y seguimiento de tiempos
-- **📊 Dashboard**: Métricas y estadísticas en tiempo real
-
-## 🚀 Despliegue
-
-### Vercel (Recomendado)
-```bash
-npm install -g vercel
-vercel
-```
-
-### Netlify
-```bash
-npm run build
-# Sube la carpeta dist/
-```
-
-### Variables de Entorno en Producción
-Asegúrate de configurar:
-- `VITE_SUPABASE_URL`
-- `VITE_SUPABASE_ANON_KEY`
-
-## 🤝 Contribuir
-
-1. Fork el proyecto
-2. Crea una rama para tu feature (`git checkout -b feature/AmazingFeature`)
-3. Commit tus cambios (`git commit -m 'Add some AmazingFeature'`)
-4. Push a la rama (`git push origin feature/AmazingFeature`)
-5. Abre un Pull Request
-
-## 📝 Licencia
-
-Este proyecto está bajo la Licencia MIT. Ver `LICENSE` para más detalles.
-
-## 🆘 Soporte
-
-Si tienes preguntas o necesitas ayuda:
-
-1. Revisa la documentación
-2. Busca en los issues existentes
-3. Crea un nuevo issue con detalles específicos
+</div>
 
 ---
 
-**¡Hecho con ❤️ para la gestión eficiente de casos!**
+## 🎯 **¿Qué es este sistema?**
+
+Una plataforma integral que centraliza la gestión de casos, control de tiempo, documentación técnica y administración de tareas. Diseñada para equipos que necesitan:
+
+- ✅ **Gestionar casos** con clasificación automática de complejidad
+- ⏱️ **Controlar tiempo** con timers automáticos y registro manual  
+- 📚 **Documentar conocimiento** con base de datos inteligente
+- 📋 **Administrar tareas** con seguimiento y métricas
+- 👥 **Gestionar usuarios** con roles y permisos granulares
+- 📊 **Generar reportes** detallados en Excel/CSV
+
+---
+
+## ✨ **Características Principales**
+
+### 🔥 **Gestión de Casos Inteligente**
+- **Clasificación Automática**: Sistema de puntuación que evalúa complejidad (Baja/Media/Alta)
+- **CRUD Completo**: Crear, editar, eliminar y ver casos con validaciones robustas
+- **Filtros Avanzados**: Búsqueda por fecha, estado, complejidad, aplicación
+- **Vista Detallada**: Visualización completa sin edición para consulta rápida
+- **Exportación**: Reportes Excel/CSV con métricas detalladas
+
+### ⏱️ **Control de Tiempo Profesional**
+- **Timer en Tiempo Real**: Cronómetro automático con inicio, pausa y detención
+- **Registro Manual**: Adición de tiempo trabajado con descripción y fecha
+- **Estados de Control**: Seguimiento de progreso (Pendiente, En Curso, Escalada, Terminada)
+- **Métricas Avanzadas**: Tiempo total, promedio por caso, eficiencia
+- **Sincronización**: Actualizaciones automáticas entre módulos
+
+### 📚 **Base de Conocimiento Avanzada**
+- **Editor Potente**: Sistema de documentación con editor rico y avanzado
+- **Etiquetas Inteligentes**: Creación instantánea con Enter y colores automáticos
+- **Categorización Automática**: Clasificación por palabras clave (Priority, Technology, Technical, Module)
+- **Algoritmo Anti-Repetición**: Evita colores duplicados en etiquetas recientes
+- **Búsqueda Avanzada**: Localización rápida de documentos por contenido y etiquetas
+
+### 📋 **Gestión de TODOs Empresarial**
+- **CRUD Completo**: Crear, asignar, seguir y completar tareas
+- **Prioridades**: Sistema de niveles (Alta, Media, Baja) con indicadores visuales
+- **Control de Tiempo**: Timer integrado y estimación vs tiempo real
+- **Estados Dinámicos**: Seguimiento automático del progreso
+- **Análisis de Eficiencia**: Métricas de cumplimiento y rendimiento
+
+### 🗄️ **Sistema de Archivo Inteligente**
+- **Archivo Temporal**: Preserva datos para restauración posterior
+- **Eliminación Permanente**: Solo administradores con confirmación doble
+- **Auditoría Completa**: Registro de todas las operaciones con timestamps
+- **Restauración**: Recuperación completa con historial de tiempo intacto
+
+### 👥 **Administración de Usuarios**
+- **Flujo Simplificado**: Registro directo → Activación admin → Acceso
+- **Roles Granulares**: Admin, Supervisor, Analista, Usuario con permisos específicos
+- **Gestión Centralizada**: Panel único para administrar todos los usuarios
+- **Sin Dependencias**: No requiere configuración SMTP ni emails
+
+### 📊 **Reportes y Analytics**
+- **Reportes Excel**: Generación automática con formato profesional
+- **Métricas de Tiempo**: Análisis detallado por usuario, caso y período
+- **Estadísticas Visuales**: Dashboard con gráficos y métricas en tiempo real
+- **Exportación CSV**: Para análisis externos y bases de datos
+
+---
+
+## 🛠️ **Stack Tecnológico**
+
+<div align="center">
+
+| **Frontend** | **Backend** | **Base de Datos** | **Herramientas** |
+|-------------|-------------|-------------------|------------------|
+| React 18 | Supabase | PostgreSQL | Vite |
+| TypeScript | Auth & Storage | Row Level Security | TanStack Query |
+| Tailwind CSS | Real-time APIs | Automated Backups | React Hook Form |
+| Heroicons | Edge Functions | Migration System | Zod Validation |
+
+</div>
+
+---
+
+## 🚀 **Inicio Rápido**
+
+### **Prerrequisitos**
+- Node.js 18+
+- npm o yarn
+- Cuenta de Supabase
+
+### **Instalación Local**
+
+```bash
+# 1. Clonar repositorio
+git clone https://github.com/andresjgsalzate/case-management-react.git
+cd case-management-react
+
+# 2. Instalar dependencias
+npm install
+
+# 3. Configurar variables de entorno
+cp .env.example .env
+```
+
+### **Configuración de Supabase**
+
+```env
+# .env
+VITE_SUPABASE_URL=tu_supabase_url
+VITE_SUPABASE_ANON_KEY=tu_supabase_anon_key
+```
+
+### **Configuración de Base de Datos**
+
+1. **Crear proyecto en Supabase**
+2. **Ejecutar migraciones**:
+   - Ve a SQL Editor en Supabase
+   - Ejecuta archivos en orden: `supabase/migrations/001_initial.sql` → `030_latest.sql`
+3. **Configurar autenticación**:
+   - Habilitar provider de email
+   - Configurar URLs de redirección
+
+### **Desarrollo**
+
+```bash
+# Iniciar servidor de desarrollo
+npm run dev
+
+# Abrir navegador en http://localhost:5173
+```
+
+---
+
+## 📁 **Arquitectura del Proyecto**
+
+```
+src/
+├── 📚 notes-knowledge/          # Módulo de documentación
+│   ├── components/             # TagSelector, DocumentEditor
+│   ├── pages/                  # DocumentationPage, TagsPage
+│   └── hooks/                  # useTags, useDocuments
+├── 📋 case-management/         # Gestión de casos
+│   ├── components/             # CaseForm, CaseList
+│   ├── pages/                  # CasesPage, ViewCasePage
+│   └── services/               # caseService
+├── ⏱️ time-control/            # Control de tiempo
+│   ├── components/             # TimerControl, TimeEntry
+│   ├── pages/                  # CaseControl
+│   └── hooks/                  # useCaseControl, useTimer
+├── 📝 task-management/         # TODOs
+│   ├── components/             # TodoCard, TodoForm
+│   ├── pages/                  # TodosPage
+│   └── hooks/                  # useTodos, useTodoControl
+├── 👥 user-management/         # Usuarios
+│   ├── components/             # UserForm, RoleSelector
+│   ├── pages/                  # UsersPage, RolesPage
+│   └── hooks/                  # useUsers, useRoles
+├── 🗄️ archive-management/      # Sistema de archivo
+├── 📊 dashboard-analytics/     # Dashboard y métricas
+├── 🔧 shared/                  # Componentes compartidos
+│   ├── components/             # Layout, Modals, Forms
+│   ├── hooks/                  # useAuth, usePermissions
+│   ├── lib/                    # supabase, validations
+│   └── utils/                  # helpers, formatters
+└── 📄 disposicion-scripts/     # Disposiciones
+```
+
+---
+
+## 🎯 **Funcionalidades Detalladas**
+
+### **💼 Gestión de Casos**
+
+**Clasificación Automática Inteligente:**
+- Evaluación por 5 criterios: Historial, Conocimiento, Manipulación de datos, Claridad, Causa
+- Puntuación 1-3 por criterio (Total: 5-15 puntos)
+- Clasificación: Baja (5), Media (6-11), Alta (12-15)
+
+**Características:**
+- ✅ CRUD completo con validaciones robustas
+- ✅ Filtros por fecha, complejidad, estado, aplicación  
+- ✅ Búsqueda en tiempo real con highlight
+- ✅ Vista detallada de solo lectura
+- ✅ Exportación Excel con métricas
+
+### **⏰ Control de Tiempo**
+
+**Timer Profesional:**
+- Cronómetro en tiempo real con persistencia
+- Inicio/pausa/detención automática
+- Sincronización entre pestañas del navegador
+
+**Registro Manual:**
+- Adición de tiempo por día con descripción
+- Validaciones de fechas y rangos
+- Historial completo por caso
+
+**Estados de Control:**
+- 🟡 Pendiente → 🔵 En Curso → 🔴 Escalada → ✅ Terminada
+- Transiciones automáticas basadas en actividad
+- Colores dinámicos configurables
+
+### **📚 Base de Conocimiento**
+
+**Editor Avanzado:**
+- Sistema de documentación rico con múltiples formatos
+- Soporte para código, tablas, listas, enlaces
+- Auto-guardado y versionado
+
+**Sistema de Etiquetas:**
+- Creación instantánea presionando Enter
+- 12 colores predefinidos con algoritmo anti-repetición
+- Categorización automática por palabras clave
+- Gestión administrativa completa
+
+### **📋 Gestión de TODOs**
+
+**Características Avanzadas:**
+- Prioridades visuales con colores distintivos
+- Estimación vs tiempo real con % de eficiencia
+- Estados automáticos de cumplimiento
+- Asignación entre usuarios del equipo
+
+**Métricas y Análisis:**
+- Eficiencia por tarea y usuario
+- Reportes Excel especializados
+- Dashboard con indicadores clave
+
+### **🗄️ Sistema de Archivo**
+
+**Archivo Inteligente:**
+- Preservación de datos en formato JSON
+- Mantiene relaciones y historial de tiempo
+- Razones de archivado con auditoría
+
+**Restauración:**
+- Recuperación completa del estado original
+- Recreación de registros en tablas principales
+- Validaciones de integridad de datos
+
+---
+
+## 🔐 **Seguridad y Permisos**
+
+### **Autenticación**
+- Supabase Auth con email/contraseña
+- Sesiones seguras con tokens JWT
+- Logout automático por inactividad
+
+### **Autorización (RLS)**
+- Row Level Security en todas las tablas
+- Políticas granulares por operación
+- Filtrado automático por usuario
+
+### **Roles y Permisos**
+- **Admin**: Acceso total al sistema
+- **Supervisor**: Lectura global, gestión limitada
+- **Analista**: Acceso a casos asignados + propios
+- **Usuario**: Solo casos y tareas propias
+
+---
+
+## 📊 **Dashboard y Métricas**
+
+### **Métricas Principales**
+- 📈 **Tiempo Total**: Suma de casos + TODOs
+- 📋 **Casos Activos**: En progreso por usuario
+- ✅ **TODOs Completados**: % de cumplimiento
+- 👥 **Usuarios Activos**: Actividad reciente
+
+### **Análisis Avanzado**
+- Tiempo promedio por complejidad de caso
+- Eficiencia por usuario y período
+- Tendencias de productividad
+- Top casos por tiempo invertido
+
+### **Reportes Exportables**
+- **Excel**: Formato profesional con gráficos
+- **CSV**: Para análisis externos
+- **Filtros**: Por fecha, usuario, estado
+- **Agrupación**: Por caso, día, usuario
+
+---
+
+## 🎨 **Experiencia de Usuario**
+
+### **Interfaz Moderna**
+- Diseño limpio y profesional
+- Modo oscuro/claro automático
+- Responsive design para todos los dispositivos
+- Iconografía consistente con Heroicons
+
+### **Navegación Intuitiva**
+- Menú lateral colapsable
+- Breadcrumbs contextuales
+- Shortcuts de teclado
+- Tooltips informativos
+
+### **Performance Optimizada**
+- Lazy loading de componentes
+- Caché inteligente con React Query
+- Optimizaciones de bundle con Vite
+- Tiempo de carga < 2 segundos
+
+---
+
+## 🚀 **Despliegue**
+
+### **Producción (Netlify)**
+```bash
+# Build automático desde GitHub
+npm run build
+
+# Configurar variables de entorno en Netlify:
+# VITE_SUPABASE_URL
+# VITE_SUPABASE_ANON_KEY
+```
+
+### **Otras Plataformas**
+
+**Vercel:**
+```bash
+npm install -g vercel
+vercel --prod
+```
+
+**Docker:**
+```dockerfile
+FROM node:18-alpine
+WORKDIR /app
+COPY package*.json ./
+RUN npm install
+COPY . .
+RUN npm run build
+EXPOSE 3000
+CMD ["npm", "run", "preview"]
+```
+
+---
+
+## 🤝 **Contribuir**
+
+### **Workflow de Desarrollo**
+1. **Fork** del repositorio
+2. **Crear rama**: `git checkout -b feature/nueva-funcionalidad`
+3. **Desarrollar** con tests incluidos
+4. **Commit**: `git commit -m "feat: nueva funcionalidad"`
+5. **Push**: `git push origin feature/nueva-funcionalidad`
+6. **Pull Request** con descripción detallada
+
+### **Estándares de Código**
+- **ESLint + Prettier** para formato consistente
+- **Conventional Commits** para mensajes
+- **TypeScript strict** mode habilitado
+- **Zod** para validación de esquemas
+
+---
+
+## 📞 **Soporte y Comunidad**
+
+### **Enlaces Útiles**
+- 🌐 **Aplicación**: https://case-management-ctl.netlify.app
+- 💻 **Repositorio**: https://github.com/andresjgsalzate/case-management-react
+- 📧 **Contacto**: [Crear Issue](https://github.com/andresjgsalzate/case-management-react/issues)
+
+### **Documentación**
+- 📖 **API Reference**: Ver `docs/api.md`
+- 🔧 **Configuration**: Ver `docs/config.md`  
+- 🚀 **Deployment**: Ver `docs/deployment.md`
+
+---
+
+## 📄 **Licencia**
+
+Este proyecto está licenciado bajo la **MIT License** - ver el archivo [LICENSE](LICENSE) para detalles.
+
+---
+
+<div align="center">
+
+**🚀 Desarrollado con ❤️ para la gestión eficiente de casos empresariales**
+
+[![GitHub stars](https://img.shields.io/github/stars/andresjgsalzate/case-management-react?style=social)](https://github.com/andresjgsalzate/case-management-react)
+[![GitHub forks](https://img.shields.io/github/forks/andresjgsalzate/case-management-react?style=social)](https://github.com/andresjgsalzate/case-management-react)
+
+</div>

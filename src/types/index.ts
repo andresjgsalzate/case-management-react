@@ -21,6 +21,9 @@ export interface Case {
   aplicacion?: Aplicacion;
 }
 
+// Exportar tipos de documentación
+export * from './documentation';
+
 // Tipos para roles y permisos
 export interface Role {
   id: string;

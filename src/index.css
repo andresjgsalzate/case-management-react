@@ -2,6 +2,112 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ===== VARIABLES CSS NATIVAS DE YOOPTA-EDITOR ===== */
+:root {
+  /* Variables nativas para Light Mode */
+  --background: 0 0% 100%;
+  --foreground: 0 0% 3.9%;
+  --card: 0 0% 100%;
+  --card-foreground: 0 0% 3.9%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 0 0% 3.9%;
+  --primary: 0 0% 9%;
+  --primary-foreground: 0 0% 98%;
+  --secondary: 0 0% 96.1%;
+  --secondary-foreground: 0 0% 9%;
+  --muted: 0 0% 96.1%;
+  --muted-foreground: 0 0% 45.1%;
+  --accent: 0 0% 96.1%;
+  --accent-foreground: 0 0% 9%;
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 0 0% 98%;
+  --border: 0 0% 89.8%;
+  --input: 0 0% 89.8%;
+  --ring: 0 0% 3.9%;
+  --radius: 0.5rem;
+}
+
+[data-theme="dark"] {
+  /* Variables nativas para Dark Mode - Ajustadas para coincidir con la interfaz */
+  --background: 220 13% 18%;  /* Gris oscuro suave como el resto de la UI */
+  --foreground: 0 0% 98%;
+  --card: 220 13% 18%;  /* Mismo color que background */
+  --card-foreground: 0 0% 98%;
+  --popover: 220 13% 18%;
+  --popover-foreground: 0 0% 98%;
+  --primary: 0 0% 98%;
+  --primary-foreground: 0 0% 9%;
+  --secondary: 220 13% 15%;  /* Un poco más oscuro que background */
+  --secondary-foreground: 0 0% 98%;
+  --muted: 220 13% 15%;
+  --muted-foreground: 0 0% 63.9%;
+  --accent: 220 13% 15%;
+  --accent-foreground: 0 0% 98%;
+  --destructive: 0 62.8% 30.6%;
+  --destructive-foreground: 0 0% 98%;
+  --border: 220 13% 22%;  /* Un poco más claro que background */
+  --input: 220 13% 15%;
+  --ring: 0 0% 83.1%;
+}
+
+/* ===== YOOPTA EDITOR GLOBAL OVERRIDE ===== */
+[data-theme="dark"] .yoopta-editor,
+[data-theme="dark"] .yoopta-editor *,
+[data-theme="dark"] .yoopta-editor [contenteditable],
+[data-theme="dark"] .yoopta-editor [role="textbox"] {
+  background-color: hsl(var(--background)) !important;
+  background: hsl(var(--background)) !important;
+  color: hsl(var(--foreground)) !important;
+}
+
+[data-theme="light"] .yoopta-editor,
+[data-theme="light"] .yoopta-editor *,
+[data-theme="light"] .yoopta-editor [contenteditable],
+[data-theme="light"] .yoopta-editor [role="textbox"] {
+  background-color: hsl(var(--background)) !important;
+  background: hsl(var(--background)) !important;
+  color: hsl(var(--foreground)) !important;
+}
+
+/* ===== YOOPTA ULTRA-SPECIFIC OVERRIDE ===== */
+[data-theme="dark"] .yoopta-wrapper .yoopta-editor div,
+[data-theme="dark"] .yoopta-wrapper .yoopta-editor span,
+[data-theme="dark"] .yoopta-wrapper .yoopta-editor p,
+[data-theme="dark"] .yoopta-wrapper .yoopta-editor h1,
+[data-theme="dark"] .yoopta-wrapper .yoopta-editor h2,
+[data-theme="dark"] .yoopta-wrapper .yoopta-editor h3,
+[data-theme="dark"] .yoopta-wrapper .yoopta-editor h4,
+[data-theme="dark"] .yoopta-wrapper .yoopta-editor h5,
+[data-theme="dark"] .yoopta-wrapper .yoopta-editor h6,
+[data-theme="dark"] .yoopta-wrapper .yoopta-editor [data-yoopta-block],
+[data-theme="dark"] .yoopta-wrapper .yoopta-editor [data-yoopta-element],
+[data-theme="dark"] .yoopta-wrapper .yoopta-editor [data-slate-editor],
+[data-theme="dark"] .yoopta-wrapper .yoopta-editor [data-slate-node],
+[data-theme="dark"] .yoopta-wrapper [contenteditable="true"] {
+  background-color: hsl(var(--background)) !important;
+  background: hsl(var(--background)) !important;
+  color: hsl(var(--foreground)) !important;
+}
+
+[data-theme="light"] .yoopta-wrapper .yoopta-editor div,
+[data-theme="light"] .yoopta-wrapper .yoopta-editor span,
+[data-theme="light"] .yoopta-wrapper .yoopta-editor p,
+[data-theme="light"] .yoopta-wrapper .yoopta-editor h1,
+[data-theme="light"] .yoopta-wrapper .yoopta-editor h2,
+[data-theme="light"] .yoopta-wrapper .yoopta-editor h3,
+[data-theme="light"] .yoopta-wrapper .yoopta-editor h4,
+[data-theme="light"] .yoopta-wrapper .yoopta-editor h5,
+[data-theme="light"] .yoopta-wrapper .yoopta-editor h6,
+[data-theme="light"] .yoopta-wrapper .yoopta-editor [data-yoopta-block],
+[data-theme="light"] .yoopta-wrapper .yoopta-editor [data-yoopta-element],
+[data-theme="light"] .yoopta-wrapper .yoopta-editor [data-slate-editor],
+[data-theme="light"] .yoopta-wrapper .yoopta-editor [data-slate-node],
+[data-theme="light"] .yoopta-wrapper [contenteditable="true"] {
+  background-color: hsl(var(--background)) !important;
+  background: hsl(var(--background)) !important;
+  color: hsl(var(--foreground)) !important;
+}
+
 @layer base {
   html {
     scroll-behavior: smooth;
@@ -9,6 +115,8 @@
   
   body {
     @apply font-sans antialiased;
+    background: hsl(var(--background));
+    color: hsl(var(--foreground));
     transition: background-color 0.3s ease, color 0.3s ease;
   }
 
@@ -88,6 +196,196 @@
 
   .table-cell {
     @apply px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white;
+  }
+
+  /* ===== RESPONSIVE TABLE OPTIMIZATIONS ===== */
+  /* Tabla compacta para pantallas pequeñas */
+  .table-compact .table-header-cell {
+    @apply px-3 py-2 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider;
+  }
+
+  .table-compact .table-cell {
+    @apply px-3 py-2 text-xs text-gray-900 dark:text-white;
+  }
+
+  /* Celdas con texto multilínea para descripciones largas */
+  .table-cell-multiline {
+    @apply px-3 py-2 text-xs text-gray-900 dark:text-white whitespace-normal;
+    max-width: 200px;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto;
+    line-height: 1.4;
+    
+    /* Truncado elegante con fade-out */
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    
+    /* Mejorar alineación vertical */
+    vertical-align: top;
+    
+    /* Fade-out effect para truncado más suave */
+    mask: linear-gradient(to bottom, black 80%, transparent 100%);
+    -webkit-mask: linear-gradient(to bottom, black 80%, transparent 100%);
+  }
+
+  /* Celdas extra compactas para datos pequeños */
+  .table-cell-tight {
+    @apply px-2 py-1 text-xs text-gray-900 dark:text-white whitespace-nowrap;
+    max-width: 80px;
+  }
+
+  /* Aplicar estilos compactos solo en pantallas pequeñas */
+  @media (max-width: 1024px) {
+    .table-responsive-compact .table-header-cell {
+      @apply px-3 py-2 text-xs;
+    }
+    
+    .table-responsive-compact .table-cell {
+      @apply px-3 py-2 text-xs;
+      vertical-align: top; /* Alinear todas las celdas al tope */
+    }
+    
+    /* Celdas de descripción con texto multilínea */
+    .table-responsive-compact .table-cell-description {
+      @apply px-4 py-4 text-xs whitespace-normal;
+      max-width: 200px;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+      hyphens: auto;
+      line-height: 1.5;
+      
+      /* Truncado elegante con espacio respirable */
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      
+      /* Más espacio y mejor alineación */
+      vertical-align: top;
+      margin-bottom: 4px; /* Espacio antes del borde inferior */
+      
+      /* Altura mínima con más espacio */
+      min-height: calc(1.5em * 3 + 8px); /* 3 líneas + padding extra */
+      
+      /* Fondo sutil para separar visualmente del borde */
+      background: rgba(0, 0, 0, 0.02);
+      border-radius: 4px;
+      position: relative;
+      
+      /* Gradiente sutil en la parte inferior para suavizar el truncado */
+      &::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 8px;
+        background: linear-gradient(to bottom, transparent, rgba(0, 0, 0, 0.02));
+        pointer-events: none;
+        border-radius: 0 0 4px 4px;
+      }
+    }
+    
+    /* En modo oscuro */
+    [data-theme="dark"] .table-responsive-compact .table-cell-description {
+      background: rgba(255, 255, 255, 0.02);
+      
+      &::after {
+        background: linear-gradient(to bottom, transparent, rgba(255, 255, 255, 0.02));
+      }
+    }
+    
+    /* Celdas de acciones más compactas */
+    .table-responsive-compact .table-cell-actions {
+      @apply px-2 py-1 text-xs;
+      width: 80px;
+    }
+    
+    /* Botones más pequeños en tablas compactas */
+    .table-responsive-compact .table-cell-actions button {
+      @apply p-1;
+    }
+    
+    .table-responsive-compact .table-cell-actions button svg {
+      @apply w-3 h-3;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .table-responsive-compact .table-header-cell {
+      @apply px-2 py-1 text-xs;
+    }
+    
+    .table-responsive-compact .table-cell {
+      @apply px-2 py-1 text-xs;
+    }
+    
+    .table-responsive-compact .table-cell-description {
+      max-width: 150px;
+      line-height: 1.4;
+      min-height: calc(1.4em * 2); /* 2 líneas de altura mínima */
+      
+      /* En móviles, limitar a máximo 2 líneas */
+      -webkit-line-clamp: 2;
+      line-clamp: 2;
+    }
+    
+    /* Ajustes específicos para tablet */
+    @media (max-width: 1024px) {
+      .table-responsive-compact .table-cell-description {
+        max-width: 160px;
+        -webkit-line-clamp: 2;
+        line-clamp: 2;
+        min-height: calc(1.5em * 2 + 8px); /* 2 líneas + padding extra */
+        padding: 12px 16px; /* Más espacio en tablet */
+      }
+    }
+    
+    /* Ajustes para móvil */
+    @media (max-width: 768px) {
+      .table-responsive-compact .table-cell-description {
+        max-width: 140px;
+        -webkit-line-clamp: 2;
+        line-clamp: 2;
+        min-height: calc(1.5em * 2 + 6px);
+        padding: 10px 12px; /* Espacio moderado en móvil */
+        font-size: 0.7rem; /* Ligeramente más pequeño */
+      }
+    }
+    
+    /* Ajustes para pantallas muy pequeñas */
+    @media (max-width: 640px) {
+      [data-theme="dark"] .page-content,
+      [data-theme="light"] .page-content {
+        @apply px-1;
+      }
+      
+      /* En móviles muy pequeños, limitar a 1 línea pero con espacio respirable */
+      .table-responsive-compact .table-cell-description {
+        max-width: 120px;
+        min-height: calc(1.5em + 6px); /* 1 línea + padding */
+        -webkit-line-clamp: 1;
+        line-clamp: 1;
+        padding: 8px 10px; /* Menos espacio pero respirable */
+        font-size: 0.65rem;
+      }
+  }    .table-responsive-compact .table-cell-actions {
+      width: 60px;
+      @apply px-1 py-1;
+    }
+    
+    /* Etiquetas más pequeñas en pantallas pequeñas */
+    .table-responsive-compact .table-cell span.inline-flex {
+      @apply px-1 py-0 text-xs;
+      font-size: 10px;
+    }
   }
 
   .stat-card {
@@ -178,5 +476,72 @@
 
   .no-padding-card {
     @apply card p-0;
+  }
+
+  /* ===== FIXES PARA RESPONSIVE DESIGN EN MODO OSCURO ===== */
+  /* Asegurar que las tablas se comporten correctamente en todos los tamaños */
+  [data-theme="dark"] .table-card,
+  [data-theme="dark"] .table-card-with-padding {
+    @apply bg-gray-800 shadow-lg rounded-lg overflow-hidden;
+    min-width: 0; /* Permite que el contenedor se encoja */
+  }
+
+  [data-theme="dark"] .table-overflow-container {
+    @apply overflow-x-auto w-full;
+    min-width: 0; /* Permite que el contenedor se encoja */
+  }
+
+  [data-theme="dark"] .full-width-table {
+    @apply w-full min-w-full divide-y divide-gray-700;
+    min-width: 600px; /* Ancho mínimo para evitar que se comprima demasiado */
+  }
+
+  /* ===== LAYOUT RESPONSIVE FIXES ===== */
+  /* Asegurar que el contenido principal se ajuste correctamente */
+  .main-content-container {
+    @apply flex-1 flex flex-col transition-all duration-300;
+    min-width: 0; /* Permite que el contenedor se encoja */
+  }
+
+  /* Márgenes del contenido principal */
+  .main-content-collapsed {
+    margin-left: 4rem; /* ml-16 = 64px = 4rem */
+  }
+
+  .main-content-expanded {
+    margin-left: 16rem; /* ml-64 = 256px = 16rem */
+  }
+
+  /* Responsive adjustments para pantallas pequeñas */
+  @media (max-width: 1024px) {
+    [data-theme="dark"] .page-content,
+    [data-theme="light"] .page-content {
+      @apply px-4;
+    }
+    
+    [data-theme="dark"] .table-overflow-container,
+    [data-theme="light"] .table-overflow-container {
+      @apply overflow-x-auto;
+      -webkit-overflow-scrolling: touch;
+    }
+  }
+
+  @media (max-width: 768px) {
+    [data-theme="dark"] .page-content,
+    [data-theme="light"] .page-content {
+      @apply px-2;
+    }
+    
+    [data-theme="dark"] .full-width-table,
+    [data-theme="light"] .full-width-table {
+      min-width: 500px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    [data-theme="dark"] .page-content,
+    [data-theme="light"] .page-content {
+      @apply px-1;
+    }
   }
 }

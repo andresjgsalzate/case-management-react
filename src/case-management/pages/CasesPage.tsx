@@ -5,7 +5,8 @@ import {
   DocumentArrowDownIcon,
   MagnifyingGlassIcon,
   PencilIcon,
-  TrashIcon 
+  TrashIcon,
+  EyeIcon 
 } from '@heroicons/react/24/outline';
 import { useCases, useDeleteCase } from '@/case-management/hooks/useCases';
 import { Case } from '@/types';
@@ -274,38 +275,38 @@ export const CasesPage: React.FC = () => {
       </div>
 
       {/* Tabla de casos */}
-      <div className="table-card">
+      <div className="table-card table-responsive-compact">
         <div className="table-overflow-container">
           <table className="full-width-table">
-            <thead className="bg-gray-50 dark:bg-gray-800">
+            <thead className="table-header">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                <th className="table-header-cell">
                   Número de Caso
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                <th className="table-header-cell">
                   Descripción
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                <th className="table-header-cell">
                   Origen
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                <th className="table-header-cell">
                   Aplicación
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                <th className="table-header-cell">
                   Complejidad
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                <th className="table-header-cell">
                   Puntuación
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                <th className="table-header-cell">
                   Fecha
                 </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                <th className="table-header-cell text-right">
                   Acciones
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
+            <tbody className="table-body">
               {filteredCases.length === 0 ? (
                 <tr>
                   <td colSpan={8} className="px-6 py-4 text-center text-gray-500 dark:text-gray-400">
@@ -314,20 +315,20 @@ export const CasesPage: React.FC = () => {
                 </tr>
               ) : (
                 filteredCases.map((caso) => (
-                  <tr key={caso.id} className="hover:bg-gray-50 dark:hover:bg-gray-800">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
+                  <tr key={caso.id} className="table-row">
+                    <td className="table-cell">
                       {caso.numeroCaso}
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-900 dark:text-white max-w-xs truncate">
+                    <td className="table-cell-description" title={caso.descripcion}>
                       {caso.descripcion}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                    <td className="table-cell">
                       {caso.origen?.nombre || 'N/A'}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                    <td className="table-cell">
                       {caso.aplicacion?.nombre || 'N/A'}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="table-cell">
                       <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                         caso.clasificacion === 'Baja Complejidad'
                           ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
@@ -338,17 +339,25 @@ export const CasesPage: React.FC = () => {
                         {caso.clasificacion}
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                    <td className="table-cell">
                       {caso.puntuacion}/15
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                    <td className="table-cell">
                       {formatDateLocal(caso.fecha)}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <td className="table-cell-actions text-right">
                       <div className="flex justify-end space-x-2">
+                        <Link
+                          to={`/cases/view/${caso.id}`}
+                          className="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-300"
+                          title="Ver detalle"
+                        >
+                          <EyeIcon className="h-4 w-4" />
+                        </Link>
                         <Link
                           to={`/cases/edit/${caso.id}`}
                           className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300"
+                          title="Editar caso"
                         >
                           <PencilIcon className="h-4 w-4" />
                         </Link>
@@ -356,6 +365,7 @@ export const CasesPage: React.FC = () => {
                           <button
                             onClick={() => handleDelete(caso.id, caso.numeroCaso)}
                             className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
+                            title="Eliminar caso"
                           >
                             <TrashIcon className="h-4 w-4" />
                           </button>

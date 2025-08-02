@@ -19,7 +19,9 @@ import {
   ListBulletIcon,
   ArchiveBoxIcon,
   ChatBubbleLeftRightIcon,
-  DocumentArrowUpIcon
+  DocumentArrowUpIcon,
+  BookOpenIcon,
+  TagIcon
 } from '@heroicons/react/24/outline';
 import { VersionDisplay } from '@/shared/components/version/VersionDisplay';
 import { VersionModal } from '@/shared/components/version/VersionModal';
@@ -30,7 +32,7 @@ import { useTodoPermissions } from '@/task-management/hooks/useTodoPermissions';
 import { useNotesPermissions } from '@/notes-knowledge/hooks/useNotesPermissions';
 import { useDisposicionScriptsPermissions } from '@/disposicion-scripts/hooks/useDisposicionScriptsPermissions';
 import { RLSError } from '@/shared/components/guards/RLSError';
-import { useThemeStore } from '@/stores/themeStore';
+import { useNativeTheme } from '@/shared/hooks/useNativeTheme';
 import { mapRoleToDisplayName } from '@/shared/utils/roleUtils';
 
 interface LayoutProps {
@@ -45,11 +47,12 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
   const { canAccessTodoModule } = useTodoPermissions();
   const { canAccessNotesModule } = useNotesPermissions();
   const { hasAnyPermission: canAccessDisposiciones } = useDisposicionScriptsPermissions();
-  const { isDarkMode, toggleTheme } = useThemeStore();
+  const { isDark, toggleTheme } = useNativeTheme();
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showVersionModal, setShowVersionModal] = useState(false);
   const [openDropdowns, setOpenDropdowns] = useState<Set<string>>(new Set());
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [userManuallyToggled, setUserManuallyToggled] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const navRef = useRef<HTMLDivElement>(null);
 
@@ -65,6 +68,10 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
       baseNavigation.push({ name: 'Control de Casos', href: '/case-control', icon: ClockIcon });
     }
 
+    if (canAccessDisposiciones) {
+      baseNavigation.push({ name: 'Disposiciones', href: '/disposiciones', icon: DocumentArrowUpIcon });
+    }
+
     if (canAccessTodoModule) {
       baseNavigation.push({ name: 'TODOs', href: '/todos', icon: ListBulletIcon });
     }
@@ -73,8 +80,8 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
       baseNavigation.push({ name: 'Notas', href: '/notes', icon: ChatBubbleLeftRightIcon });
     }
 
-    if (canAccessDisposiciones) {
-      baseNavigation.push({ name: 'Disposiciones', href: '/disposiciones', icon: DocumentArrowUpIcon });
+    if (canAccessNotesModule) {
+      baseNavigation.push({ name: 'Base de Conocimiento', href: '/documentation', icon: BookOpenIcon });
     }
 
     // Agregar Archivo si el usuario puede acceder
@@ -127,6 +134,15 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
         name: 'Configuración', 
         href: '/admin/config', 
         icon: CogIcon 
+      });
+    }
+
+    // Gestión de etiquetas (disponible para todos los admins)
+    if (isAdmin()) {
+      systemConfig.push({ 
+        name: 'Etiquetas', 
+        href: '/admin/tags', 
+        icon: TagIcon 
       });
     }
 
@@ -186,6 +202,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
 
   const toggleCollapse = React.useCallback(() => {
     setIsCollapsed(prev => !prev);
+    setUserManuallyToggled(true); // Marcar que el usuario hizo un toggle manual
     // Cerrar todos los dropdowns cuando se colapsa
     if (!isCollapsed) {
       setOpenDropdowns(new Set());
@@ -215,6 +232,36 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
     };
   }, []);
 
+  // Manejar el resize de la ventana para colapsar sidebar en pantallas pequeñas
+  React.useEffect(() => {
+    const handleResize = () => {
+      const width = window.innerWidth;
+      
+      // Solo auto-colapsar si el usuario no ha hecho un toggle manual
+      if (!userManuallyToggled) {
+        // Auto-colapsar en pantallas menores a 768px
+        if (width < 768 && !isCollapsed) {
+          setIsCollapsed(true);
+        }
+        // Auto-expandir en pantallas grandes si está colapsado
+        else if (width >= 1280 && isCollapsed) {
+          setIsCollapsed(false);
+        }
+      }
+    };
+
+    // Configurar el estado inicial solo una vez
+    const width = window.innerWidth;
+    if (width < 768 && !userManuallyToggled) {
+      setIsCollapsed(true);
+    }
+
+    window.addEventListener('resize', handleResize);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, [isCollapsed, userManuallyToggled]);
+
   // DESPUÉS de todos los hooks, ahora podemos hacer early return
   if (hasRLSError) {
     return <RLSError onRetry={() => window.location.reload()} />;
@@ -222,6 +269,14 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex">
+      {/* Overlay para móviles cuando el sidebar está expandido */}
+      {!isCollapsed && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 z-5 sm:hidden"
+          onClick={() => setIsCollapsed(true)}
+        />
+      )}
+      
       {/* Sidebar - Fixed */}
       <div className={`fixed top-0 left-0 bg-white dark:bg-gray-800 shadow-lg border-r border-gray-200 dark:border-gray-700 flex flex-col h-screen z-10 transition-all duration-300 ${
         isCollapsed ? 'w-16' : 'w-64'
@@ -422,9 +477,9 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
             className={`w-full flex items-center px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors duration-200 ${
               isCollapsed ? 'justify-center' : ''
             }`}
-            title={isDarkMode ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'}
+            title={isDark ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'}
           >
-            {isDarkMode ? (
+            {isDark ? (
               <>
                 <SunIcon className="h-5 w-5 text-yellow-500 flex-shrink-0" />
                 {!isCollapsed && <span className="ml-3">Modo Claro</span>}
@@ -483,8 +538,8 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
       </div>
 
       {/* Main Content */}
-      <div className={`flex-1 flex flex-col transition-all duration-300 ${
-        isCollapsed ? 'ml-16' : 'ml-64'
+      <div className={`main-content-container ${
+        isCollapsed ? 'main-content-collapsed' : 'main-content-expanded'
       }`}>
         <main className="flex-1 p-6">
           {children}

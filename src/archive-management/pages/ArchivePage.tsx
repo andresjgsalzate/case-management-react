@@ -433,32 +433,32 @@ export const ArchivePage: React.FC = () => {
         </div>
 
         {/* Lista de elementos archivados */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-              <thead className="bg-gray-50 dark:bg-gray-900">
+        <div className="table-card table-responsive-compact">
+          <div className="table-overflow-container">
+            <table className="full-width-table">
+              <thead className="table-header">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  <th className="table-header-cell">
                     Tipo
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  <th className="table-header-cell">
                     Título
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  <th className="table-header-cell">
                     Tiempo
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  <th className="table-header-cell">
                     Archivado
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  <th className="table-header-cell">
                     Estado
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  <th className="table-header-cell">
                     Acciones
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+              <tbody className="table-body">
                 {filteredItems.length === 0 ? (
                   <tr>
                     <td colSpan={6} className="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
@@ -467,8 +467,8 @@ export const ArchivePage: React.FC = () => {
                   </tr>
                 ) : (
                   filteredItems.map((item) => (
-                    <tr key={`${item.itemType}-${item.id}`} className="hover:bg-gray-50 dark:hover:bg-gray-700">
-                      <td className="px-6 py-4 whitespace-nowrap">
+                    <tr key={`${item.itemType}-${item.id}`} className="table-row">
+                      <td className="table-cell">
                         <div className="flex items-center">
                           <div className={`p-2 rounded-full ${
                             item.itemType === 'case' 
@@ -486,21 +486,21 @@ export const ArchivePage: React.FC = () => {
                           </span>
                         </div>
                       </td>
-                      <td className="px-6 py-4">
+                      <td className="table-cell-description" title={item.description || 'Sin descripción'}>
                         <div className="text-sm font-medium text-gray-900 dark:text-white">
                           {item.itemType === 'case' ? (item as ArchivedCase).caseNumber : (item as ArchivedTodo).title}
                         </div>
-                        <div className="text-sm text-gray-500 dark:text-gray-400 truncate max-w-xs">
+                        <div className="text-sm text-gray-500 dark:text-gray-400">
                           {item.description || 'Sin descripción'}
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                      <td className="table-cell">
                         {formatTime(item.totalTimeMinutes)}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                      <td className="table-cell">
                         {formatDate(item.archivedAt)}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="table-cell">
                         <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                           item.isRestored
                             ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
@@ -509,7 +509,7 @@ export const ArchivePage: React.FC = () => {
                           {item.isRestored ? 'Restaurado' : 'Archivado'}
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      <td className="table-cell-actions">
                         <div className="flex items-center space-x-2">
                           <button
                             onClick={() => handleViewDetails(item, item.itemType)}

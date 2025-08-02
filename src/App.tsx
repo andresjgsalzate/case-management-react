@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { NotificationProvider } from '@/shared/components/notifications/NotificationSystem';
-import { useThemeStore } from '@/stores/themeStore';
+import { ThemeProvider } from '@/shared/providers/ThemeProvider';
 import { Layout } from '@/shared/components/layout/Layout';
 import { ConfigurationRequired } from '@/shared/components/guards/ConfigurationRequired';
 import { ProtectedRoute } from '@/shared/components/guards/ProtectedRoute';
@@ -12,6 +12,7 @@ import { useSystemAccess } from '@/user-management/hooks/useSystemAccess';
 import { Dashboard } from '@/dashboard-analytics/pages/Dashboard';
 import { CasesPage } from '@/case-management/pages/CasesPage';
 import { NewCasePage } from '@/case-management/pages/NewCasePage';
+import ViewCasePage from '@/case-management/pages/ViewCasePage';
 import { ResetPasswordPage } from '@/user-management/pages/ResetPassword';
 import { AuthTestPage } from '@/user-management/pages/AuthTestPage';
 import DataTestPage from '@/user-management/pages/DataTestPage';
@@ -19,14 +20,18 @@ import { UsersPage } from '@/user-management/pages/admin/UsersPage';
 import { RolesPage } from '@/user-management/pages/admin/RolesPage';
 import { PermissionsPage } from '@/user-management/pages/admin/PermissionsPage';
 import { ConfigurationPage } from '@/user-management/pages/admin/ConfigurationPage';
+import { TagsPage } from '@/notes-knowledge/pages/admin/TagsPage';
 import CaseControlPage from '@/time-control/pages/CaseControl';
 import TodosPage from '@/task-management/pages/TodosPage';
 import { NotesPage } from '@/notes-knowledge/pages/NotesPage';
+import { DocumentationPage } from '@/notes-knowledge/pages/DocumentationPage';
+import { DocumentEditPage } from '@/notes-knowledge/pages/DocumentEditPage';
+import { YooptaTestPage } from '@/notes-knowledge/pages/YooptaTestPage';
+import { TestDocumentationPage } from '@/notes-knowledge/pages/TestDocumentationPage';
 import { ArchivePage } from '@/archive-management/pages/ArchivePage';
 import { DisposicionScriptsPage } from '@/disposicion-scripts/pages/DisposicionScriptsPage';
 
 function App() {
-  const { isDarkMode } = useThemeStore();
   const [isSupabaseConfigured, setIsSupabaseConfigured] = useState(false);
 
   // Verificar configuración de Supabase
@@ -44,34 +49,27 @@ function App() {
     setIsSupabaseConfigured(!!isConfigured);
   }, []);
 
-  // Aplicar tema al cargar la app
-  useEffect(() => {
-    if (isDarkMode) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-  }, [isDarkMode]);
-
   // Mostrar pantalla de configuración si Supabase no está configurado
   if (!isSupabaseConfigured) {
     return <ConfigurationRequired />;
   }
 
   return (
-    <NotificationProvider>
-      <Routes>
-        {/* Rutas públicas (sin autenticación) */}
-        <Route path="/reset-password" element={<ResetPasswordPage />} />
-        
-        {/* Rutas protegidas */}
-        <Route path="/*" element={
-          <ProtectedRoute>
-            <AppContent />
-          </ProtectedRoute>
-        } />
-      </Routes>
-    </NotificationProvider>
+    <ThemeProvider>
+      <NotificationProvider>
+        <Routes>
+          {/* Rutas públicas (sin autenticación) */}
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
+          
+          {/* Rutas protegidas */}
+          <Route path="/*" element={
+            <ProtectedRoute>
+              <AppContent />
+            </ProtectedRoute>
+          } />
+        </Routes>
+      </NotificationProvider>
+    </ThemeProvider>
   );
 }
 
@@ -117,12 +115,24 @@ function AppContent() {
         <Route path="/cases" element={<CasesPage />} />
         <Route path="/cases/new" element={<NewCasePage />} />
         <Route path="/cases/edit/:id" element={<NewCasePage />} />
+        <Route path="/cases/view/:id" element={<ViewCasePage />} />
         
         {/* TODO Module */}
         <Route path="/todos" element={<TodosPage />} />
         
         {/* Notes Module */}
         <Route path="/notes" element={<NotesPage />} />
+        
+        {/* Documentation Module */}
+        <Route path="/documentation" element={<DocumentationPage />} />
+        <Route path="/documentation/:id/edit" element={<DocumentEditPage />} />
+        <Route path="/documentation/:id/view" element={<DocumentEditPage />} />
+        
+        {/* Test Documentation - SOLO PARA DESARROLLO */}
+        <Route path="/test-documentation" element={<TestDocumentationPage />} />
+        
+        {/* Test Yoopta Editor */}
+        <Route path="/yoopta-test" element={<YooptaTestPage />} />
         
         {/* Case Control Module */}
         <Route path="/case-control" element={<CaseControlPage />} />
@@ -138,6 +148,7 @@ function AppContent() {
         <Route path="/admin/roles" element={<RolesPage />} />
         <Route path="/admin/permissions" element={<PermissionsPage />} />
         <Route path="/admin/config" element={<ConfigurationPage />} />
+        <Route path="/admin/tags" element={<TagsPage />} />
         
         {/* Test Routes - SOLO PARA ADMINS */}
         <Route path="/auth-test" element={<AdminOnlyRoute><AuthTestPage /></AdminOnlyRoute>} />
