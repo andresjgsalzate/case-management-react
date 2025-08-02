@@ -10,7 +10,7 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { SolutionTagsService } from '../services/tagsService';
-import type { SolutionTag, TagCategory } from '../types';
+import type { TagCategory } from '../types';
 
 interface CreateTagData {
   name: string;
