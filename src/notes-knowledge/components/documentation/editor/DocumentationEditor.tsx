@@ -10,8 +10,7 @@
 
 import React, { useState } from 'react';
 import { Button } from '@/shared/components/ui/Button';
-import { YooptaContentValue } from '@yoopta/editor';
-import { YooptaDocumentEditor, createEmptyYooptaContent } from './YooptaDocumentEditor';
+import { BlockNoteDocumentEditor, convertFromLegacyToBlockNote } from './BlockNoteDocumentEditor';
 import type { SolutionDocument } from '../../../types';
 import { Save, X, FileText } from 'lucide-react';
 
@@ -28,14 +27,14 @@ export const DocumentationEditor: React.FC<DocumentationEditorProps> = ({
   onCancel
 }) => {
   const [title, setTitle] = useState(document?.title || 'Nuevo Documento');
-  const [yooptaContent, setYooptaContent] = useState<YooptaContentValue>(() => 
-    document?.content || createEmptyYooptaContent()
+  const [blockNoteContent, setBlockNoteContent] = useState(() => 
+    document?.content ? convertFromLegacyToBlockNote(document.content) : []
   );
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSave = async () => {
     // Implementación básica - en producción usar el EnhancedDocumentationEditor
-    console.log('Guardando documento:', { title, content: yooptaContent });
+    console.log('Guardando documento:', { title, content: blockNoteContent });
     setIsLoading(true);
     // Simular guardado
     setTimeout(() => {
@@ -92,10 +91,9 @@ export const DocumentationEditor: React.FC<DocumentationEditorProps> = ({
 
           {/* Editor */}
           <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm">
-            <YooptaDocumentEditor
-              value={yooptaContent}
-              onChange={setYooptaContent}
-              placeholder="Comienza a escribir..."
+            <BlockNoteDocumentEditor
+              value={blockNoteContent}
+              onChange={setBlockNoteContent}
               className="w-full"
             />
           </div>

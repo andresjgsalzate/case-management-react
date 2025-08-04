@@ -1,9 +1,9 @@
 /**
  * =================================================================
- * COMPONENTE DE PRUEBA: SISTEMA NATIVO DE YOOPTA-EDITOR
+ * COMPONENTE DE PRUEBA: SISTEMA NATIVO DE BLOCKNOTE-EDITOR
  * =================================================================
  * Descripción: Componente de prueba para verificar que todas las
- * funciones nativas de Yoopta-Editor funcionan correctamente
+ * funciones nativas de BlockNote-Editor funcionan correctamente
  * con el nuevo sistema de temas
  * Versión: 1.0 (Nativo)
  * Fecha: 1 de Agosto, 2025
@@ -56,7 +56,7 @@ export const NativeThemeTest: React.FC<NativeThemeTestProps> = ({ className = ''
       <div className="space-y-2">
         <h3 className="text-lg font-semibold flex items-center gap-2">
           <Check className="w-5 h-5 text-green-500" />
-          Sistema Nativo de Yoopta-Editor
+          Sistema Nativo de BlockNote-Editor
         </h3>
         <p className="text-sm opacity-70">
           Todas las funciones nativas están funcionando correctamente
@@ -177,7 +177,7 @@ export const NativeThemeTest: React.FC<NativeThemeTestProps> = ({ className = ''
           <div>--border: hsl(var(--border))</div>
         </div>
         <p className="text-xs opacity-70 mt-2">
-          ✅ Todas las variables CSS nativas de Yoopta-Editor están funcionando correctamente
+          ✅ Todas las variables CSS nativas de BlockNote-Editor están funcionando correctamente
         </p>
       </div>
     </div>

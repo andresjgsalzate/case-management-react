@@ -1,9 +1,9 @@
 /**
  * =================================================================
- * HOOK NATIVO DE YOOPTA-EDITOR PARA MANEJO DE TEMAS
+ * HOOK NATIVO DE BLOCKNOTE-EDITOR PARA MANEJO DE TEMAS
  * =================================================================
  * Descripción: Hook personalizado que utiliza next-themes para
- * integración nativa con Yoopta-Editor y funcionalidad completa
+ * integración nativa con BlockNote-Editor y funcionalidad completa
  * de dark mode usando las características oficiales del editor
  * Versión: 1.0 (Nativo)
  * Fecha: 1 de Agosto, 2025
@@ -28,7 +28,7 @@ export interface NativeThemeState {
 }
 
 /**
- * Hook nativo para manejo de temas con Yoopta-Editor
+ * Hook nativo para manejo de temas con BlockNote-Editor
  * Utiliza next-themes para compatibilidad total con el sistema nativo
  */
 export function useNativeTheme(): NativeThemeState {

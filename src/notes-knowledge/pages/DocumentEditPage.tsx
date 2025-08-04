@@ -13,7 +13,7 @@ import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { PageWrapper } from '@/shared/components/layout/PageWrapper';
 import { Button } from '@/shared/components/ui/Button';
 import { EnhancedDocumentationEditor } from '../components/documentation/editor/EnhancedDocumentationEditor';
-import { YooptaContentViewer } from '../components/documentation/YooptaContentViewer';
+import { BlockNoteContentViewer } from '../components/documentation/BlockNoteContentViewer';
 import { UserDisplay } from '../components/UserDisplay';
 import { CaseDisplay } from '../components/CaseDisplay';
 import { useDocumentation } from '../hooks/useDocumentation';
@@ -225,7 +225,7 @@ export const DocumentEditPage: React.FC = () => {
               {/* Contenido renderizado */}
               <div className="p-6">
                 {document.content ? (
-                  <YooptaContentViewer 
+                  <BlockNoteContentViewer 
                     content={document.content}
                     className="prose dark:prose-invert max-w-none"
                   />

@@ -26,7 +26,6 @@ import TodosPage from '@/task-management/pages/TodosPage';
 import { NotesPage } from '@/notes-knowledge/pages/NotesPage';
 import { DocumentationPage } from '@/notes-knowledge/pages/DocumentationPage';
 import { DocumentEditPage } from '@/notes-knowledge/pages/DocumentEditPage';
-import { YooptaTestPage } from '@/notes-knowledge/pages/YooptaTestPage';
 import { TestDocumentationPage } from '@/notes-knowledge/pages/TestDocumentationPage';
 import { ArchivePage } from '@/archive-management/pages/ArchivePage';
 import { DisposicionScriptsPage } from '@/disposicion-scripts/pages/DisposicionScriptsPage';
@@ -130,9 +129,6 @@ function AppContent() {
         
         {/* Test Documentation - SOLO PARA DESARROLLO */}
         <Route path="/test-documentation" element={<TestDocumentationPage />} />
-        
-        {/* Test Yoopta Editor */}
-        <Route path="/yoopta-test" element={<YooptaTestPage />} />
         
         {/* Case Control Module */}
         <Route path="/case-control" element={<CaseControlPage />} />

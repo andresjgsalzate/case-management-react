@@ -10,8 +10,7 @@
 
 import React, { useState } from 'react';
 import { Button } from '@/shared/components/ui/Button';
-import { YooptaContentValue } from '@yoopta/editor';
-import { YooptaDocumentEditor, createEmptyYooptaContent } from './YooptaDocumentEditor';
+import { BlockNoteDocumentEditor, convertFromLegacyToBlockNote, createEmptyBlockNoteContent } from './BlockNoteDocumentEditor';
 import { TagSelector } from '../TagSelector';
 import { CaseValidator } from '../CaseValidator';
 import { useDocumentation } from '../../../hooks/useDocumentation';
@@ -60,8 +59,8 @@ export const EnhancedDocumentationEditor: React.FC<EnhancedDocumentationEditorPr
     selected_tag_ids: document?.tags?.map(tag => tag.id) || [],
   });
 
-  const [yooptaContent, setYooptaContent] = useState<YooptaContentValue>(() => 
-    document?.content || createEmptyYooptaContent()
+  const [blockNoteContent, setBlockNoteContent] = useState(() => 
+    document?.content ? convertFromLegacyToBlockNote(document.content) : createEmptyBlockNoteContent()
   );
 
   const [isLoading, setIsLoading] = useState(false);
@@ -97,7 +96,7 @@ export const EnhancedDocumentationEditor: React.FC<EnhancedDocumentationEditorPr
     try {
       const documentData: CreateSolutionDocumentRequest | UpdateSolutionDocumentRequest = {
         title: formData.title.trim(),
-        content: yooptaContent,
+        content: blockNoteContent as any, // Conversión temporal mientras se actualiza el backend
         solution_type: formData.solution_type,
         difficulty_level: formData.difficulty_level,
         complexity_notes: formData.complexity_notes || undefined,
@@ -336,10 +335,9 @@ export const EnhancedDocumentationEditor: React.FC<EnhancedDocumentationEditorPr
               <h3 className="text-lg font-medium text-gray-900 dark:text-white">Contenido del Documento</h3>
             </div>
             <div className="p-0">
-              <YooptaDocumentEditor
-                value={yooptaContent}
-                onChange={setYooptaContent}
-                placeholder="Comienza a escribir tu documento aquí..."
+              <BlockNoteDocumentEditor
+                value={blockNoteContent}
+                onChange={setBlockNoteContent}
                 className="w-full"
               />
             </div>

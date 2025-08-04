@@ -9,7 +9,7 @@
  * =================================================================
  */
 
-import { YooptaContentValue } from '@yoopta/editor';
+import { PartialBlock } from '@blocknote/core';
 
 // ===== TIPOS BASE =====
 
@@ -52,7 +52,7 @@ export interface UpdateSolutionTagRequest {
 export interface SolutionDocument {
   id: string;
   title: string;
-  content: YooptaContentValue;
+  content: PartialBlock[];
   
   // Referencias a casos
   case_id?: string;
@@ -97,7 +97,7 @@ export interface SolutionDocument {
 
 export interface CreateSolutionDocumentRequest {
   title: string;
-  content: YooptaContentValue;
+  content: PartialBlock[];
   case_id?: string;
   archived_case_id?: string;
   case_reference_type?: CaseReferenceType;
@@ -114,7 +114,7 @@ export interface CreateSolutionDocumentRequest {
 
 export interface UpdateSolutionDocumentRequest {
   title?: string;
-  content?: YooptaContentValue;
+  content?: PartialBlock[];
   case_id?: string;
   archived_case_id?: string;
   case_reference_type?: CaseReferenceType;
@@ -248,7 +248,7 @@ export interface UseDocumentationState {
 
 export interface DocumentFormData {
   title: string;
-  content: YooptaContentValue;
+  content: PartialBlock[];
   case_id?: string;
   archived_case_id?: string;
   case_reference_type: CaseReferenceType;

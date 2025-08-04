@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ===== VARIABLES CSS NATIVAS DE YOOPTA-EDITOR ===== */
+/* ===== VARIABLES CSS NATIVAS DE BLOCKNOTE-EDITOR ===== */
 :root {
   /* Variables nativas para Light Mode */
   --background: 0 0% 100%;
@@ -50,61 +50,9 @@
   --ring: 0 0% 83.1%;
 }
 
-/* ===== YOOPTA EDITOR GLOBAL OVERRIDE ===== */
-[data-theme="dark"] .yoopta-editor,
-[data-theme="dark"] .yoopta-editor *,
-[data-theme="dark"] .yoopta-editor [contenteditable],
-[data-theme="dark"] .yoopta-editor [role="textbox"] {
+/* ===== BLOCKNOTE EDITOR STYLES ===== */
+.blocknote-editor-wrapper {
   background-color: hsl(var(--background)) !important;
-  background: hsl(var(--background)) !important;
-  color: hsl(var(--foreground)) !important;
-}
-
-[data-theme="light"] .yoopta-editor,
-[data-theme="light"] .yoopta-editor *,
-[data-theme="light"] .yoopta-editor [contenteditable],
-[data-theme="light"] .yoopta-editor [role="textbox"] {
-  background-color: hsl(var(--background)) !important;
-  background: hsl(var(--background)) !important;
-  color: hsl(var(--foreground)) !important;
-}
-
-/* ===== YOOPTA ULTRA-SPECIFIC OVERRIDE ===== */
-[data-theme="dark"] .yoopta-wrapper .yoopta-editor div,
-[data-theme="dark"] .yoopta-wrapper .yoopta-editor span,
-[data-theme="dark"] .yoopta-wrapper .yoopta-editor p,
-[data-theme="dark"] .yoopta-wrapper .yoopta-editor h1,
-[data-theme="dark"] .yoopta-wrapper .yoopta-editor h2,
-[data-theme="dark"] .yoopta-wrapper .yoopta-editor h3,
-[data-theme="dark"] .yoopta-wrapper .yoopta-editor h4,
-[data-theme="dark"] .yoopta-wrapper .yoopta-editor h5,
-[data-theme="dark"] .yoopta-wrapper .yoopta-editor h6,
-[data-theme="dark"] .yoopta-wrapper .yoopta-editor [data-yoopta-block],
-[data-theme="dark"] .yoopta-wrapper .yoopta-editor [data-yoopta-element],
-[data-theme="dark"] .yoopta-wrapper .yoopta-editor [data-slate-editor],
-[data-theme="dark"] .yoopta-wrapper .yoopta-editor [data-slate-node],
-[data-theme="dark"] .yoopta-wrapper [contenteditable="true"] {
-  background-color: hsl(var(--background)) !important;
-  background: hsl(var(--background)) !important;
-  color: hsl(var(--foreground)) !important;
-}
-
-[data-theme="light"] .yoopta-wrapper .yoopta-editor div,
-[data-theme="light"] .yoopta-wrapper .yoopta-editor span,
-[data-theme="light"] .yoopta-wrapper .yoopta-editor p,
-[data-theme="light"] .yoopta-wrapper .yoopta-editor h1,
-[data-theme="light"] .yoopta-wrapper .yoopta-editor h2,
-[data-theme="light"] .yoopta-wrapper .yoopta-editor h3,
-[data-theme="light"] .yoopta-wrapper .yoopta-editor h4,
-[data-theme="light"] .yoopta-wrapper .yoopta-editor h5,
-[data-theme="light"] .yoopta-wrapper .yoopta-editor h6,
-[data-theme="light"] .yoopta-wrapper .yoopta-editor [data-yoopta-block],
-[data-theme="light"] .yoopta-wrapper .yoopta-editor [data-yoopta-element],
-[data-theme="light"] .yoopta-wrapper .yoopta-editor [data-slate-editor],
-[data-theme="light"] .yoopta-wrapper .yoopta-editor [data-slate-node],
-[data-theme="light"] .yoopta-wrapper [contenteditable="true"] {
-  background-color: hsl(var(--background)) !important;
-  background: hsl(var(--background)) !important;
   color: hsl(var(--foreground)) !important;
 }
 

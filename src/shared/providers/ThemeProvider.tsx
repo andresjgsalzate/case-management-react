@@ -1,9 +1,9 @@
 /**
  * =================================================================
- * PROVEEDOR DE TEMAS NATIVO PARA YOOPTA-EDITOR
+ * PROVEEDOR DE TEMAS NATIVO PARA BLOCKNOTE-EDITOR
  * =================================================================
  * Descripción: Proveedor de temas que usa next-themes para compatibilidad
- * nativa con Yoopta-Editor y mejor rendimiento
+ * nativa con BlockNote-Editor y mejor rendimiento
  * Fecha: 1 de Agosto, 2025
  * =================================================================
  */

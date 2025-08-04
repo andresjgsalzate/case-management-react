@@ -3,7 +3,7 @@
  * THEME TOGGLE - COMPONENTE NATIVO DE CAMBIO DE TEMA
  * =================================================================
  * Descripción: Toggle de tema usando el sistema nativo de next-themes
- * Compatible con Yoopta-Editor y funcionalidades nativas
+ * Compatible con BlockNote-Editor y funcionalidades nativas
  * Versión: 2.0 (Nativo)
  * Fecha: 1 de Agosto, 2025
  * =================================================================

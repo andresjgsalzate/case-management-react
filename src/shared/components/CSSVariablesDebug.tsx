@@ -45,7 +45,7 @@ export const CSSVariablesDebug: React.FC = () => {
       </div>
 
       <div className="mt-3">
-        <div className="yoopta-editor" style={{ 
+        <div className="blocknote-editor" style={{ 
           minHeight: '50px', 
           padding: '8px',
           border: '1px solid hsl(var(--border))',
