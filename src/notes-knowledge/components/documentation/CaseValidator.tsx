@@ -8,7 +8,7 @@
  * =================================================================
  */
 
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { Search, Check, X, AlertCircle } from 'lucide-react';
 import { useDocumentation } from '../../hooks/useDocumentation';
 import type { CaseReferenceType } from '../../types';
@@ -28,16 +28,139 @@ export const CaseValidator: React.FC<CaseValidatorProps> = ({
   onCaseChange,
   className = '',
 }) => {
-  const { validateCase } = useDocumentation();
+  const { validateCase, searchCases } = useDocumentation();
   const [searchTerm, setSearchTerm] = useState('');
   const [isValidating, setIsValidating] = useState(false);
   const [validationResult, setValidationResult] = useState<any>(null);
+  
+  // Estados para autocompletado
+  const [suggestions, setSuggestions] = useState<Array<{
+    id: string;
+    numero_caso: string;
+    descripcion: string;
+    classification?: string;
+    type: 'active' | 'archived';
+  }>>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
+  const [selectedIndex, setSelectedIndex] = useState(-1);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // Función para buscar sugerencias con debounce
+  const searchSuggestions = useCallback(async (term: string) => {
+    if (!term.trim() || term.length < 2) {
+      setSuggestions([]);
+      setShowSuggestions(false);
+      return;
+    }
+
+    setIsSearching(true);
+    try {
+      const results = await searchCases(term, 'both', 8);
+      setSuggestions(results);
+      setShowSuggestions(results.length > 0);
+    } catch (error) {
+      console.error('Error searching cases:', error);
+      setSuggestions([]);
+      setShowSuggestions(false);
+    } finally {
+      setIsSearching(false);
+    }
+  }, [searchCases]);
+
+  // Debounce para la búsqueda
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      searchSuggestions(searchTerm);
+    }, 300);
+
+    return () => clearTimeout(timeoutId);
+  }, [searchTerm, searchSuggestions]);
+
+  // Función para seleccionar una sugerencia
+  const selectSuggestion = useCallback((suggestion: typeof suggestions[0]) => {
+    setSearchTerm(suggestion.numero_caso);
+    setShowSuggestions(false);
+    setSelectedIndex(-1);
+    
+    // Auto-validar el caso seleccionado
+    setValidationResult({
+      is_valid: true,
+      case_exists: true,
+      case_type: suggestion.type,
+      case_data: {
+        id: suggestion.id,
+        numero_caso: suggestion.numero_caso,
+        descripcion: suggestion.descripcion,
+        classification: suggestion.classification,
+      },
+    });
+
+    // Llamar al callback con el caso seleccionado
+    if (suggestion.type === 'active') {
+      onCaseChange('active', suggestion.id, undefined);
+    } else {
+      onCaseChange('archived', undefined, suggestion.id);
+    }
+  }, [onCaseChange]);
+
+  // Manejar navegación con teclado
+  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if (!showSuggestions || suggestions.length === 0) {
+      if (e.key === 'Enter') {
+        handleSearchCase();
+      }
+      return;
+    }
+
+    switch (e.key) {
+      case 'ArrowDown':
+        e.preventDefault();
+        setSelectedIndex(prev => 
+          prev < suggestions.length - 1 ? prev + 1 : 0
+        );
+        break;
+      case 'ArrowUp':
+        e.preventDefault();
+        setSelectedIndex(prev => 
+          prev > 0 ? prev - 1 : suggestions.length - 1
+        );
+        break;
+      case 'Enter':
+        e.preventDefault();
+        if (selectedIndex >= 0 && selectedIndex < suggestions.length) {
+          selectSuggestion(suggestions[selectedIndex]);
+        } else {
+          handleSearchCase();
+        }
+        break;
+      case 'Escape':
+        setShowSuggestions(false);
+        setSelectedIndex(-1);
+        break;
+    }
+  }, [showSuggestions, suggestions, selectedIndex, selectSuggestion]);
+
+  // Cerrar dropdown al hacer click fuera
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setShowSuggestions(false);
+        setSelectedIndex(-1);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const handleSearchCase = useCallback(async () => {
     if (!searchTerm.trim()) return;
 
     setIsValidating(true);
     setValidationResult(null);
+    setShowSuggestions(false);
 
     try {
       // Intentar buscar en casos activos primero
@@ -79,6 +202,9 @@ export const CaseValidator: React.FC<CaseValidatorProps> = ({
   const handleClearCase = () => {
     setSearchTerm('');
     setValidationResult(null);
+    setSuggestions([]);
+    setShowSuggestions(false);
+    setSelectedIndex(-1);
     onCaseChange('active', undefined, undefined);
   };
 
@@ -115,18 +241,69 @@ export const CaseValidator: React.FC<CaseValidatorProps> = ({
           </label>
           
           <div className="flex gap-2">
-            <div className="flex-1 relative">
+            <div className="flex-1 relative" ref={dropdownRef}>
               <input
+                ref={inputRef}
                 type="text"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && handleSearchCase()}
+                onKeyDown={handleKeyDown}
+                onFocus={() => {
+                  if (suggestions.length > 0) {
+                    setShowSuggestions(true);
+                  }
+                }}
                 placeholder="Número de caso (ej: C001, C002)"
                 className="w-full pl-3 pr-10 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-blue-500 focus:border-blue-500"
+                autoComplete="off"
               />
               <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
-                <StatusIcon />
+                {isSearching ? (
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                ) : (
+                  <StatusIcon />
+                )}
               </div>
+
+              {/* Dropdown de sugerencias */}
+              {showSuggestions && suggestions.length > 0 && (
+                <div className="absolute z-50 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md shadow-lg max-h-64 overflow-y-auto">
+                  {suggestions.map((suggestion, index) => (
+                    <div
+                      key={suggestion.id}
+                      className={`px-3 py-2 cursor-pointer border-b border-gray-100 dark:border-gray-700 last:border-b-0 ${
+                        index === selectedIndex
+                          ? 'bg-blue-50 dark:bg-blue-900 text-blue-900 dark:text-blue-100'
+                          : 'hover:bg-gray-50 dark:hover:bg-gray-700'
+                      }`}
+                      onClick={() => selectSuggestion(suggestion)}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1">
+                          <div className="font-medium text-gray-900 dark:text-white">
+                            {suggestion.numero_caso}
+                          </div>
+                          <div className="text-sm text-gray-600 dark:text-gray-400 truncate">
+                            {suggestion.descripcion}
+                          </div>
+                          {suggestion.classification && (
+                            <div className="text-xs text-gray-500 dark:text-gray-500">
+                              {suggestion.classification}
+                            </div>
+                          )}
+                        </div>
+                        <div className={`text-xs px-2 py-1 rounded-full ${
+                          suggestion.type === 'active'
+                            ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                            : 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200'
+                        }`}>
+                          {suggestion.type === 'active' ? 'Activo' : 'Archivado'}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
             
             <button

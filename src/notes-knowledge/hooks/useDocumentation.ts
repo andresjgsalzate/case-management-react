@@ -185,6 +185,20 @@ export const useDocumentation = () => {
     }
   }, []);
 
+  // ===== BUSCAR CASOS CON AUTOCOMPLETADO =====
+  const searchCases = useCallback(async (
+    searchTerm: string, 
+    type: 'active' | 'archived' | 'both' = 'both',
+    limit: number = 10
+  ) => {
+    try {
+      return await DocumentationService.searchCases(searchTerm, type, limit);
+    } catch (error) {
+      console.error('Error searching cases:', error);
+      return [];
+    }
+  }, []);
+
   // ===== VALIDAR CASO =====
   const validateCase = useCallback(async (
     caseId: string, 
@@ -257,6 +271,24 @@ export const useDocumentation = () => {
     searchDocuments();
   }, [loadTags, searchDocuments]);
 
+  // ===== OBTENER TEMPLATES DISPONIBLES =====
+  const getAvailableTemplates = useCallback(async () => {
+    setState(prev => ({ ...prev, isLoading: true, error: undefined }));
+    
+    try {
+      const templates = await DocumentationService.getAvailableTemplates();
+      setState(prev => ({ ...prev, isLoading: false }));
+      return templates;
+    } catch (error) {
+      setState(prev => ({
+        ...prev,
+        isLoading: false,
+        error: error instanceof Error ? error.message : 'Error al obtener templates',
+      }));
+      throw error;
+    }
+  }, []);
+
   // ===== VALORES COMPUTADOS =====
   const computedValues = useMemo(() => ({
     // Documentos filtrados localmente si es necesario
@@ -296,9 +328,11 @@ export const useDocumentation = () => {
     updateDocument,
     deleteDocument,
     validateCase,
+    searchCases,
     markAsHelpful,
     incrementView,
     loadTags,
+    getAvailableTemplates,
     
     // Utilidades
     clearError: () => setState(prev => ({ ...prev, error: undefined })),

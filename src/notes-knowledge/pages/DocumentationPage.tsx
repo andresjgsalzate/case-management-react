@@ -14,17 +14,24 @@ import { PageWrapper } from '@/shared/components/layout/PageWrapper';
 import { Button } from '@/shared/components/ui/Button';
 import { EnhancedDocumentationEditor } from '../components/documentation/editor/EnhancedDocumentationEditor';
 import { AdvancedSearchComponent } from '../components/AdvancedSearchComponent';
+import { TemplateSelector } from '../components/TemplateSelector';
 import { useDocumentation } from '../hooks/useDocumentation';
-import { SolutionDocumentFilters } from '@/types/documentation';
-import { Trash2 } from 'lucide-react';
+import { useNotesPermissions } from '../hooks/useNotesPermissions';
+import { DocumentSearchFilters, SolutionDocument } from '../types';
+import { Trash2, FileText } from 'lucide-react';
 import { ConfirmationModal } from '@/shared/components/ui/ConfirmationModal';
 
 export const DocumentationPage: React.FC = () => {
   const navigate = useNavigate();
   const [showEditor, setShowEditor] = useState(false);
+  const [showTemplateSelector, setShowTemplateSelector] = useState(false);
+  // @ts-ignore: selectedTemplate se usará cuando se implemente el paso de plantilla al editor
+  const [selectedTemplate, setSelectedTemplate] = useState<SolutionDocument | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [filters, setFilters] = useState<SolutionDocumentFilters>({});
+  const [filters, setFilters] = useState<DocumentSearchFilters>({});
   const [documentToDelete, setDocumentToDelete] = useState<{ id: string; title: string } | null>(null);
+  
+  const { canCreateNotes } = useNotesPermissions();
   
   const { 
     documents, 
@@ -74,11 +81,28 @@ export const DocumentationPage: React.FC = () => {
     setDocumentToDelete({ id, title });
   };
 
+  const handleTemplateSelect = (template: SolutionDocument) => {
+    setSelectedTemplate(template);
+    setShowTemplateSelector(false);
+    setShowEditor(true);
+  };
+
+  const handleNewDocument = () => {
+    setSelectedTemplate(null);
+    setShowEditor(true);
+  };
+
   if (showEditor) {
     return (
       <EnhancedDocumentationEditor
-        onSave={() => setShowEditor(false)}
-        onCancel={() => setShowEditor(false)}
+        onSave={() => {
+          setShowEditor(false);
+          setSelectedTemplate(null);
+        }}
+        onCancel={() => {
+          setShowEditor(false);
+          setSelectedTemplate(null);
+        }}
       />
     );
   }
@@ -134,9 +158,22 @@ export const DocumentationPage: React.FC = () => {
             />
           </div>
           
-          <Button onClick={() => setShowEditor(true)}>
-            + Nuevo Documento
-          </Button>
+          <div className="flex gap-2">
+            {canCreateNotes && (
+              <Button 
+                variant="outline"
+                onClick={() => setShowTemplateSelector(true)}
+              >
+                <FileText className="h-4 w-4 mr-2" />
+                Plantillas
+              </Button>
+            )}
+            {canCreateNotes && (
+              <Button onClick={handleNewDocument}>
+                + Nuevo Documento
+              </Button>
+            )}
+          </div>
         </div>
 
         {/* Lista de documentos */}
@@ -301,6 +338,13 @@ export const DocumentationPage: React.FC = () => {
         confirmText="Eliminar"
         cancelText="Cancelar"
         type="danger"
+      />
+
+      {/* Modal selector de plantillas */}
+      <TemplateSelector
+        isOpen={showTemplateSelector}
+        onClose={() => setShowTemplateSelector(false)}
+        onSelectTemplate={handleTemplateSelect}
       />
     </PageWrapper>
   );

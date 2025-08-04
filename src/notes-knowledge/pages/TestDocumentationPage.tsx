@@ -31,7 +31,6 @@ export const TestDocumentationPage: React.FC = () => {
     setCaseReferenceType(referenceType);
     setCaseId(newCaseId);
     setArchivedCaseId(newArchivedCaseId);
-    console.log('Caso cambiado:', { referenceType, newCaseId, newArchivedCaseId });
   };
 
   if (showFullEditor) {
@@ -82,8 +81,21 @@ export const TestDocumentationPage: React.FC = () => {
                 🔍 Validador de Casos
               </h2>
               <div className="space-y-4">
+                <div className="p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                  <h3 className="font-medium text-blue-900 dark:text-blue-100 mb-2">
+                    🎯 ¿Cómo funciona el autocompletado?
+                  </h3>
+                  <ul className="text-sm text-blue-800 dark:text-blue-200 space-y-1">
+                    <li>• Escribe al menos 2 caracteres para activar las sugerencias</li>
+                    <li>• Busca por número de caso o descripción</li>
+                    <li>• Las sugerencias aparecen automáticamente</li>
+                    <li>• Haz clic en una sugerencia para seleccionarla</li>
+                    <li>• Presiona Escape para cerrar las sugerencias</li>
+                  </ul>
+                </div>
+                
                 <p className="text-sm text-gray-600 dark:text-gray-300">
-                  Prueba buscando casos como: <strong>SR20</strong>, <strong>IN528951</strong>, etc.
+                  💡 <strong>Sugerencia:</strong> Prueba escribiendo parte de un número de caso o descripción existente.
                 </p>
                 
                 <CaseValidator
@@ -94,11 +106,30 @@ export const TestDocumentationPage: React.FC = () => {
                 />
                 
                 {/* Estado actual */}
-                <div className="mt-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-md">
-                  <h3 className="font-medium text-gray-900 dark:text-white mb-2">Estado actual:</h3>
-                  <pre className="text-sm text-gray-600 dark:text-gray-300">
-                    {JSON.stringify({ caseReferenceType, caseId, archivedCaseId }, null, 2)}
-                  </pre>
+                <div className="mt-6 p-4 bg-gray-50 dark:bg-gray-700 rounded-md">
+                  <h3 className="font-medium text-gray-900 dark:text-white mb-2">
+                    📊 Estado actual de la selección:
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                    <div className="space-y-1">
+                      <span className="font-medium text-gray-700 dark:text-gray-300">Tipo:</span>
+                      <div className="text-gray-600 dark:text-gray-400 font-mono">
+                        {caseReferenceType}
+                      </div>
+                    </div>
+                    <div className="space-y-1">
+                      <span className="font-medium text-gray-700 dark:text-gray-300">Caso Activo:</span>
+                      <div className="text-gray-600 dark:text-gray-400 font-mono">
+                        {caseId || 'No seleccionado'}
+                      </div>
+                    </div>
+                    <div className="space-y-1">
+                      <span className="font-medium text-gray-700 dark:text-gray-300">Caso Archivado:</span>
+                      <div className="text-gray-600 dark:text-gray-400 font-mono">
+                        {archivedCaseId || 'No seleccionado'}
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>

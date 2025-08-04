@@ -58,6 +58,38 @@ export class DocumentationService {
     return cleaned;
   }
 
+  // ===== BUSCAR CASOS CON AUTOCOMPLETADO =====
+  static async searchCases(searchTerm: string, type: 'active' | 'archived' | 'both' = 'both', limit: number = 10): Promise<Array<{
+    id: string;
+    numero_caso: string;
+    descripcion: string;
+    classification?: string;
+    type: 'active' | 'archived';
+  }>> {
+    try {
+      if (!searchTerm.trim()) {
+        return [];
+      }
+
+      // Usar función RPC para buscar casos
+      const { data, error } = await supabase.rpc('search_cases_autocomplete', {
+        search_term: searchTerm.trim(),
+        case_type: type,
+        search_limit: limit
+      });
+
+      if (error) {
+        console.error('Error searching cases:', error);
+        return [];
+      }
+
+      return data || [];
+    } catch (error) {
+      console.error('Error searching cases:', error);
+      return [];
+    }
+  }
+
   // ===== VALIDAR REFERENCIA DE CASO =====
   static async validateCaseReference(caseIdentifier: string, type: 'active' | 'archived' = 'active'): Promise<CaseValidationResult> {
     try {
@@ -618,6 +650,43 @@ export class DocumentationService {
       return processedResults;
     } catch (error) {
       return [];
+    }
+  }
+
+  // ===== OBTENER TEMPLATES DISPONIBLES =====
+  static async getAvailableTemplates(): Promise<SolutionDocument[]> {
+    try {
+      const { data, error } = await supabase.rpc('get_available_templates');
+
+      if (error) {
+        console.error('Error getting templates:', error);
+        throw new Error(`Error al obtener templates: ${error.message}`);
+      }
+
+      if (!data) {
+        return [];
+      }
+
+      // Procesar los resultados para incluir perfiles de usuario
+      const processedTemplates = await Promise.all(
+        data.map(async (template: any) => {
+          // Obtener perfil del creador
+          const createdByProfile = template.created_by 
+            ? await this.getUserProfile(template.created_by)
+            : null;
+
+          return {
+            ...template,
+            created_by_profile: createdByProfile,
+            tags: [] // Los templates no necesariamente tienen tags cargadas en esta función
+          };
+        })
+      );
+
+      return processedTemplates;
+    } catch (error) {
+      console.error('Error getting templates:', error);
+      throw error;
     }
   }
 }
