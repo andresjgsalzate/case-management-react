@@ -33,6 +33,7 @@ export interface CreateDocumentTypeRequest {
   icon?: string;
   color?: string;
   display_order?: number;
+  created_by?: string; // Opcional desde el frontend, se agregará automáticamente
 }
 
 export interface UpdateDocumentTypeRequest {
@@ -149,10 +150,21 @@ export class DocumentTypesService {
    */
   static async createDocumentType(documentType: CreateDocumentTypeRequest): Promise<DocumentType> {
     try {
+      // Si no se proporciona created_by, obtener el usuario actual
+      let createdBy = documentType.created_by;
+      if (!createdBy) {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          throw new Error('Usuario no autenticado');
+        }
+        createdBy = user.id;
+      }
+
       const { data, error } = await supabase
         .from('solution_document_types')
         .insert([{
           ...documentType,
+          created_by: createdBy,
           color: documentType.color || '#6B7280',
           display_order: documentType.display_order || 0
         }])

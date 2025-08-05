@@ -29,5 +29,9 @@ export { useDocumentTypes, useActiveDocumentTypes } from './hooks/useDocumentTyp
 export { useNotesWithPermissions } from './hooks/useNotesWithPermissions';
 export { useNotesPermissions } from './hooks/useNotesPermissions';
 
+// Hooks de documentación (con permisos integrados)
+export { useDocumentationPermissions } from './hooks/useDocumentationPermissions';
+export { useDocumentationWithPermissions } from './hooks/useDocumentationWithPermissions';
+
 // Tipos
 export type { DocumentType } from './types';

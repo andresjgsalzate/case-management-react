@@ -16,7 +16,7 @@ import { EnhancedDocumentationEditor } from '../components/documentation/editor/
 import { AdvancedSearchComponent } from '../components/AdvancedSearchComponent';
 import { TemplateSelector } from '../components/TemplateSelector';
 import { useDocumentation } from '../hooks/useDocumentation';
-import { useNotesPermissions } from '../hooks/useNotesPermissions';
+import { useDocumentationPermissions } from '../hooks/useDocumentationPermissions';
 import { DocumentSearchFilters, SolutionDocument } from '../types';
 import { Trash2, FileText } from 'lucide-react';
 import { ConfirmationModal } from '@/shared/components/ui/ConfirmationModal';
@@ -31,7 +31,7 @@ export const DocumentationPage: React.FC = () => {
   const [filters, setFilters] = useState<DocumentSearchFilters>({});
   const [documentToDelete, setDocumentToDelete] = useState<{ id: string; title: string } | null>(null);
   
-  const { canCreateNotes } = useNotesPermissions();
+  const { canCreateDocuments } = useDocumentationPermissions();
   
   const { 
     documents, 
@@ -159,7 +159,7 @@ export const DocumentationPage: React.FC = () => {
           </div>
           
           <div className="flex gap-2">
-            {canCreateNotes && (
+            {canCreateDocuments && (
               <Button 
                 variant="outline"
                 onClick={() => setShowTemplateSelector(true)}
@@ -168,7 +168,7 @@ export const DocumentationPage: React.FC = () => {
                 Plantillas
               </Button>
             )}
-            {canCreateNotes && (
+            {canCreateDocuments && (
               <Button onClick={handleNewDocument}>
                 + Nuevo Documento
               </Button>

@@ -15,6 +15,7 @@ import { Modal } from '@/shared/components/ui/Modal';
 import { ConfirmationModal } from '@/shared/components/ui/ConfirmationModal';
 import { useDocumentTypes } from '../../hooks/useDocumentTypes';
 import { useNotification } from '@/shared/components/notifications/NotificationSystem';
+import { useUserProfile } from '@/user-management/hooks/useUserProfile';
 import type { CreateDocumentTypeRequest, UpdateDocumentTypeRequest, DocumentType } from '../../services/documentTypesService';
 
 interface DocumentTypeFormData {
@@ -51,6 +52,7 @@ const COLOR_OPTIONS = [
 
 export const DocumentTypesAdmin: React.FC = () => {
   const { showSuccess, showError } = useNotification();
+  const { data: userProfile } = useUserProfile();
   
   const {
     allTypes,
@@ -158,8 +160,18 @@ export const DocumentTypesAdmin: React.FC = () => {
           updates: formData as UpdateDocumentTypeRequest
         });
       } else {
-        // Crear
-        createType(formData as CreateDocumentTypeRequest);
+        // Crear - Agregar created_by del usuario actual
+        if (!userProfile?.id) {
+          showError('Error: Usuario no autenticado');
+          return;
+        }
+        
+        const createData: CreateDocumentTypeRequest = {
+          ...formData,
+          created_by: userProfile.id
+        };
+        
+        createType(createData);
       }
 
       handleCloseModal();
