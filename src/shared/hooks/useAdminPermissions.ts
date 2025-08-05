@@ -59,12 +59,16 @@ export interface AdminPermissions {
   // Helper functions
   isAdmin: boolean;
   hasAnyAdminPermission: boolean;
+  
+  // Funciones de verificación de permisos
+  hasPermission: (permissionName: string) => boolean;
+  hasPermissionWithScope: (resource: string, action: string, scopes?: string[]) => boolean;
 }
 
 // ================================================================
-// OBTENER PERMISOS DEL USUARIO ACTUAL
+// OBTENER PERMISOS DEL USUARIO ACTUAL - FUNCIÓN EXPORTADA
 // ================================================================
-const getUserPermissions = async (userId: string): Promise<string[]> => {
+export const getUserPermissions = async (userId: string): Promise<string[]> => {
   try {
     console.log('🔍 [AdminPermissions] Obteniendo permisos para usuario:', userId);
     
@@ -254,7 +258,11 @@ export const useAdminPermissions = (): AdminPermissions => {
       p.includes('config.') ||
       p.includes('tags.') ||
       p.includes('document_types.')
-    )
+    ),
+    
+    // Funciones de verificación de permisos
+    hasPermission,
+    hasPermissionWithScope
   };
 
   return permissions;

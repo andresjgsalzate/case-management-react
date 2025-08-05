@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/shared/lib/supabase';
 import { usePermissions } from '@/user-management/hooks/useUserProfile';
+import { useDashboardPermissions } from './useDashboardPermissions';
 
 // Interfaces para las métricas
 export interface TimeMetrics {
@@ -57,7 +58,8 @@ const getCurrentMonthRange = () => {
 
 // Hook para métricas generales de tiempo (SOLO DEL MES ACTUAL)
 export const useTimeMetrics = () => {
-  const { canViewAllCases, userProfile } = usePermissions();
+  const { userProfile } = usePermissions();
+  const dashboardPermissions = useDashboardPermissions();
   
   return useQuery({
     queryKey: ['timeMetrics', userProfile?.id, new Date().getMonth(), new Date().getFullYear()],
@@ -69,9 +71,20 @@ export const useTimeMetrics = () => {
         .from('case_control_detailed')
         .select('case_id, is_timer_active');
 
-      // Si el usuario NO puede ver todos los casos, filtrar solo los suyos
-      if (!canViewAllCases() && userProfile?.id) {
+      // Aplicar filtros basados en los permisos de dashboard
+      if (dashboardPermissions.canReadAllMetrics) {
+        // Admin: puede ver métricas de toda la organización
+        // No agregar filtros adicionales
+      } else if (dashboardPermissions.canReadTeamMetrics) {
+        // Team: por ahora igual que 'all' hasta que se implemente la jerarquía
+        // TODO: Implementar filtrado por equipo cuando se defina la estructura
+        console.log('🔧 [Dashboard] Filtrado por equipo no implementado aún');
+      } else if (dashboardPermissions.canReadOwnMetrics && userProfile?.id) {
+        // Own: solo sus propios datos
         caseQuery = caseQuery.eq('user_id', userProfile.id);
+      } else {
+        // Sin permisos: no devolver datos
+        throw new Error('No tiene permisos para ver métricas del dashboard');
       }
 
       const { data: caseData, error: caseError } = await caseQuery;
@@ -97,8 +110,13 @@ export const useTimeMetrics = () => {
         .lte('start_time', monthEnd)
         .not('duration_minutes', 'is', null);
 
-      // Si el usuario NO puede ver todos los casos, filtrar solo los suyos
-      if (!canViewAllCases() && userProfile?.id) {
+      // Aplicar filtros basados en los permisos de dashboard para time entries
+      if (dashboardPermissions.canReadAllMetrics) {
+        // Admin: no filtrar
+      } else if (dashboardPermissions.canReadTeamMetrics) {
+        // Team: por ahora igual que 'all' 
+        console.log('🔧 [Dashboard] Filtrado por equipo no implementado aún');
+      } else if (dashboardPermissions.canReadOwnMetrics && userProfile?.id) {
         timeQuery = timeQuery.eq('case_control.user_id', userProfile.id);
       }
 
@@ -115,8 +133,13 @@ export const useTimeMetrics = () => {
         .gte('date', monthStart.split('T')[0])
         .lte('date', monthEnd.split('T')[0]);
 
-      // Si el usuario NO puede ver todos los casos, filtrar solo los suyos
-      if (!canViewAllCases() && userProfile?.id) {
+      // Aplicar filtros basados en los permisos de dashboard para manual entries
+      if (dashboardPermissions.canReadAllMetrics) {
+        // Admin: no filtrar
+      } else if (dashboardPermissions.canReadTeamMetrics) {
+        // Team: por ahora igual que 'all'
+        console.log('🔧 [Dashboard] Filtrado por equipo no implementado aún');
+      } else if (dashboardPermissions.canReadOwnMetrics && userProfile?.id) {
         manualQuery = manualQuery.eq('case_control.user_id', userProfile.id);
       }
 
@@ -150,7 +173,7 @@ export const useTimeMetrics = () => {
         currentYear: now.getFullYear(),
       };
     },
-    enabled: !!userProfile, // Solo ejecutar cuando tengamos el perfil del usuario
+    enabled: !!userProfile && dashboardPermissions.hasAnyDashboardPermission(), // Solo ejecutar cuando tenga permisos
     staleTime: 1000 * 60 * 5, // 5 minutos
   });
 };
