@@ -1,5 +1,9 @@
 /**
- * =================================================================
+ * =======================  useEffect(() => {
+    if (id) {
+      getDocument(id);
+    }
+  }, [id, getDocument]);==============================
  * PÁGINA: EDITAR DOCUMENTO DE SOLUCIÓN
  * =================================================================
  * Descripción: Página para editar un documento específico
@@ -14,6 +18,7 @@ import { PageWrapper } from '@/shared/components/layout/PageWrapper';
 import { Button } from '@/shared/components/ui/Button';
 import { EnhancedDocumentationEditor } from '../components/documentation/editor/EnhancedDocumentationEditor';
 import { BlockNoteContentViewer } from '../components/documentation/BlockNoteContentViewer';
+import { PdfExportButton } from '../components/documentation/PdfExportButton';
 import { UserDisplay } from '../components/UserDisplay';
 import { CaseDisplay } from '../components/CaseDisplay';
 import { useDocumentation } from '../hooks/useDocumentation';
@@ -174,6 +179,28 @@ export const DocumentEditPage: React.FC = () => {
                   </div>
                 </div>
                 <div className="flex gap-2">
+                  <PdfExportButton
+                    documentData={{
+                      id: document.id,
+                      title: document.title,
+                      content: document.content as any,
+                      created_at: document.created_at,
+                      updated_at: document.updated_at,
+                      created_by: document.created_by,
+                      created_by_profile: document.created_by_profile,
+                      case_id: document.case_id,
+                      archived_case_id: document.archived_case_id,
+                      case_reference_type: document.case_reference_type,
+                      case_info: document.case_info,
+                      category: document.solution_type,
+                      tags: document.tags?.map(tag => tag.name) || [],
+                      difficulty_level: document.difficulty_level,
+                      estimated_solution_time: document.estimated_solution_time,
+                      solution_type: document.solution_type
+                    }}
+                    variant="outline"
+                    size="md"
+                  />
                   <Button
                     variant="outline"
                     onClick={() => navigate(`/documentation/${id}/edit`)}
@@ -223,17 +250,40 @@ export const DocumentEditPage: React.FC = () => {
               )}
               
               {/* Contenido renderizado */}
-              <div className="p-6">
-                {document.content ? (
-                  <BlockNoteContentViewer 
-                    content={document.content}
-                    className="prose dark:prose-invert max-w-none"
-                  />
-                ) : (
-                  <p className="text-gray-500 dark:text-gray-400 italic">
-                    Este documento no tiene contenido.
-                  </p>
-                )}
+              <div id="document-content" className="p-6" data-pdf-content>
+                <div id="document-pdf-content" className="pdf-export-wrapper">
+                  <h1 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white">
+                    {document.title}
+                  </h1>
+                  
+                  <div className="document-metadata mb-6 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg border-l-4 border-blue-500">
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                      <div><strong>Tipo:</strong> {document.solution_type}</div>
+                      <div><strong>Dificultad:</strong> {'⭐'.repeat(document.difficulty_level || 1)}</div>
+                      <div><strong>Creado:</strong> {new Date(document.created_at).toLocaleDateString('es-ES')}</div>
+                      <div><strong>Vistas:</strong> {document.view_count || 0}</div>
+                    </div>
+                    {document.tags && document.tags.length > 0 && (
+                      <div className="mt-3">
+                        <strong>Etiquetas:</strong> {document.tags.map(tag => tag.name).join(', ')}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="document-main-content">
+                    {document.content ? (
+                      <BlockNoteContentViewer 
+                        content={document.content}
+                        documentId={document.id}
+                        className="prose dark:prose-invert max-w-none"
+                      />
+                    ) : (
+                      <p className="text-gray-500 dark:text-gray-400 italic">
+                        Este documento no tiene contenido.
+                      </p>
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
           </div>

@@ -9,11 +9,12 @@
  * =================================================================
  */
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useRef } from 'react';
 import { PartialBlock } from "@blocknote/core";
 import { useCreateBlockNote } from "@blocknote/react";
 import { BlockNoteView } from "@blocknote/mantine";
 import { useTheme as useNextTheme } from 'next-themes';
+import { StorageService } from '../../../../shared/services/StorageService';
 
 // ===== ESTILOS =====
 import "@blocknote/core/fonts/inter.css";
@@ -24,14 +25,31 @@ interface BlockNoteDocumentEditorProps {
   onChange: (blocks: PartialBlock[]) => void;
   readOnly?: boolean;
   className?: string;
+  documentId?: string; // ID del documento para asociar archivos
 }
 
 export const BlockNoteDocumentEditor: React.FC<BlockNoteDocumentEditorProps> = ({
   value,
   onChange,
   readOnly = false,
-  className = ""
+  className = "",
+  documentId
 }) => {
+  // Debug logs (optimizado para performance)
+  const logRef = useRef(Date.now());
+  const changeLogRef = useRef(Date.now());
+  
+  if (Date.now() - logRef.current > 2000) { // Solo log cada 2 segundos
+    console.log('🎯 BlockNoteDocumentEditor inicializado:', {
+      documentId: documentId,
+      hasDocumentId: !!documentId,
+      readOnly: readOnly,
+      hasValue: value && value.length > 0,
+      timestamp: new Date().toISOString()
+    });
+    logRef.current = Date.now();
+  }
+
   const { theme } = useNextTheme();
 
   // ===== DERIVAR isDarkMode del tema =====
@@ -43,13 +61,70 @@ export const BlockNoteDocumentEditor: React.FC<BlockNoteDocumentEditorProps> = (
   const editor = useCreateBlockNote({
     initialContent: value && value.length > 0 ? value : undefined,
     uploadFile: async (file: File) => {
-      const url = URL.createObjectURL(file);
-      return url;
+      console.log('🔥 BLOCKNOTE UPLOAD INICIADO:', {
+        fileName: file.name,
+        fileSize: file.size,
+        fileType: file.type,
+        documentId: documentId,
+        timestamp: new Date().toISOString()
+      });
+
+      try {
+        // Usar StorageService para subir archivos reales
+        console.log('📤 Llamando StorageService.uploadFile...');
+        const result = await StorageService.uploadFile(file, documentId, {
+          isEmbedded: true
+        });
+
+        console.log('📥 Resultado de StorageService:', {
+          success: result.success,
+          hasData: !!result.data,
+          error: result.error,
+          url: result.data?.url,
+          fileId: result.data?.id
+        });
+
+        if (result.success && result.data) {
+          console.log('✅ ARCHIVO SUBIDO EXITOSAMENTE:', {
+            url: result.data.url,
+            fileId: result.data.id,
+            fileName: file.name,
+            documentId: documentId
+          });
+          return result.data.url;
+        } else {
+          console.error('❌ ERROR EN SUBIDA - usando URL temporal:', result.error);
+          // Fallback a URL temporal si falla la subida
+          const tempUrl = URL.createObjectURL(file);
+          console.log('🔄 URL temporal creada:', tempUrl);
+          return tempUrl;
+        }
+      } catch (error) {
+        console.error('💥 EXCEPCIÓN EN UPLOAD:', {
+          error: error,
+          fileName: file.name,
+          documentId: documentId
+        });
+        // Fallback a URL temporal si hay error
+        const tempUrl = URL.createObjectURL(file);
+        console.log('🔄 URL temporal de emergencia:', tempUrl);
+        return tempUrl;
+      }
     },
   });
 
-  // ===== MANEJAR CAMBIOS =====
+  // ===== MANEJAR CAMBIOS (optimizado) =====
   const handleChange = () => {
+    // Solo log cada 3 segundos para handleChange
+    if (Date.now() - changeLogRef.current > 3000) {
+      console.log('📝 BlockNote handleChange ejecutado:', {
+        documentId: documentId,
+        hasDocument: !!documentId,
+        documentLength: editor.document.length,
+        timestamp: new Date().toISOString()
+      });
+      changeLogRef.current = Date.now();
+    }
     onChange(editor.document);
   };
 
@@ -84,6 +159,15 @@ export const convertFromLegacyToBlockNote = (legacyContent: any): PartialBlock[]
     return createEmptyBlockNoteContent();
   }
 
+  // ===== VERIFICAR SI YA ES FORMATO BLOCKNOTE =====
+  if (Array.isArray(legacyContent)) {
+    const firstItem = legacyContent[0];
+    if (firstItem && typeof firstItem === 'object' && firstItem.id && firstItem.type) {
+      return legacyContent as PartialBlock[];
+    }
+  }
+
+  // ===== CONVERSIÓN DESDE FORMATO LEGACY =====
   try {
     // Convertir desde formato legacy al formato BlockNote
     const blocks: PartialBlock[] = [];
@@ -147,6 +231,13 @@ export const convertFromLegacyToBlockNote = (legacyContent: any): PartialBlock[]
             });
         }
       }
+    });
+
+    console.log('✅ CONVERSIÓN LEGACY COMPLETADA:', {
+      originalKeysCount: Object.keys(legacyContent).length,
+      generatedBlocksCount: blocks.length,
+      blocks: blocks.map(b => ({ type: b.type, hasContent: !!b.content })),
+      willReturnEmpty: blocks.length === 0
     });
 
     return blocks.length > 0 ? blocks : createEmptyBlockNoteContent();

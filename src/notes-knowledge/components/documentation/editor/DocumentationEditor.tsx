@@ -94,6 +94,7 @@ export const DocumentationEditor: React.FC<DocumentationEditorProps> = ({
             <BlockNoteDocumentEditor
               value={blockNoteContent}
               onChange={setBlockNoteContent}
+              documentId={document?.id}
               className="w-full"
             />
           </div>

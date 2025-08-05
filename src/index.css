@@ -50,7 +50,236 @@
   --ring: 0 0% 83.1%;
 }
 
-/* ===== BLOCKNOTE EDITOR STYLES ===== */
+/* ===== ESTILOS PARA EXPORTACIÓN PDF ===== */
+@media print {
+  .pdf-export-wrapper {
+    background: white !important;
+    color: black !important;
+  }
+  
+  .pdf-export-wrapper * {
+    background: transparent !important;
+    color: black !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+  
+  .pdf-export-wrapper h1,
+  .pdf-export-wrapper h2,
+  .pdf-export-wrapper h3,
+  .pdf-export-wrapper h4,
+  .pdf-export-wrapper h5,
+  .pdf-export-wrapper h6 {
+    color: #1a1a1a !important;
+    page-break-after: avoid;
+  }
+  
+  .pdf-export-wrapper p {
+    color: #374151 !important;
+    line-height: 1.6;
+  }
+  
+  .pdf-export-wrapper .document-metadata {
+    background: #f9f9f9 !important;
+    border-left: 4px solid #3b82f6 !important;
+    padding: 16px !important;
+    margin-bottom: 24px !important;
+  }
+  
+  .pdf-export-wrapper ul,
+  .pdf-export-wrapper ol {
+    color: #374151 !important;
+  }
+  
+  .pdf-export-wrapper strong {
+    color: #1a1a1a !important;
+  }
+  
+  .pdf-export-wrapper code {
+    background: #f3f4f6 !important;
+    color: #1f2937 !important;
+    padding: 2px 4px !important;
+    border-radius: 4px !important;
+  }
+  
+  .pdf-export-wrapper pre {
+    background: #f3f4f6 !important;
+    color: #1f2937 !important;
+    padding: 16px !important;
+    border-radius: 8px !important;
+    overflow: visible !important;
+  }
+  
+  .pdf-export-wrapper blockquote {
+    border-left: 4px solid #d1d5db !important;
+    padding-left: 16px !important;
+    margin: 16px 0 !important;
+    color: #6b7280 !important;
+  }
+  
+  .pdf-export-wrapper table {
+    border-collapse: collapse !important;
+    width: 100% !important;
+  }
+  
+  .pdf-export-wrapper th,
+  .pdf-export-wrapper td {
+    border: 1px solid #d1d5db !important;
+    padding: 8px !important;
+    text-align: left !important;
+    color: #374151 !important;
+  }
+  
+  .pdf-export-wrapper th {
+    background: #f9fafb !important;
+    font-weight: bold !important;
+    color: #1f2937 !important;
+  }
+}
+
+/* Estilos específicos para la clase pdf-export-content usada por el servicio */
+.pdf-export-content {
+  background: white !important;
+  color: black !important;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+  line-height: 1.6 !important;
+  font-size: 14px !important;
+}
+
+.pdf-export-content * {
+  background: transparent !important;
+  color: inherit !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
+}
+
+.pdf-export-content h1 {
+  color: #1a1a1a !important;
+  font-size: 24px !important;
+  font-weight: bold !important;
+  margin: 24px 0 16px 0 !important;
+  page-break-after: avoid !important;
+}
+
+.pdf-export-content h2 {
+  color: #1a1a1a !important;
+  font-size: 20px !important;
+  font-weight: bold !important;
+  margin: 20px 0 12px 0 !important;
+  page-break-after: avoid !important;
+}
+
+.pdf-export-content h3 {
+  color: #1a1a1a !important;
+  font-size: 18px !important;
+  font-weight: bold !important;
+  margin: 16px 0 8px 0 !important;
+  page-break-after: avoid !important;
+}
+
+.pdf-export-content p {
+  color: #374151 !important;
+  margin: 0 0 16px 0 !important;
+  line-height: 1.6 !important;
+}
+
+.pdf-export-content ul,
+.pdf-export-content ol {
+  color: #374151 !important;
+  margin: 0 0 16px 20px !important;
+  padding: 0 !important;
+}
+
+.pdf-export-content li {
+  color: #374151 !important;
+  margin: 0 0 8px 0 !important;
+}
+
+.pdf-export-content strong {
+  color: #1a1a1a !important;
+  font-weight: bold !important;
+}
+
+.pdf-export-content em {
+  font-style: italic !important;
+}
+
+.pdf-export-content code {
+  background: #f3f4f6 !important;
+  color: #1f2937 !important;
+  padding: 2px 4px !important;
+  border-radius: 4px !important;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace !important;
+  font-size: 12px !important;
+}
+
+.pdf-export-content pre {
+  background: #f3f4f6 !important;
+  color: #1f2937 !important;
+  padding: 16px !important;
+  border-radius: 8px !important;
+  overflow: visible !important;
+  white-space: pre-wrap !important;
+  margin: 0 0 16px 0 !important;
+}
+
+.pdf-export-content blockquote {
+  border-left: 4px solid #d1d5db !important;
+  padding-left: 16px !important;
+  margin: 16px 0 !important;
+  color: #6b7280 !important;
+  font-style: italic !important;
+}
+
+.pdf-export-content table {
+  border-collapse: collapse !important;
+  width: 100% !important;
+  margin: 0 0 16px 0 !important;
+}
+
+.pdf-export-content th,
+.pdf-export-content td {
+  border: 1px solid #d1d5db !important;
+  padding: 8px 12px !important;
+  text-align: left !important;
+  color: #374151 !important;
+}
+
+.pdf-export-content th {
+  background: #f9fafb !important;
+  font-weight: bold !important;
+  color: #1f2937 !important;
+}
+
+.pdf-export-content .document-metadata {
+  background: #f8fafc !important;
+  border: 1px solid #e2e8f0 !important;
+  border-left: 4px solid #3b82f6 !important;
+  padding: 16px !important;
+  margin: 0 0 24px 0 !important;
+  border-radius: 8px !important;
+}
+
+.pdf-export-content .document-metadata strong {
+  color: #1e293b !important;
+}
+
+.pdf-export-content .document-metadata div {
+  margin: 4px 0 !important;
+}
+
+/* Enlaces en PDF */
+.pdf-export-content a {
+  color: #3b82f6 !important;
+  text-decoration: underline !important;
+}
+
+/* Imágenes en PDF */
+.pdf-export-content img {
+  max-width: 100% !important;
+  height: auto !important;
+  margin: 16px 0 !important;
+}
 .blocknote-editor-wrapper {
   background-color: hsl(var(--background)) !important;
   color: hsl(var(--foreground)) !important;

@@ -8,12 +8,16 @@
  * =================================================================
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/shared/components/ui/Button';
+import { Modal } from '@/shared/components/ui/Modal';
+import { Input } from '@/shared/components/ui/Input';
 import { BlockNoteDocumentEditor, convertFromLegacyToBlockNote, createEmptyBlockNoteContent } from './BlockNoteDocumentEditor';
+
 import { TagSelector } from '../TagSelector';
 import { CaseValidator } from '../CaseValidator';
 import { useDocumentation } from '../../../hooks/useDocumentation';
+import { useActiveDocumentTypes } from '../../../hooks/useDocumentTypes';
 import type { 
   SolutionDocument, 
   SolutionType, 
@@ -22,7 +26,7 @@ import type {
   UpdateSolutionDocumentRequest 
 } from '../../../types';
 import { Save, X, FileText, Trash2 } from 'lucide-react';
-import { SOLUTION_TYPES, DIFFICULTY_LEVELS } from '../../../types';
+import { DIFFICULTY_LEVELS } from '../../../types';
 
 interface EnhancedDocumentationEditorProps {
   document?: SolutionDocument;
@@ -42,6 +46,7 @@ export const EnhancedDocumentationEditor: React.FC<EnhancedDocumentationEditorPr
   showDeleteButton = !!document
 }) => {
   const { createDocument, updateDocument } = useDocumentation();
+  const { data: documentTypes, isLoading: isLoadingTypes } = useActiveDocumentTypes();
 
   // ===== ESTADOS DEL FORMULARIO =====
   const [formData, setFormData] = useState({
@@ -59,12 +64,103 @@ export const EnhancedDocumentationEditor: React.FC<EnhancedDocumentationEditorPr
     selected_tag_ids: document?.tags?.map(tag => tag.id) || [],
   });
 
-  const [blockNoteContent, setBlockNoteContent] = useState(() => 
-    document?.content ? convertFromLegacyToBlockNote(document.content) : createEmptyBlockNoteContent()
-  );
+  const [blockNoteContent, setBlockNoteContent] = useState(() => {
+    return document?.content ? convertFromLegacyToBlockNote(document.content) : createEmptyBlockNoteContent();
+  });
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | undefined>();
+  const [currentDocumentId, setCurrentDocumentId] = useState<string | undefined>(document?.id);
+  
+  // ===== ESTADO PARA MODAL DE CREACIÓN =====
+  const [showCreateModal, setShowCreateModal] = useState(!document); // Mostrar modal si no hay documento
+  const [newDocumentTitle, setNewDocumentTitle] = useState('');
+  const [isCreatingDocument, setIsCreatingDocument] = useState(false);
+
+  // ===== EFECTO PARA DOCUMENTOS EXISTENTES =====
+  useEffect(() => {
+    if (document?.id) {
+      // Asegurar que currentDocumentId esté seteado
+      if (currentDocumentId !== document.id) {
+        setCurrentDocumentId(document.id);
+      }
+      
+      setShowCreateModal(false);
+      
+      // Actualizar form data con datos del documento
+      setFormData(prev => ({
+        ...prev,
+        title: document.title || '',
+        solution_type: document.solution_type || 'solution',
+        difficulty_level: document.difficulty_level || 1,
+        case_id: document.case_id || caseId,
+        archived_case_id: document.archived_case_id,
+        case_reference_type: document.case_reference_type || 'active',
+        selected_tag_ids: document.tags?.map(tag => tag.id) || [],
+        is_template: document.is_template || false,
+        is_published: document.is_published || false,
+      }));
+
+      // Actualizar contenido de BlockNote
+      if (document.content) {
+        const convertedContent = convertFromLegacyToBlockNote(document.content);
+        setBlockNoteContent(convertedContent);
+      }
+    }
+  }, [document, currentDocumentId, caseId]);
+
+  // ===== CREAR DOCUMENTO INMEDIATAMENTE =====
+  const createDocumentImmediately = async (title: string) => {
+    setIsCreatingDocument(true);
+    console.log('🚀 Creando documento inmediatamente con título:', title);
+    
+    try {
+      const documentData: CreateSolutionDocumentRequest = {
+        title: title.trim(),
+        content: createEmptyBlockNoteContent() as any,
+        solution_type: 'solution',
+        difficulty_level: 1,
+        is_template: false,
+        is_published: false,
+        case_id: caseId,
+        case_reference_type: 'active',
+        tag_ids: [],
+      };
+
+      const newDocument = await createDocument(documentData);
+      if (!newDocument?.id) {
+        throw new Error('No se pudo crear el documento');
+      }
+
+      // Actualizar estados
+      setCurrentDocumentId(newDocument.id);
+      setFormData(prev => ({ 
+        ...prev, 
+        title: title.trim() 
+      }));
+      setShowCreateModal(false);
+      
+      return newDocument.id;
+    } catch (error) {
+      console.error('❌ Error creando documento:', error);
+      setError('Error al crear el documento');
+      throw error;
+    } finally {
+      setIsCreatingDocument(false);
+    }
+  };
+
+  const handleCreateDocument = async () => {
+    if (!newDocumentTitle.trim()) {
+      return;
+    }
+    
+    try {
+      await createDocumentImmediately(newDocumentTitle);
+    } catch (error) {
+      // Error ya manejado en createDocumentImmediately
+    }
+  };
 
   // ===== HANDLERS =====
   const updateFormData = (field: string, value: any) => {
@@ -110,9 +206,12 @@ export const EnhancedDocumentationEditor: React.FC<EnhancedDocumentationEditorPr
         tag_ids: formData.selected_tag_ids,
       };
 
-      if (document) {
-        await updateDocument(document.id, documentData as UpdateSolutionDocumentRequest);
+      if (document || currentDocumentId) {
+        // Actualizar documento existente
+        const documentIdToUpdate = document?.id || currentDocumentId!;
+        await updateDocument(documentIdToUpdate, documentData as UpdateSolutionDocumentRequest);
       } else {
+        // Esto no debería pasar ya que creamos el documento inmediatamente
         await createDocument(documentData as CreateSolutionDocumentRequest);
       }
       
@@ -125,7 +224,70 @@ export const EnhancedDocumentationEditor: React.FC<EnhancedDocumentationEditorPr
   };
 
   return (
-    <div className="h-full flex flex-col bg-gray-50 dark:bg-gray-900">
+    <>
+      {/* Modal para crear nuevo documento */}
+      {showCreateModal && (
+        <Modal 
+          isOpen={showCreateModal} 
+          onClose={() => {
+            setShowCreateModal(false);
+            onCancel?.();
+          }}
+          title="Crear Nuevo Documento"
+          size="md"
+        >
+          <div className="space-y-4">
+            <div className="flex items-center space-x-2">
+              <FileText className="h-5 w-5 text-blue-600" />
+              <p className="text-gray-600 dark:text-gray-400">
+                Ingresa el título de tu nuevo documento para comenzar a editarlo:
+              </p>
+            </div>
+            
+            <Input
+              label="Título del Documento *"
+              type="text"
+              value={newDocumentTitle}
+              onChange={(e) => setNewDocumentTitle(e.target.value)}
+              placeholder="Ej: Solución para problema X"
+              autoFocus
+              onKeyPress={(e) => {
+                if (e.key === 'Enter' && newDocumentTitle.trim()) {
+                  handleCreateDocument();
+                }
+              }}
+              error={error}
+            />
+            
+            <div className="flex space-x-3">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setShowCreateModal(false);
+                  onCancel?.();
+                }}
+                disabled={isCreatingDocument}
+                className="flex-1"
+              >
+                <X className="h-4 w-4 mr-2" />
+                Cancelar
+              </Button>
+              <Button
+                onClick={handleCreateDocument}
+                disabled={!newDocumentTitle.trim() || isCreatingDocument}
+                className="flex-1 bg-blue-600 hover:bg-blue-700"
+              >
+                <FileText className="h-4 w-4 mr-2" />
+                {isCreatingDocument ? 'Creando...' : 'Crear Documento'}
+              </Button>
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {/* Contenido principal del editor */}
+      {!showCreateModal && (document || currentDocumentId) ? (
+        <div className="h-full flex flex-col bg-gray-50 dark:bg-gray-900">
       {/* Header */}
       <div className="flex-none bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4">
         <div className="flex items-center justify-between">
@@ -206,12 +368,17 @@ export const EnhancedDocumentationEditor: React.FC<EnhancedDocumentationEditorPr
                     value={formData.solution_type}
                     onChange={(e) => updateFormData('solution_type', e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-md focus:ring-blue-500 focus:border-blue-500"
+                    disabled={isLoadingTypes}
                   >
-                    {SOLUTION_TYPES.map(type => (
-                      <option key={type.value} value={type.value}>
-                        {type.label} - {type.description}
-                      </option>
-                    ))}
+                    {isLoadingTypes ? (
+                      <option value="">Cargando tipos...</option>
+                    ) : (
+                      documentTypes?.map(type => (
+                        <option key={type.id} value={type.code}>
+                          {type.name} - {type.description}
+                        </option>
+                      ))
+                    )}
                   </select>
                 </div>
 
@@ -334,16 +501,53 @@ export const EnhancedDocumentationEditor: React.FC<EnhancedDocumentationEditorPr
             <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
               <h3 className="text-lg font-medium text-gray-900 dark:text-white">Contenido del Documento</h3>
             </div>
-            <div className="p-0">
-              <BlockNoteDocumentEditor
-                value={blockNoteContent}
-                onChange={setBlockNoteContent}
-                className="w-full"
-              />
+            <div id="editor-content" className="p-0" data-pdf-content>
+              <div className="pdf-export-wrapper p-6">
+                <h1 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white">
+                  {formData.title || 'Documento sin título'}
+                </h1>
+                
+                <div className="document-metadata mb-6 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg border-l-4 border-blue-500">
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div><strong>Tipo:</strong> {formData.solution_type}</div>
+                    <div><strong>Dificultad:</strong> {'⭐'.repeat(formData.difficulty_level || 1)}</div>
+                    <div><strong>Estado:</strong> {formData.is_published ? 'Publicado' : 'Borrador'}</div>
+                    <div><strong>Plantilla:</strong> {formData.is_template ? 'Sí' : 'No'}</div>
+                  </div>
+                  {formData.prerequisites && (
+                    <div className="mt-3">
+                      <strong>Prerrequisitos:</strong> {formData.prerequisites}
+                    </div>
+                  )}
+                </div>
+
+                <div className="document-main-content">
+                  <BlockNoteDocumentEditor
+                    value={blockNoteContent}
+                    onChange={setBlockNoteContent}
+                    documentId={currentDocumentId || document?.id}
+                    className="w-full"
+                  />
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
+        </div>
+      ) : (
+        <div className="h-full flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+          <div className="text-center">
+            <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+              No hay documento para mostrar
+            </h3>
+            <p className="text-gray-500 dark:text-gray-400">
+              El documento no se ha cargado correctamente
+            </p>
+          </div>
+        </div>
+      )}
+    </>
   );
 };

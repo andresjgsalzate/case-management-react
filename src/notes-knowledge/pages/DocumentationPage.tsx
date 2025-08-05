@@ -195,6 +195,7 @@ export const DocumentationPage: React.FC = () => {
                 {documents.map((doc: any) => (
                   <div 
                     key={doc.id}
+                    id={`document-card-${doc.id}`}
                     data-document-id={doc.id}
                     className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                   >

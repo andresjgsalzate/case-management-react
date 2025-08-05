@@ -44,6 +44,47 @@ export class DocumentationService {
     }
   }
 
+  // ===== FUNCIÓN AUXILIAR: OBTENER INFORMACIÓN DEL CASO =====
+  private static async getCaseInfo(caseId: string, isArchived: boolean = false): Promise<{numero_caso?: string, descripcion?: string} | null> {
+    try {
+      if (isArchived) {
+        // Buscar en casos archivados
+        const { data, error } = await supabase
+          .from('archived_cases')
+          .select('case_number, description')
+          .eq('id', caseId)
+          .single();
+        
+        if (error || !data) {
+          return null;
+        }
+        
+        return {
+          numero_caso: data.case_number,
+          descripcion: data.description
+        };
+      } else {
+        // Buscar en casos activos
+        const { data, error } = await supabase
+          .from('cases')
+          .select('numero_caso, descripcion')
+          .eq('id', caseId)
+          .single();
+        
+        if (error || !data) {
+          return null;
+        }
+        
+        return {
+          numero_caso: data.numero_caso,
+          descripcion: data.descripcion
+        };
+      }
+    } catch (error) {
+      return null;
+    }
+  }
+
   // ===== FUNCIÓN AUXILIAR: LIMPIAR DATOS =====
   private static cleanDataForDatabase(data: any): any {
     const cleaned = { ...data };
@@ -261,10 +302,23 @@ export class DocumentationService {
     // Obtener etiquetas del documento
     const tags = await SolutionTagsService.getDocumentTags(id);
 
+    // Obtener perfil del usuario creador
+    const userProfile = await this.getUserProfile(data.created_by);
+
+    // Obtener información del caso si existe
+    let caseInfo = null;
+    if (data.case_id) {
+      caseInfo = await this.getCaseInfo(data.case_id, false); // Caso activo
+    } else if (data.archived_case_id) {
+      caseInfo = await this.getCaseInfo(data.archived_case_id, true); // Caso archivado
+    }
+
     return {
       ...data,
       tags,
-    };
+      created_by_profile: userProfile,
+      case_info: caseInfo // Agregar información del caso
+    } as any; // Casting temporal mientras se actualiza la interface
   }
 
   // ===== BUSCAR DOCUMENTOS CON BÚSQUEDA AVANZADA =====

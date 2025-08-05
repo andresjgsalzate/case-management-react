@@ -1,0 +1,196 @@
+/**
+ * =================================================================
+ * ESTILOS PARA EXPORTACIÓN PDF
+ * =================================================================
+ * Descripción: Estilos específicos para mejorar la apariencia de PDF exports
+ * Versión: 1.0
+ * Fecha: 4 de Agosto, 2025
+ * =================================================================
+ */
+
+/* Estilos base para contenido de PDF */
+.pdf-export-content {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+  font-family: Arial, Helvetica, sans-serif !important;
+  font-size: 14px !important;
+  line-height: 1.6 !important;
+  padding: 20px !important;
+}
+
+/* Headings para PDF */
+.pdf-export-content h1,
+.pdf-export-content h2,
+.pdf-export-content h3,
+.pdf-export-content h4,
+.pdf-export-content h5,
+.pdf-export-content h6 {
+  color: #000000 !important;
+  font-weight: bold !important;
+  margin-top: 20px !important;
+  margin-bottom: 10px !important;
+  page-break-after: avoid !important;
+}
+
+.pdf-export-content h1 {
+  font-size: 24px !important;
+  border-bottom: 2px solid #000000 !important;
+  padding-bottom: 8px !important;
+}
+
+.pdf-export-content h2 {
+  font-size: 20px !important;
+}
+
+.pdf-export-content h3 {
+  font-size: 18px !important;
+}
+
+/* Párrafos para PDF */
+.pdf-export-content p {
+  margin-bottom: 12px !important;
+  page-break-inside: avoid !important;
+  orphans: 3 !important;
+  widows: 3 !important;
+}
+
+/* Listas para PDF */
+.pdf-export-content ul,
+.pdf-export-content ol {
+  margin-left: 20px !important;
+  margin-bottom: 12px !important;
+}
+
+.pdf-export-content li {
+  margin-bottom: 6px !important;
+  page-break-inside: avoid !important;
+}
+
+/* Código para PDF */
+.pdf-export-content code {
+  background-color: #f5f5f5 !important;
+  border: 1px solid #dddddd !important;
+  padding: 2px 4px !important;
+  border-radius: 3px !important;
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace !important;
+  font-size: 12px !important;
+}
+
+.pdf-export-content pre {
+  background-color: #f5f5f5 !important;
+  border: 1px solid #dddddd !important;
+  padding: 12px !important;
+  border-radius: 4px !important;
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace !important;
+  font-size: 12px !important;
+  overflow-x: auto !important;
+  page-break-inside: avoid !important;
+  margin: 12px 0 !important;
+}
+
+.pdf-export-content pre code {
+  background: none !important;
+  border: none !important;
+  padding: 0 !important;
+}
+
+/* Tablas para PDF */
+.pdf-export-content table {
+  border-collapse: collapse !important;
+  width: 100% !important;
+  margin: 12px 0 !important;
+  page-break-inside: avoid !important;
+}
+
+.pdf-export-content th,
+.pdf-export-content td {
+  border: 1px solid #dddddd !important;
+  padding: 8px 12px !important;
+  text-align: left !important;
+}
+
+.pdf-export-content th {
+  background-color: #f5f5f5 !important;
+  font-weight: bold !important;
+}
+
+/* Enlaces para PDF */
+.pdf-export-content a {
+  color: #0066cc !important;
+  text-decoration: underline !important;
+}
+
+/* Imágenes para PDF */
+.pdf-export-content img {
+  max-width: 100% !important;
+  height: auto !important;
+  page-break-inside: avoid !important;
+  margin: 12px 0 !important;
+}
+
+/* Blockquotes para PDF */
+.pdf-export-content blockquote {
+  border-left: 4px solid #dddddd !important;
+  margin: 12px 0 !important;
+  padding-left: 16px !important;
+  font-style: italic !important;
+  color: #666666 !important;
+}
+
+/* Separadores para PDF */
+.pdf-export-content hr {
+  border: none !important;
+  border-top: 1px solid #dddddd !important;
+  margin: 20px 0 !important;
+}
+
+/* Ocultar elementos que no deben aparecer en PDF */
+.pdf-export-content .no-print,
+.pdf-export-content [data-no-print] {
+  display: none !important;
+}
+
+/* Forzar saltos de página */
+.pdf-export-content .page-break-before {
+  page-break-before: always !important;
+}
+
+.pdf-export-content .page-break-after {
+  page-break-after: always !important;
+}
+
+/* Evitar saltos de página */
+.pdf-export-content .no-page-break {
+  page-break-inside: avoid !important;
+}
+
+/* Estilos específicos para BlockNote */
+.pdf-export-content .bn-editor {
+  background: none !important;
+}
+
+.pdf-export-content .bn-block-group {
+  margin: 0 !important;
+}
+
+.pdf-export-content .bn-block {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* Remover sombras y efectos visuales */
+.pdf-export-content * {
+  box-shadow: none !important;
+  text-shadow: none !important;
+  border-radius: 0 !important;
+}
+
+/* Asegurar que el texto sea legible */
+.pdf-export-content * {
+  background-image: none !important;
+  background-color: transparent !important;
+}
+
+.pdf-export-content *:not(code):not(pre) {
+  color: #000000 !important;
+}

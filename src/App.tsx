@@ -21,12 +21,14 @@ import { RolesPage } from '@/user-management/pages/admin/RolesPage';
 import { PermissionsPage } from '@/user-management/pages/admin/PermissionsPage';
 import { ConfigurationPage } from '@/user-management/pages/admin/ConfigurationPage';
 import { TagsPage } from '@/notes-knowledge/pages/admin/TagsPage';
+import { DocumentTypesAdmin } from '@/notes-knowledge/components/admin/DocumentTypesAdmin';
 import CaseControlPage from '@/time-control/pages/CaseControl';
 import TodosPage from '@/task-management/pages/TodosPage';
 import { NotesPage } from '@/notes-knowledge/pages/NotesPage';
 import { DocumentationPage } from '@/notes-knowledge/pages/DocumentationPage';
 import { DocumentEditPage } from '@/notes-knowledge/pages/DocumentEditPage';
 import { TestDocumentationPage } from '@/notes-knowledge/pages/TestDocumentationPage';
+import { PermissionsTestPage } from '@/user-management/pages/PermissionsTestPage';
 import { ArchivePage } from '@/archive-management/pages/ArchivePage';
 import { DisposicionScriptsPage } from '@/disposicion-scripts/pages/DisposicionScriptsPage';
 
@@ -145,10 +147,12 @@ function AppContent() {
         <Route path="/admin/permissions" element={<PermissionsPage />} />
         <Route path="/admin/config" element={<ConfigurationPage />} />
         <Route path="/admin/tags" element={<TagsPage />} />
+        <Route path="/admin/document-types" element={<DocumentTypesAdmin />} />
         
         {/* Test Routes - SOLO PARA ADMINS */}
         <Route path="/auth-test" element={<AdminOnlyRoute><AuthTestPage /></AdminOnlyRoute>} />
         <Route path="/data-test" element={<AdminOnlyRoute><DataTestPage /></AdminOnlyRoute>} />
+        <Route path="/permissions-test" element={<AdminOnlyRoute><PermissionsTestPage /></AdminOnlyRoute>} />
         
         <Route path="*" element={<div>Página no encontrada</div>} />
       </Routes>

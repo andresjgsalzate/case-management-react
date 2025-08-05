@@ -14,11 +14,13 @@ import { BlockNoteDocumentEditor, convertFromLegacyToBlockNote } from './editor/
 interface BlockNoteContentViewerProps {
   content: any;
   className?: string;
+  documentId?: string; // Agregar documentId para archivos
 }
 
 export const BlockNoteContentViewer: React.FC<BlockNoteContentViewerProps> = ({
   content,
-  className = ""
+  className = "",
+  documentId
 }) => {
   return (
     <div className={`blocknote-viewer ${className}`}>
@@ -27,6 +29,7 @@ export const BlockNoteContentViewer: React.FC<BlockNoteContentViewerProps> = ({
         onChange={() => {}} // No-op para modo solo lectura
         readOnly={true}
         className="w-full"
+        documentId={documentId}
       />
     </div>
   );

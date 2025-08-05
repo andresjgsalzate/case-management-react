@@ -17,6 +17,22 @@ export type SolutionType = 'solution' | 'guide' | 'faq' | 'template' | 'procedur
 export type CaseReferenceType = 'active' | 'archived' | 'both';
 export type TagCategory = 'priority' | 'technical' | 'type' | 'technology' | 'module' | 'custom';
 
+// ===== TIPOS DE DOCUMENTOS PARAMETRIZABLES =====
+
+export interface DocumentType {
+  id: string;
+  code: string;
+  name: string;
+  description?: string;
+  icon?: string;
+  color: string;
+  is_active: boolean;
+  display_order: number;
+  created_by: string;
+  created_at: string;
+  updated_at: string;
+}
+
 // ===== ETIQUETAS REUTILIZABLES =====
 
 export interface SolutionTag {
@@ -89,6 +105,18 @@ export interface SolutionDocument {
   
   // Etiquetas (populadas)
   tags?: SolutionTag[];
+  
+  // Perfil del usuario creador (populado)
+  created_by_profile?: {
+    full_name?: string;
+    email?: string;
+  };
+  
+  // Información del caso (populada)
+  case_info?: {
+    numero_caso?: string;
+    descripcion?: string;
+  };
   
   // Timestamps
   created_at: string;
