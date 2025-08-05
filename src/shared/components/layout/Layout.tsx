@@ -28,6 +28,8 @@ import { useUserPermissions } from '@/user-management/hooks/useUserPermissions';
 import { useAdminPermissions } from '@/shared/hooks/useAdminPermissions';
 import { useCasesPermissions } from '@/case-management/hooks/useCasesPermissions';
 import { useTodoPermissions } from '@/task-management/hooks/useTodoPermissions';
+import { useDisposicionScriptsPermissions } from '@/disposicion-scripts/hooks/useDisposicionScriptsPermissions';
+import { useArchivePermissions } from '@/archive-management/hooks/useArchivePermissions';
 import { useUserProfile } from '@/user-management/hooks/useUserProfile';
 import { useNativeTheme } from '@/shared/hooks/useNativeTheme';
 import { mapRoleToDisplayName } from '@/shared/utils/roleUtils';
@@ -43,6 +45,8 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
   const userPermissions = useUserPermissions();
   const casesPermissions = useCasesPermissions();
   const todoPermissions = useTodoPermissions();
+  const disposicionesPermissions = useDisposicionScriptsPermissions();
+  const archivePermissions = useArchivePermissions();
   const adminPermissions = useAdminPermissions();
   const { isDark, toggleTheme } = useNativeTheme();
   
@@ -54,22 +58,51 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
   const menuRef = useRef<HTMLDivElement>(null);
   const navRef = useRef<HTMLDivElement>(null);
 
-  // Navegación básica
+  // Navegación básica - condicionada por permisos
   const navigation = React.useMemo(() => {
-    const baseNavigation = [
-      { name: 'Dashboard', href: '/', icon: HomeIcon },
-      { name: 'Casos', href: '/cases', icon: DocumentTextIcon },
-      { name: 'Nuevo Caso', href: '/cases/new', icon: PlusIcon },
-      { name: 'Control de Casos', href: '/case-control', icon: ClockIcon },
-      { name: 'Disposiciones', href: '/disposiciones', icon: DocumentArrowUpIcon },
-      { name: 'TODOs', href: '/todos', icon: ListBulletIcon },
-      { name: 'Notas', href: '/notes', icon: ChatBubbleLeftRightIcon },
-      { name: 'Base de Conocimiento', href: '/documentation', icon: BookOpenIcon },
-      { name: 'Archivo', href: '/archive', icon: ArchiveBoxIcon }
-    ];
+    const baseNavigation = [];
+
+    // Dashboard - siempre visible para usuarios autenticados
+    baseNavigation.push({ name: 'Dashboard', href: '/', icon: HomeIcon });
+
+    // Casos - solo si tiene permisos de lectura
+    if (casesPermissions.canReadOwnCases || casesPermissions.canReadTeamCases || casesPermissions.canReadAllCases) {
+      baseNavigation.push({ name: 'Casos', href: '/cases', icon: DocumentTextIcon });
+    }
+
+    // Nuevo Caso - solo si tiene permisos de creación  
+    if (casesPermissions.canCreateOwnCases || casesPermissions.canCreateTeamCases || casesPermissions.canCreateAllCases) {
+      baseNavigation.push({ name: 'Nuevo Caso', href: '/cases/new', icon: PlusIcon });
+    }
+
+    // Control de Casos - solo si tiene permisos de lectura de casos
+    if (casesPermissions.canReadOwnCases || casesPermissions.canReadTeamCases || casesPermissions.canReadAllCases) {
+      baseNavigation.push({ name: 'Control de Casos', href: '/case-control', icon: ClockIcon });
+    }
+
+    // Disposiciones - solo si tiene permisos específicos
+    if (disposicionesPermissions.canReadOwnDisposiciones || disposicionesPermissions.canReadAllDisposiciones) {
+      baseNavigation.push({ name: 'Disposiciones', href: '/disposiciones', icon: DocumentArrowUpIcon });
+    }
+
+    // TODOs - solo si tiene permisos
+    if (todoPermissions.canReadOwnTodos || todoPermissions.canReadTeamTodos || todoPermissions.canReadAllTodos) {
+      baseNavigation.push({ name: 'TODOs', href: '/todos', icon: ListBulletIcon });
+    }
+
+    // Notas - siempre visible (usuarios pueden crear sus propias notas)
+    baseNavigation.push({ name: 'Notas', href: '/notes', icon: ChatBubbleLeftRightIcon });
+
+    // Base de Conocimiento - siempre visible para consulta
+    baseNavigation.push({ name: 'Base de Conocimiento', href: '/documentation', icon: BookOpenIcon });
+
+    // Archivo - solo para usuarios con permisos de archivo
+    if (archivePermissions.canViewOwnArchive || archivePermissions.canViewAllArchive) {
+      baseNavigation.push({ name: 'Archivo', href: '/archive', icon: ArchiveBoxIcon });
+    }
 
     return baseNavigation;
-  }, []);
+  }, [casesPermissions, todoPermissions, disposicionesPermissions, archivePermissions]);
 
   // Secciones de administración agrupadas
   const adminSections = React.useMemo(() => {
