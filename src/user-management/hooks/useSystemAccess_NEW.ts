@@ -26,10 +26,18 @@ export const useSystemAccess = (): SystemAccessResult => {
         };
       }
 
-      // Obtener perfil de usuario
+      // Obtener perfil de usuario con información del rol
       const { data: profileData, error: profileError } = await supabase
         .from('user_profiles')
-        .select('*')
+        .select(`
+          *,
+          role:roles (
+            id,
+            name,
+            description,
+            is_active
+          )
+        `)
         .eq('id', user.id)
         .maybeSingle();
 
@@ -41,16 +49,32 @@ export const useSystemAccess = (): SystemAccessResult => {
       // Si no existe perfil, crear uno por defecto
       let finalProfileData = profileData;
       if (!finalProfileData) {
+        // Buscar el role_id del rol 'user' por defecto
+        const { data: userRole } = await supabase
+          .from('roles')
+          .select('id')
+          .eq('name', 'user')
+          .single();
+
         const { data: newProfile, error: createError } = await supabase
           .from('user_profiles')
           .insert({
             id: user.id,
             email: user.email,
             full_name: user.user_metadata?.full_name || user.email,
-            role_name: 'user',
-            is_active: true
+            role_id: userRole?.id || null,  // Usar role_id en lugar de role_name
+            role_name: 'user',  // Mantener role_name para compatibilidad
+            is_active: false  // ⚠️ CORREGIDO: Nuevos usuarios inactivos por defecto
           })
-          .select('*')
+          .select(`
+            *,
+            role:roles (
+              id,
+              name,
+              description,
+              is_active
+            )
+          `)
           .single();
           
         if (createError) {
@@ -61,12 +85,16 @@ export const useSystemAccess = (): SystemAccessResult => {
         finalProfileData = newProfile;
       }
 
-      // TODOS los usuarios activos tienen acceso
-      const hasAccess = finalProfileData ? finalProfileData.is_active : false;
+      // Determinar el rol del usuario (priorizar la relación role sobre role_name)
+      const userRole = finalProfileData?.role?.name || finalProfileData?.role_name || 'user';
+      
+      // Solo usuarios activos Y con rol diferente a 'user' tienen acceso
+      const hasAccess = finalProfileData ? 
+        (finalProfileData.is_active && userRole !== 'user') : false;
 
       return {
         hasAccess,
-        userRole: finalProfileData?.role_name || 'user',
+        userRole: userRole,
         userEmail: finalProfileData?.email || user.email || null,
         userProfile: finalProfileData,
       };

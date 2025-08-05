@@ -47,14 +47,22 @@ export const useUserProfile = () => {
 
       if (!data) {
         // Auto-crear perfil para nuevos usuarios
+        // Buscar el role_id del rol 'user' por defecto
+        const { data: userRole } = await supabase
+          .from('roles')
+          .select('id')
+          .eq('name', 'user')
+          .single();
+
         const { data: newProfile, error: createError } = await supabase
           .from('user_profiles')
           .insert({
             id: user.id,
             email: user.email,
             full_name: user.user_metadata?.full_name || user.email,
-            role_name: 'user',
-            is_active: true
+            role_id: userRole?.id || null,  // Usar role_id en lugar de solo role_name
+            role_name: 'user',  // Mantener role_name para compatibilidad
+            is_active: false  // ⚠️ CORREGIDO: Nuevos usuarios inactivos por defecto
           })
           .select(`
             *,
@@ -94,7 +102,7 @@ export const useUserProfile = () => {
         avatarUrl: data.avatar_url,
         isActive: data.is_active,
         roleId: data.role_id,
-        roleName: data.role?.name || data.role_name,
+        roleName: data.role?.name || data.role_name,  // Priorizar la relación role
         roleDescription: data.role?.description,
         createdAt: data.created_at,
         updatedAt: data.updated_at,

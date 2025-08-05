@@ -13,7 +13,7 @@ import { TodoControl } from '@/types';
 import { useTodoControl } from '@/task-management/hooks/useTodoControl';
 import { formatDate, formatTimeDetailed, formatDateLocal } from '@/shared/utils/caseUtils';
 import { useNotification } from '@/shared/components/notifications/NotificationSystem';
-import { usePermissions } from '@/user-management/hooks/useUserProfile';
+import { useTodoPermissions } from '@/task-management/hooks/useTodoPermissions';
 
 interface TodoControlDetailsModalProps {
   isOpen: boolean;
@@ -34,13 +34,13 @@ export const TodoControlDetailsModal: React.FC<TodoControlDetailsModalProps> = (
   todoControl
 }) => {
   const { showSuccess, showError } = useNotification();
-  const { hasPermission, isAdmin } = usePermissions();
+  const todoPermissions = useTodoPermissions();
   
   // Verificar permisos para editar tiempo
   const canEditTime = () => {
-    return hasPermission('case_control', 'edit_time') || 
-           hasPermission('todo_control', 'time_tracking') || 
-           isAdmin();
+    return todoPermissions.canControlOwnTodos || 
+           todoPermissions.canControlTeamTodos || 
+           todoPermissions.canControlAllTodos;
   };
   const { 
     getTimeEntries, 

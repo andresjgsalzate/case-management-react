@@ -24,8 +24,11 @@ import {
 import { VersionDisplay } from '@/shared/components/version/VersionDisplay';
 import { VersionModal } from '@/shared/components/version/VersionModal';
 import { useAuth } from '@/shared/hooks/useAuth';
-import { usePermissions } from '@/user-management/hooks/useUserProfile';
+import { useUserPermissions } from '@/user-management/hooks/useUserPermissions';
 import { useAdminPermissions } from '@/shared/hooks/useAdminPermissions';
+import { useCasesPermissions } from '@/case-management/hooks/useCasesPermissions';
+import { useTodoPermissions } from '@/task-management/hooks/useTodoPermissions';
+import { useUserProfile } from '@/user-management/hooks/useUserProfile';
 import { useNativeTheme } from '@/shared/hooks/useNativeTheme';
 import { mapRoleToDisplayName } from '@/shared/utils/roleUtils';
 
@@ -36,7 +39,10 @@ interface LayoutProps {
 export const Layout: React.FC<LayoutProps> = ({ children }) => {
   const location = useLocation();
   const { user, signOut } = useAuth();
-  const { userProfile, canManageUsers, canManageOrigenes, canManageAplicaciones, canViewUsers, canViewOrigenes, canViewAplicaciones, isAdmin } = usePermissions();
+  const { data: userProfile } = useUserProfile();
+  const userPermissions = useUserPermissions();
+  const casesPermissions = useCasesPermissions();
+  const todoPermissions = useTodoPermissions();
   const adminPermissions = useAdminPermissions();
   const { isDark, toggleTheme } = useNativeTheme();
   
@@ -71,7 +77,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
 
     // Sección de usuarios y roles
     const userManagement = [];
-    if (canViewUsers() || canManageUsers()) {
+    if (userPermissions.canViewUsers() || userPermissions.canManageUsers()) {
       userManagement.push({ 
         name: 'Gestionar Usuarios', 
         href: '/admin/users', 
@@ -115,7 +121,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
 
     // Sección de configuración del sistema
     const systemConfig = [];
-    if (canViewOrigenes() || canManageOrigenes() || canViewAplicaciones() || canManageAplicaciones() || adminPermissions.canReadConfig) {
+    if (userPermissions.canViewOrigenes() || userPermissions.canManageOrigenes() || userPermissions.canViewAplicaciones() || userPermissions.canManageAplicaciones() || adminPermissions.canReadConfig) {
       systemConfig.push({ 
         name: 'Configuración', 
         href: '/admin/config', 
@@ -151,7 +157,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
     }
 
     return sections;
-  }, [userProfile, canViewUsers, canManageUsers, canViewOrigenes, canManageOrigenes, canViewAplicaciones, canManageAplicaciones, adminPermissions]);
+  }, [userProfile, userPermissions, adminPermissions]);
 
   // Navegación de desarrollo/test agrupada - SOLO PARA ADMINS
   const devSection = React.useMemo(() => {
@@ -166,7 +172,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
         { name: 'Test Datos', href: '/data-test', icon: DocumentTextIcon },
       ]
     };
-  }, [userProfile, isAdmin]);
+  }, [userProfile, adminPermissions]);
 
   const isActive = React.useCallback((path: string) => {
     if (path === '/' && location.pathname === '/') return true;

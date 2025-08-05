@@ -1,12 +1,12 @@
 import React from 'react';
-import { usePermissions } from '@/user-management/hooks/useUserProfile';
+import { useAdminRoutePermissions } from '@/shared/hooks/useAdminRoutePermissions';
 
 interface AdminOnlyRouteProps {
   children: React.ReactNode;
 }
 
 export const AdminOnlyRoute: React.FC<AdminOnlyRouteProps> = ({ children }) => {
-  const { isActiveUser } = usePermissions();
+  const { isActiveUser } = useAdminRoutePermissions();
 
   // Ahora TODOS los usuarios activos pueden acceder
   if (!isActiveUser()) {

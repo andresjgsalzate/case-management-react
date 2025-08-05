@@ -10,7 +10,7 @@ import {
 import { useUsers, useUpdateUser, useDeleteUser } from '@/user-management/hooks/useUsers';
 import { useRoles } from '../../hooks/useRoles';
 import { mapRoleToDisplayName } from '@/shared/utils/roleUtils';
-import { usePermissions } from '@/user-management/hooks/useUserProfile';
+import { useUserPermissions } from '@/user-management/hooks/useUserPermissions';
 import { UserProfile, UserFormData } from '@/types';
 import { Modal } from '@/shared/components/ui/Modal';
 import { Button } from '@/shared/components/ui/Button';
@@ -148,7 +148,7 @@ const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose, user }) => {
 };
 
 export const UsersPage: React.FC = () => {
-  const { canManageUsers, canViewUsers } = usePermissions();
+  const { canManageUsers, canViewUsers } = useUserPermissions();
   const { data: users, isLoading, error } = useUsers();
   const { data: roles } = useRoles();
   const deleteUser = useDeleteUser();

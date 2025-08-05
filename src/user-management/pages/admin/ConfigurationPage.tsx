@@ -6,7 +6,7 @@ import {
   CogIcon,
   MagnifyingGlassIcon,
 } from '@heroicons/react/24/outline';
-import { usePermissions } from '@/user-management/hooks/useUserProfile';
+import { useUserPermissions } from '@/user-management/hooks/useUserPermissions';
 import { useOrigenes, useCreateOrigen, useUpdateOrigen, useDeleteOrigen } from '@/case-management/hooks/useOrigenesAplicaciones';
 import { useAplicaciones, useCreateAplicacion, useUpdateAplicacion, useDeleteAplicacion } from '@/case-management/hooks/useOrigenesAplicaciones';
 import { 
@@ -431,10 +431,8 @@ export const ConfigurationPage: React.FC = () => {
     canViewAplicaciones,
     canViewCaseStatuses,
     canCreateCaseStatuses,
-    canUpdateCaseStatuses,
-    canDeleteCaseStatuses,
     canManageCaseStatuses
-  } = usePermissions();
+  } = useUserPermissions();
   const { showSuccess, showError } = useNotification();
   
   const { data: origenes } = useOrigenes();
@@ -969,7 +967,7 @@ export const ConfigurationPage: React.FC = () => {
                   </td>
                   <td className="px-4 lg:px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <div className="flex justify-end space-x-2">
-                      {(canUpdateCaseStatuses() || canManageCaseStatuses()) && (
+                      {canManageCaseStatuses() && (
                         <button
                           onClick={() => handleEditCaseStatus(status)}
                           className="text-primary-600 hover:text-primary-900 dark:text-primary-400 dark:hover:text-primary-300"
@@ -977,7 +975,7 @@ export const ConfigurationPage: React.FC = () => {
                           <PencilIcon className="h-5 w-5" />
                         </button>
                       )}
-                      {(canDeleteCaseStatuses() || canManageCaseStatuses()) && (
+                      {canManageCaseStatuses() && (
                         <button
                           onClick={() => handleDeleteCaseStatus(status)}
                           className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
@@ -985,7 +983,7 @@ export const ConfigurationPage: React.FC = () => {
                           <TrashIcon className="h-5 w-5" />
                         </button>
                       )}
-                      {!canUpdateCaseStatuses() && !canDeleteCaseStatuses() && !canManageCaseStatuses() && canViewCaseStatuses() && (
+                      {!canManageCaseStatuses() && canViewCaseStatuses() && (
                         <span className="text-gray-400 text-sm">Solo lectura</span>
                       )}
                     </div>

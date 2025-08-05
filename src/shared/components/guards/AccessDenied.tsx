@@ -7,6 +7,14 @@ interface AccessDeniedProps {
   userRole?: string;
 }
 
+/**
+ * Componente AccessDenied - Se muestra cuando:
+ * 1. Usuario recién registrado (role_name='user', is_active=false)
+ * 2. Usuario con rol 'user' pero activo (is_active=true) - sigue sin acceso
+ * 3. Usuario inactivo (is_active=false) independiente del rol
+ * 
+ * Solo usuarios con is_active=true Y role_name != 'user' pueden acceder
+ */
 export const AccessDenied: React.FC<AccessDeniedProps> = ({ userEmail, userRole }) => {
   const { signOut } = useAuth();
   
@@ -96,7 +104,7 @@ export const AccessDenied: React.FC<AccessDeniedProps> = ({ userEmail, userRole 
                     <span className="text-xs font-medium text-blue-600 dark:text-blue-300">3</span>
                   </div>
                   <p className="text-sm text-gray-600 dark:text-gray-300">
-                    Una vez activada, podrás acceder como <strong>Analista</strong> o <strong>Supervisor</strong> según corresponda.
+                    Una vez activada, podrás acceder como <strong>Analista</strong>, <strong>Supervisor</strong> o <strong>Administrador</strong> según corresponda.
                   </p>
                 </div>
               </div>
@@ -110,19 +118,19 @@ export const AccessDenied: React.FC<AccessDeniedProps> = ({ userEmail, userRole 
               <div className="space-y-2 text-xs">
                 <div className="flex justify-between">
                   <span className="text-gray-600 dark:text-gray-400">👑 Administrador</span>
-                  <span className="text-gray-500">Acceso completo</span>
+                  <span className="text-gray-500">Acceso completo al sistema</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600 dark:text-gray-400">👁️ Supervisor</span>
-                  <span className="text-gray-500">Ver todo, sin eliminar</span>
+                  <span className="text-gray-500">Supervisión y gestión avanzada</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600 dark:text-gray-400">📝 Analista</span>
-                  <span className="text-gray-500">Solo sus casos</span>
+                  <span className="text-gray-500">Gestión de casos asignados</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600 dark:text-gray-400">🚫 Usuario</span>
-                  <span className="text-red-500">Sin acceso</span>
+                  <span className="text-red-500">Sin acceso al sistema</span>
                 </div>
               </div>
             </div>

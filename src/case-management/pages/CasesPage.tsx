@@ -17,7 +17,7 @@ import { formatDateLocal } from '@/shared/utils/caseUtils';
 import { PageWrapper } from '@/shared/components/layout/PageWrapper';
 import { ConfirmationModal } from '@/shared/components/ui/ConfirmationModal';
 import { useNotification } from '@/shared/components/notifications/NotificationSystem';
-import { usePermissions } from '@/user-management/hooks/useUserProfile';
+import { useCasesPermissions } from '@/case-management/hooks/useCasesPermissions';
 
 export const CasesPage: React.FC = () => {
   const { data: cases, isLoading, error, refetch } = useCases();
@@ -25,19 +25,15 @@ export const CasesPage: React.FC = () => {
   const { data: aplicaciones } = useAplicaciones();
   const deleteCase = useDeleteCase();
   const { showSuccess, showError } = useNotification();
-  const { hasPermission, isAdmin } = usePermissions();
+  const casesPermissions = useCasesPermissions();
 
   // Verificar permisos de eliminación
   const canDeleteOwnCases = () => {
-    return hasPermission('cases', 'delete') || hasPermission('cases', 'delete_own') || 
-           // También verificar por el nombre completo del permiso
-           (cases && cases.length > 0 && hasPermission('cases.delete.own', '')) || isAdmin();
+    return casesPermissions.canDeleteOwnCases || casesPermissions.canDeleteAllCases;
   };
 
   const canDeleteAllCases = () => {
-    return hasPermission('cases', 'delete_all') || 
-           // También verificar por el nombre completo del permiso
-           (cases && cases.length > 0 && hasPermission('cases.delete.all', '')) || isAdmin();
+    return casesPermissions.canDeleteAllCases;
   };
 
   // Estados de filtros
