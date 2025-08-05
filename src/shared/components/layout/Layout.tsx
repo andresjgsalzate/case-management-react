@@ -25,6 +25,7 @@ import { VersionDisplay } from '@/shared/components/version/VersionDisplay';
 import { VersionModal } from '@/shared/components/version/VersionModal';
 import { useAuth } from '@/shared/hooks/useAuth';
 import { usePermissions } from '@/user-management/hooks/useUserProfile';
+import { useAdminPermissions } from '@/shared/hooks/useAdminPermissions';
 import { useNativeTheme } from '@/shared/hooks/useNativeTheme';
 import { mapRoleToDisplayName } from '@/shared/utils/roleUtils';
 
@@ -36,7 +37,9 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
   const location = useLocation();
   const { user, signOut } = useAuth();
   const { userProfile, canManageUsers, canManageOrigenes, canManageAplicaciones, canViewUsers, canViewOrigenes, canViewAplicaciones, isAdmin } = usePermissions();
+  const adminPermissions = useAdminPermissions();
   const { isDark, toggleTheme } = useNativeTheme();
+  
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showVersionModal, setShowVersionModal] = useState(false);
   const [openDropdowns, setOpenDropdowns] = useState<Set<string>>(new Set());
@@ -77,24 +80,28 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
     }
 
     // Agregar gestión de roles y permisos para admins
-    if (isAdmin()) {
-      userManagement.push(
-        { 
-          name: 'Gestionar Roles', 
-          href: '/admin/roles', 
-          icon: UserIcon 
-        },
-        { 
-          name: 'Gestionar Permisos', 
-          href: '/admin/permissions', 
-          icon: CogIcon 
-        },
-        { 
-          name: 'Asignar Permisos', 
-          href: '/admin/role-permissions', 
-          icon: WrenchScrewdriverIcon 
-        }
-      );
+    if (adminPermissions.canReadRoles) {
+      userManagement.push({
+        name: 'Gestionar Roles', 
+        href: '/admin/roles', 
+        icon: UserIcon 
+      });
+    }
+
+    if (adminPermissions.canReadPermissions) {
+      userManagement.push({
+        name: 'Gestionar Permisos', 
+        href: '/admin/permissions', 
+        icon: CogIcon 
+      });
+    }
+
+    if (adminPermissions.canReadRolePermissions) {
+      userManagement.push({
+        name: 'Asignar Permisos', 
+        href: '/admin/role-permissions', 
+        icon: WrenchScrewdriverIcon 
+      });
     }
 
     if (userManagement.length > 0) {
@@ -108,7 +115,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
 
     // Sección de configuración del sistema
     const systemConfig = [];
-    if (canViewOrigenes() || canManageOrigenes() || canViewAplicaciones() || canManageAplicaciones()) {
+    if (canViewOrigenes() || canManageOrigenes() || canViewAplicaciones() || canManageAplicaciones() || adminPermissions.canReadConfig) {
       systemConfig.push({ 
         name: 'Configuración', 
         href: '/admin/config', 
@@ -116,8 +123,8 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
       });
     }
 
-    // Gestión de etiquetas (disponible para todos los admins)
-    if (isAdmin()) {
+    // Gestión de etiquetas
+    if (adminPermissions.canReadTags) {
       systemConfig.push({ 
         name: 'Etiquetas', 
         href: '/admin/tags', 
@@ -125,8 +132,8 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
       });
     }
 
-    // Gestión de tipos de documentos (disponible para todos los admins)
-    if (isAdmin()) {
+    // Gestión de tipos de documentos
+    if (adminPermissions.canReadDocumentTypes) {
       systemConfig.push({ 
         name: 'Tipos de Documentos', 
         href: '/admin/document-types', 
@@ -144,11 +151,11 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
     }
 
     return sections;
-  }, [userProfile, canViewUsers, canManageUsers, canViewOrigenes, canManageOrigenes, canViewAplicaciones, canManageAplicaciones]);
+  }, [userProfile, canViewUsers, canManageUsers, canViewOrigenes, canManageOrigenes, canViewAplicaciones, canManageAplicaciones, adminPermissions]);
 
   // Navegación de desarrollo/test agrupada - SOLO PARA ADMINS
   const devSection = React.useMemo(() => {
-    if (!userProfile || !isAdmin()) return null;
+    if (!userProfile || !adminPermissions.hasAnyAdminPermission) return null;
     
     return {
       id: 'development',
@@ -495,7 +502,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
                       {userProfile?.fullName || user?.user_metadata?.name || 'Usuario'}
                     </div>
                     <div className="text-xs text-gray-500 dark:text-gray-400">
-                      {mapRoleToDisplayName(userProfile?.roleName || undefined)}
+                      {mapRoleToDisplayName(userProfile?.roleName || undefined, userProfile?.roleDescription)}
                     </div>
                   </div>
                 )}

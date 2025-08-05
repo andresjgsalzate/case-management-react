@@ -8,7 +8,7 @@ import {
   ClockIcon,
 } from '@heroicons/react/24/outline';
 import { useUsers, useUpdateUser, useDeleteUser } from '@/user-management/hooks/useUsers';
-import { useRoles } from '@/user-management/hooks/useRoles';
+import { useRoles } from '../../hooks/useRoles';
 import { mapRoleToDisplayName } from '@/shared/utils/roleUtils';
 import { usePermissions } from '@/user-management/hooks/useUserProfile';
 import { UserProfile, UserFormData } from '@/types';
@@ -44,6 +44,12 @@ const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose, user }) => {
     if (!formData.email || !formData.roleId) {
       return; // Simplemente no continuar si faltan campos requeridos
     }
+
+    console.log('🔍 [UsersPage] Datos del formulario:', {
+      userId: user?.id,
+      formData,
+      originalUser: user
+    });
 
     try {
       if (user) {

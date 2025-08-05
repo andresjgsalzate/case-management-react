@@ -10,6 +10,7 @@ interface SimpleUserProfile {
   isActive: boolean;
   roleId: string | null;
   roleName: string | null;
+  roleDescription: string | null;
   createdAt: string;
   updatedAt: string | null;
 }
@@ -27,7 +28,15 @@ export const useUserProfile = () => {
 
       const { data, error } = await supabase
         .from('user_profiles')
-        .select('*')
+        .select(`
+          *,
+          role:roles (
+            id,
+            name,
+            description,
+            is_active
+          )
+        `)
         .eq('id', user.id)
         .maybeSingle();
 
@@ -47,7 +56,15 @@ export const useUserProfile = () => {
             role_name: 'user',
             is_active: true
           })
-          .select('*')
+          .select(`
+            *,
+            role:roles (
+              id,
+              name,
+              description,
+              is_active
+            )
+          `)
           .single();
           
         if (createError) {
@@ -62,27 +79,43 @@ export const useUserProfile = () => {
           avatarUrl: newProfile.avatar_url,
           isActive: newProfile.is_active,
           roleId: newProfile.role_id,
-          roleName: newProfile.role_name,
+          roleName: newProfile.role?.name || newProfile.role_name,
+          roleDescription: newProfile.role?.description,
           createdAt: newProfile.created_at,
           updatedAt: newProfile.updated_at,
         };
       }
 
       // Mapear de snake_case a camelCase
-      return {
+      const userProfile = {
         id: data.id,
         email: data.email,
         fullName: data.full_name,
         avatarUrl: data.avatar_url,
         isActive: data.is_active,
         roleId: data.role_id,
-        roleName: data.role_name,
+        roleName: data.role?.name || data.role_name,
+        roleDescription: data.role?.description,
         createdAt: data.created_at,
         updatedAt: data.updated_at,
       };
+
+      console.log('👤 [UserProfile] Perfil del usuario cargado:', {
+        userId: userProfile.id,
+        email: userProfile.email,
+        fullName: userProfile.fullName,
+        roleId: userProfile.roleId,
+        roleName: userProfile.roleName,
+        isActive: userProfile.isActive,
+        rawRoleData: data.role,
+        roleNameFromRelation: data.role?.name,
+        roleNameFromColumn: data.role_name
+      });
+
+      return userProfile;
     },
     enabled: true,
-    staleTime: 1000 * 60 * 5, // Cache por 5 minutos
+    staleTime: 1000 * 60 * 1, // Cache por 1 minuto
   });
 };
 
@@ -90,15 +123,13 @@ export const useUserProfile = () => {
 export const usePermissions = () => {
   const { data: userProfile } = useUserProfile();
 
-  // TODOS los usuarios logueados y activos tienen acceso completo
+  // Solo usuarios logueados y activos
   const isActiveUser = (): boolean => {
     return !!userProfile && userProfile.isActive;
   };
 
   const isAdmin = (): boolean => {
-    // 🔥 TEMPORAL: Todos los usuarios activos son admin durante desarrollo
-    return !!userProfile && userProfile.isActive;
-    // return userProfile?.roleName === 'admin' || false;
+    return userProfile?.roleName?.toLowerCase() === 'admin' || false;
   };
 
   const isSupervisor = (): boolean => {
@@ -109,79 +140,82 @@ export const usePermissions = () => {
     return userProfile?.roleName === 'auditor' || false;
   };
 
-  // TODAS las funciones retornan TRUE para usuarios activos
-  // Ya no hay sistema de permisos complejo
+  // ================================================================
+  // PERMISOS BASADOS EN ROLES - NO TODOS LOS USUARIOS TIENEN ACCESO
+  // ================================================================
+  
   const canAccessAdmin = (): boolean => {
-    return isActiveUser();
+    return isAdmin();
   };
 
   const canViewUsers = (): boolean => {
-    return isActiveUser();
+    return isAdmin();
   };
 
   const canViewRoles = (): boolean => {
-    return isActiveUser();
+    return isAdmin();
   };
 
   const canViewPermissions = (): boolean => {
-    return isActiveUser();
+    return isAdmin();
   };
 
   const canViewOrigenes = (): boolean => {
-    return isActiveUser();
+    return isAdmin();
   };
 
   const canViewAplicaciones = (): boolean => {
-    return isActiveUser();
+    return isAdmin();
   };
 
   const canViewCaseStatuses = (): boolean => {
-    return isActiveUser();
+    return isAdmin();
   };
 
   const canManageUsers = (): boolean => {
-    return isActiveUser();
+    return isAdmin();
   };
 
   const canManageRoles = (): boolean => {
-    return isActiveUser();
+    return isAdmin();
   };
 
   const canManagePermissions = (): boolean => {
-    return isActiveUser();
+    return isAdmin();
   };
 
   const canManageOrigenes = (): boolean => {
-    return isActiveUser();
+    return isAdmin();
   };
 
   const canManageAplicaciones = (): boolean => {
-    return isActiveUser();
+    return isAdmin();
   };
 
   const canCreateCaseStatuses = (): boolean => {
-    return isActiveUser();
+    return isAdmin();
   };
 
   const canUpdateCaseStatuses = (): boolean => {
-    return isActiveUser();
+    return isAdmin();
   };
 
   const canDeleteCaseStatuses = (): boolean => {
-    return isActiveUser();
+    return isAdmin();
   };
 
   const canManageCaseStatuses = (): boolean => {
-    return isActiveUser();
+    return isAdmin();
   };
 
   const canViewAllCases = (): boolean => {
-    return isActiveUser();
+    // Los admins pueden ver todos los casos, otros usuarios solo los suyos
+    return isAdmin();
   };
 
-  // Función de permiso genérica que siempre retorna true para usuarios activos
+  // Función de permiso genérica que verifica si es admin
   const hasPermission = (_resource: string, _action: string): boolean => {
-    return isActiveUser();
+    return isAdmin();
   };
 
   return {

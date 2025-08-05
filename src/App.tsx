@@ -6,6 +6,7 @@ import { Layout } from '@/shared/components/layout/Layout';
 import { ConfigurationRequired } from '@/shared/components/guards/ConfigurationRequired';
 import { ProtectedRoute } from '@/shared/components/guards/ProtectedRoute';
 import { AdminOnlyRoute } from '@/shared/components/guards/AdminOnlyRoute';
+import { AdminPermissionGuard } from '@/shared/components/guards/AdminPermissionGuard';
 import { AccessDenied } from '@/shared/components/guards/AccessDenied';
 import { LoadingSpinner } from '@/shared/components/ui/LoadingSpinner';
 import { useSystemAccess } from '@/user-management/hooks/useSystemAccess';
@@ -140,15 +141,43 @@ function AppContent() {
         <Route path="/disposiciones" element={<DisposicionScriptsPage />} />
         
         {/* Admin Routes */}
-        <Route path="/admin/users" element={<UsersPage />} />
-        <Route path="/admin/config" element={<ConfigurationPage />} />
-        <Route path="/admin/tags" element={<TagsPage />} />
-        <Route path="/admin/document-types" element={<DocumentTypesAdmin />} />
+        <Route path="/admin/users" element={
+          <AdminPermissionGuard permission="canReadUsers">
+            <UsersPage />
+          </AdminPermissionGuard>
+        } />
+        <Route path="/admin/config" element={
+          <AdminPermissionGuard permission="canReadConfig">
+            <ConfigurationPage />
+          </AdminPermissionGuard>
+        } />
+        <Route path="/admin/tags" element={
+          <AdminPermissionGuard permission="canReadTags">
+            <TagsPage />
+          </AdminPermissionGuard>
+        } />
+        <Route path="/admin/document-types" element={
+          <AdminPermissionGuard permission="canReadDocumentTypes">
+            <DocumentTypesAdmin />
+          </AdminPermissionGuard>
+        } />
         
         {/* Permissions Management Routes */}
-        <Route path="/admin/roles" element={<RolesPage />} />
-        <Route path="/admin/permissions" element={<PermissionsPage />} />
-        <Route path="/admin/role-permissions" element={<RolePermissionsPage />} />
+        <Route path="/admin/roles" element={
+          <AdminPermissionGuard permission="canReadRoles">
+            <RolesPage />
+          </AdminPermissionGuard>
+        } />
+        <Route path="/admin/permissions" element={
+          <AdminPermissionGuard permission="canReadPermissions">
+            <PermissionsPage />
+          </AdminPermissionGuard>
+        } />
+        <Route path="/admin/role-permissions" element={
+          <AdminPermissionGuard permission="canReadRolePermissions">
+            <RolePermissionsPage />
+          </AdminPermissionGuard>
+        } />
         
         {/* Test Routes */}
         <Route path="/auth-test" element={<AdminOnlyRoute><AuthTestPage /></AdminOnlyRoute>} />

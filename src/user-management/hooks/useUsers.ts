@@ -7,6 +7,8 @@ export const useUsers = () => {
   return useQuery({
     queryKey: ['users'],
     queryFn: async (): Promise<UserProfile[]> => {
+      console.log('🔍 [useUsers] Iniciando consulta de usuarios...');
+      
       const { data, error } = await supabase
         .from('user_profiles')
         .select(`
@@ -20,9 +22,11 @@ export const useUsers = () => {
         .order('created_at', { ascending: false });
 
       if (error) {
-        console.error('Error fetching users:', error);
+        console.error('❌ [useUsers] Error fetching users:', error);
         throw error;
       }
+
+      console.log('✅ [useUsers] Usuarios obtenidos:', data.length);
 
       // Mapear de snake_case a camelCase
       return data.map((user: any) => ({
@@ -96,21 +100,45 @@ export const useUpdateUser = () => {
 
   return useMutation({
     mutationFn: async ({ id, userData }: { id: string; userData: Partial<UserFormData> }): Promise<UserProfile> => {
-      // Usar función RPC para bypass de RLS
-      const { data, error } = await supabase.rpc('admin_update_user', {
-        user_id: id,
-        user_email: userData.email!,
-        user_full_name: userData.fullName!,
-        user_role_id: userData.roleId!,
-        is_active: userData.isActive ?? true
-      });
+      // Actualizar directamente la tabla user_profiles
+      const { data, error } = await supabase
+        .from('user_profiles')
+        .update({
+          email: userData.email!,
+          full_name: userData.fullName!,
+          role_id: userData.roleId!,
+          is_active: userData.isActive ?? true,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', id)
+        .select(`
+          id,
+          email,
+          full_name,
+          role_id,
+          is_active,
+          last_login_at,
+          created_at,
+          updated_at,
+          role:roles!inner(
+            id,
+            name,
+            description,
+            is_active,
+            created_at,
+            updated_at
+          )
+        `)
+        .single();
 
       if (error) {
         console.error('Error updating user:', error);
         throw error;
       }
 
-      // Los datos ya vienen mapeados de la función RPC
+      // Mapear los datos
+      const roleData = Array.isArray(data.role) ? data.role[0] : data.role;
+      
       return {
         id: data.id,
         email: data.email,
@@ -120,13 +148,13 @@ export const useUpdateUser = () => {
         lastLoginAt: data.last_login_at,
         createdAt: data.created_at,
         updatedAt: data.updated_at,
-        role: data.role ? {
-          id: data.role.id,
-          name: data.role.name,
-          description: data.role.description,
-          isActive: data.role.is_active,
-          createdAt: data.role.created_at,
-          updatedAt: data.role.updated_at,
+        role: roleData ? {
+          id: roleData.id,
+          name: roleData.name,
+          description: roleData.description,
+          isActive: roleData.is_active,
+          createdAt: roleData.created_at,
+          updatedAt: roleData.updated_at,
         } : undefined
       };
     },
