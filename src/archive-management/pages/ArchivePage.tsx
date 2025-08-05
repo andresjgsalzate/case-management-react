@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { 
   ArchiveBoxIcon,
   ArrowPathIcon,
@@ -12,7 +12,7 @@ import { useArchive } from '@/archive-management/hooks/useArchive';
 import { useUsers } from '@/user-management/hooks/useUsers';
 import { useCleanupOrphanedRecords } from '../hooks/useCleanupOrphanedRecords';
 import { usePermanentDelete } from '../hooks/usePermanentDelete';
-import { usePermissions } from '@/user-management/hooks/useUserProfile';
+import { useArchivePermissions } from '../hooks/useArchivePermissions';
 import { useAuth } from '@/shared/hooks/useAuth';
 import { ArchivedCase, ArchivedTodo, ArchiveFilters } from '@/types';
 import { LoadingSpinner } from '@/shared/components/ui/LoadingSpinner';
@@ -34,8 +34,7 @@ export const ArchivePage: React.FC = () => {
     error,
     fetchArchivedItems,
     restoreCase,
-    restoreTodo,
-    canRestore
+    restoreTodo
   } = useArchive();
 
   const { data: users } = useUsers();
@@ -43,10 +42,9 @@ export const ArchivePage: React.FC = () => {
   const { cleanupOrphanedRecords, isLoading: isCleaningUp } = useCleanupOrphanedRecords();
   const { 
     deleteArchivedCase, 
-    deleteArchivedTodo, 
-    canDelete
+    deleteArchivedTodo
   } = usePermanentDelete();
-  const { isAdmin, isSupervisor } = usePermissions();
+  const archivePermissions = useArchivePermissions();
   const { user } = useAuth();
 
   // Estados para filtros
@@ -74,32 +72,17 @@ export const ArchivePage: React.FC = () => {
     type: 'case' | 'todo' | null;
   }>({ isOpen: false, item: null, type: null });
 
-  // Estados para permisos
-  const [canRestoreItems, setCanRestoreItems] = useState(false);
-  const [canDeleteItems, setCanDeleteItems] = useState(false);
-
   // Función para verificar si un usuario puede restaurar un elemento específico
   const canRestoreSpecificItem = (item: ArchivedCase | ArchivedTodo): boolean => {
-    if (isAdmin() || isSupervisor()) {
-      return true; // Admin y supervisor pueden restaurar cualquier elemento
-    }
+    if (!user) return false;
     
-    // Analistas solo pueden restaurar elementos que ellos archivaron
-    return item.archivedBy === user?.id;
+    // Usar el nuevo sistema de permisos
+    return archivePermissions.canPerformActionOnArchivedItem(
+      item.archivedBy, 
+      user.id, 
+      'restore'
+    );
   };
-
-  // Verificar permisos
-  useEffect(() => {
-    const checkPermissions = async () => {
-      const canRestoreResult = await canRestore();
-      setCanRestoreItems(canRestoreResult);
-      
-      const canDeleteResult = await canDelete();
-      setCanDeleteItems(canDeleteResult);
-    };
-    
-    checkPermissions();
-  }, [canRestore, canDelete]);
 
   // Aplicar filtros
   const handleFilterChange = (key: keyof ArchiveFilters, value: any) => {
@@ -286,7 +269,7 @@ export const ArchivePage: React.FC = () => {
               <span>Actualizar</span>
             </Button>
             
-            {isAdmin() && (
+            {archivePermissions.isAdmin && (
               <Button
                 onClick={handleCleanupOrphanedRecords}
                 variant="destructive"
@@ -518,7 +501,7 @@ export const ArchivePage: React.FC = () => {
                           >
                             <EyeIcon className="w-4 h-4" />
                           </button>
-                          {!item.isRestored && canRestoreItems && canRestoreSpecificItem(item) && (
+                          {!item.isRestored && archivePermissions.canRestoreArchive() && canRestoreSpecificItem(item) && (
                             <button
                               onClick={() => handleRestoreRequest(item, item.itemType)}
                               className="text-green-600 dark:text-green-400 hover:text-green-800 dark:hover:text-green-200"
@@ -527,7 +510,7 @@ export const ArchivePage: React.FC = () => {
                               <ArrowPathIcon className="w-4 h-4" />
                             </button>
                           )}
-                          {canDeleteItems && (
+                          {archivePermissions.canDeleteArchive() && (
                             <button
                               onClick={() => handlePermanentDeleteRequest(item, item.itemType)}
                               className="text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-200"
