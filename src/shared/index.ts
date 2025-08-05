@@ -22,9 +22,21 @@ export * from './components/notifications/NotificationSystem';
 export * from './components/version/VersionDisplay';
 export * from './components/version/VersionModal';
 
+// PDF Export components
+export * from './components/PDFExportButton';
+
 // Shared hooks
 export * from './hooks/useVersionNotification';
+export * from './hooks/useRoles';
+export * from './hooks/usePermissions';
 
 // Shared lib
 export * from './lib/supabase';
 export * from './lib/validations';
+
+// Shared services
+export * from './services/RolesService';
+export * from './services/PermissionsService';
+
+// Shared types
+export * from './types/permissions';

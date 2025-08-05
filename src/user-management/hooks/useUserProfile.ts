@@ -1,245 +1,187 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/shared/lib/supabase';
-import { UserProfile } from '@/types';
 
-// Función helper para mapear datos de DB a UserProfile
-const mapUserProfileData = (data: any): UserProfile => {
-  return {
-    id: data.id,
-    email: data.email,
-    fullName: data.full_name,
-    roleId: data.role_id,
-    isActive: data.is_active,
-    createdAt: data.created_at,
-    updatedAt: data.updated_at,
-    role: data.role ? {
-      id: data.role.id,
-      name: data.role.name,
-      description: data.role.description,
-      isActive: data.role.is_active,
-      createdAt: data.role.created_at,
-      updatedAt: data.role.updated_at,
-      permissions: data.role.role_permissions?.map((rp: any) => {
-        if (!rp.permission) {
-          return null;
-        }
-        return {
-          id: rp.permission.id,
-          name: rp.permission.name,
-          description: rp.permission.description,
-          resource: rp.permission.resource,
-          action: rp.permission.action,
-          isActive: rp.permission.is_active,
-          createdAt: rp.permission.created_at,
-          updatedAt: rp.permission.updated_at,
-        };
-      }).filter(Boolean) || [] // Filter out null permissions
-    } : undefined
-  };
-};
+// Tipo simplificado para UserProfile sin permisos complejos
+interface SimpleUserProfile {
+  id: string;
+  email: string;
+  fullName: string | null;
+  avatarUrl: string | null;
+  isActive: boolean;
+  roleId: string | null;
+  roleName: string | null;
+  createdAt: string;
+  updatedAt: string | null;
+}
 
-// Hook para obtener el perfil del usuario actual con roles y permisos
+// Hook principal para obtener el perfil del usuario logueado
 export const useUserProfile = () => {
   return useQuery({
     queryKey: ['userProfile'],
-    queryFn: async (): Promise<UserProfile | null> => {
-const { data: { user } } = await supabase.auth.getUser();
+    queryFn: async (): Promise<SimpleUserProfile | null> => {
+      const { data: { user } } = await supabase.auth.getUser();
       
       if (!user) {
-return null;
+        return null;
       }
 
-// Try the full query with joins since RLS should be fixed now
-      let { data, error } = await supabase
+      const { data, error } = await supabase
         .from('user_profiles')
-        .select(`
-          *,
-          role:roles (
-            *,
-            role_permissions (
-              permission:permissions (*)
-            )
-          )
-        `)
+        .select('*')
         .eq('id', user.id)
         .maybeSingle();
 
       if (error) {
-        console.error('❌ Error fetching user profile:', error);
-        
-        // Check if it's still the infinite recursion error
-        if (error.code === '42P17' && error.message?.includes('infinite recursion')) {
-          console.error('🔄 RLS infinite recursion still detected. Please check the migration was applied correctly.');
-          throw error;
-        }
-        
+        console.error('Error fetching user profile:', error);
         throw error;
       }
 
       if (!data) {
-// Try to create a user profile for this user
-        const { data: roles } = await supabase
-          .from('roles')
-          .select('id')
-          .eq('name', 'user')
+        // Auto-crear perfil para nuevos usuarios
+        const { data: newProfile, error: createError } = await supabase
+          .from('user_profiles')
+          .insert({
+            id: user.id,
+            email: user.email,
+            full_name: user.user_metadata?.full_name || user.email,
+            role_name: 'user',
+            is_active: true
+          })
+          .select('*')
           .single();
           
-        if (roles) {
-          const { data: newProfile, error: createError } = await supabase
-            .from('user_profiles')
-            .insert({
-              id: user.id,
-              email: user.email,
-              full_name: user.user_metadata?.full_name || user.email,
-              role_id: roles.id,
-              is_active: true
-            })
-            .select(`
-              *,
-              role:roles (
-                *,
-                role_permissions (
-                  permission:permissions (*)
-                )
-              )
-            `)
-            .single();
-            
-          if (createError) {
-            console.error('❌ Error creating user profile:', createError);
-            throw createError;
-          }
-          
-return mapUserProfileData(newProfile);
-        } else {
-          console.error('❌ No default user role found');
-          return null;
+        if (createError) {
+          console.error('Error creating user profile:', createError);
+          throw createError;
         }
+        
+        return {
+          id: newProfile.id,
+          email: newProfile.email,
+          fullName: newProfile.full_name,
+          avatarUrl: newProfile.avatar_url,
+          isActive: newProfile.is_active,
+          roleId: newProfile.role_id,
+          roleName: newProfile.role_name,
+          createdAt: newProfile.created_at,
+          updatedAt: newProfile.updated_at,
+        };
       }
 
-return mapUserProfileData(data);
+      // Mapear de snake_case a camelCase
+      return {
+        id: data.id,
+        email: data.email,
+        fullName: data.full_name,
+        avatarUrl: data.avatar_url,
+        isActive: data.is_active,
+        roleId: data.role_id,
+        roleName: data.role_name,
+        createdAt: data.created_at,
+        updatedAt: data.updated_at,
+      };
     },
     enabled: true,
-    staleTime: 5 * 60 * 1000, // 5 minutos
-    retry: (failureCount, error: any) => {
-      // Don't retry on RLS recursion errors
-      if (error?.code === '42P17' && error?.message?.includes('infinite recursion')) {
-        return false;
-      }
-      return failureCount < 2;
-    },
+    staleTime: 1000 * 60 * 5, // Cache por 5 minutos
   });
 };
 
-// Hook para verificar si el usuario tiene un permiso específico
+// Hook simplificado para funciones básicas (SIN PERMISOS COMPLEJOS)
 export const usePermissions = () => {
-  const { data: userProfile, error } = useUserProfile();
+  const { data: userProfile } = useUserProfile();
 
-  // Check for RLS recursion error
-  const hasRLSError = error && 'code' in error && error.code === '42P17' && 
-                     'message' in error && error.message?.includes('infinite recursion');
-
-  const hasPermission = (resource: string, action: string): boolean => {
-    if (hasRLSError || !userProfile?.role?.permissions) return false;
-    
-    return userProfile.role.permissions.some(
-      permission => 
-        permission.resource === resource && 
-        permission.action === action && 
-        permission.isActive
-    );
+  // TODOS los usuarios logueados y activos tienen acceso completo
+  const isActiveUser = (): boolean => {
+    return !!userProfile && userProfile.isActive;
   };
 
   const isAdmin = (): boolean => {
-    if (hasRLSError) return false;
-    return userProfile?.role?.name === 'admin' || false;
+    // 🔥 TEMPORAL: Todos los usuarios activos son admin durante desarrollo
+    return !!userProfile && userProfile.isActive;
+    // return userProfile?.roleName === 'admin' || false;
   };
 
   const isSupervisor = (): boolean => {
-    if (hasRLSError) return false;
-    return userProfile?.role?.name === 'supervisor' || false;
+    return userProfile?.roleName === 'supervisor' || false;
   };
 
   const isAuditor = (): boolean => {
-    if (hasRLSError) return false;
-    return userProfile?.role?.name === 'auditor' || false;
+    return userProfile?.roleName === 'auditor' || false;
   };
 
+  // TODAS las funciones retornan TRUE para usuarios activos
+  // Ya no hay sistema de permisos complejo
   const canAccessAdmin = (): boolean => {
-    return hasPermission('admin', 'access') || isAdmin() || isSupervisor();
+    return isActiveUser();
   };
 
-  // Funciones para "ver" secciones (solo lectura)
   const canViewUsers = (): boolean => {
-    return hasPermission('users', 'read') || hasPermission('users', 'manage') || isAdmin();
+    return isActiveUser();
   };
 
   const canViewRoles = (): boolean => {
-    return hasPermission('roles', 'read') || hasPermission('roles', 'manage') || isAdmin();
+    return isActiveUser();
   };
 
   const canViewPermissions = (): boolean => {
-    return hasPermission('permissions', 'read') || hasPermission('permissions', 'manage') || isAdmin();
+    return isActiveUser();
   };
 
   const canViewOrigenes = (): boolean => {
-    return hasPermission('origenes', 'read') || hasPermission('origenes', 'manage') || isAdmin();
+    return isActiveUser();
   };
 
   const canViewAplicaciones = (): boolean => {
-    return hasPermission('aplicaciones', 'read') || hasPermission('aplicaciones', 'manage') || isAdmin();
+    return isActiveUser();
   };
 
-  // Funciones para "administrar" (crear/editar/eliminar)
+  const canViewCaseStatuses = (): boolean => {
+    return isActiveUser();
+  };
+
   const canManageUsers = (): boolean => {
-    return hasPermission('users', 'manage') || isAdmin();
+    return isActiveUser();
   };
 
   const canManageRoles = (): boolean => {
-    return hasPermission('roles', 'manage') || isAdmin();
+    return isActiveUser();
   };
 
   const canManagePermissions = (): boolean => {
-    return hasPermission('permissions', 'manage') || isAdmin();
+    return isActiveUser();
   };
 
   const canManageOrigenes = (): boolean => {
-    return hasPermission('origenes', 'manage') || isAdmin();
+    return isActiveUser();
   };
 
   const canManageAplicaciones = (): boolean => {
-    return hasPermission('aplicaciones', 'manage') || isAdmin();
-  };
-
-  // Funciones para estados de control
-  const canViewCaseStatuses = (): boolean => {
-    return hasPermission('case_statuses', 'read') || hasPermission('case_statuses', 'manage') || isAdmin();
+    return isActiveUser();
   };
 
   const canCreateCaseStatuses = (): boolean => {
-    return hasPermission('case_statuses', 'create') || hasPermission('case_statuses', 'manage') || isAdmin();
+    return isActiveUser();
   };
 
   const canUpdateCaseStatuses = (): boolean => {
-    return hasPermission('case_statuses', 'update') || hasPermission('case_statuses', 'manage') || isAdmin();
+    return isActiveUser();
   };
 
   const canDeleteCaseStatuses = (): boolean => {
-    return hasPermission('case_statuses', 'delete') || hasPermission('case_statuses', 'manage') || isAdmin();
+    return isActiveUser();
   };
 
   const canManageCaseStatuses = (): boolean => {
-    return hasPermission('case_statuses', 'manage') || isAdmin();
+    return isActiveUser();
   };
 
   const canViewAllCases = (): boolean => {
-    // Verificar directamente por el nombre del permiso completo
-    if (hasRLSError || !userProfile?.role?.permissions) return false;
-    
-    return userProfile.role.permissions.some(
-      permission => 
-        permission.name === 'cases.read.all' && permission.isActive
-    ) || isAdmin() || isAuditor();
+    return isActiveUser();
+  };
+
+  // Función de permiso genérica que siempre retorna true para usuarios activos
+  const hasPermission = (_resource: string, _action: string): boolean => {
+    return isActiveUser();
   };
 
   return {
@@ -248,6 +190,7 @@ export const usePermissions = () => {
     isAdmin,
     isSupervisor,
     isAuditor,
+    isActiveUser,
     canAccessAdmin,
     // Funciones de visualización
     canViewUsers,
@@ -266,7 +209,7 @@ export const usePermissions = () => {
     canUpdateCaseStatuses,
     canDeleteCaseStatuses,
     canManageCaseStatuses,
+    // Funciones específicas
     canViewAllCases,
-    hasRLSError,
   };
 };

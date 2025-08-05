@@ -17,8 +17,6 @@ import { ResetPasswordPage } from '@/user-management/pages/ResetPassword';
 import { AuthTestPage } from '@/user-management/pages/AuthTestPage';
 import DataTestPage from '@/user-management/pages/DataTestPage';
 import { UsersPage } from '@/user-management/pages/admin/UsersPage';
-import { RolesPage } from '@/user-management/pages/admin/RolesPage';
-import { PermissionsPage } from '@/user-management/pages/admin/PermissionsPage';
 import { ConfigurationPage } from '@/user-management/pages/admin/ConfigurationPage';
 import { TagsPage } from '@/notes-knowledge/pages/admin/TagsPage';
 import { DocumentTypesAdmin } from '@/notes-knowledge/components/admin/DocumentTypesAdmin';
@@ -28,9 +26,9 @@ import { NotesPage } from '@/notes-knowledge/pages/NotesPage';
 import { DocumentationPage } from '@/notes-knowledge/pages/DocumentationPage';
 import { DocumentEditPage } from '@/notes-knowledge/pages/DocumentEditPage';
 import { TestDocumentationPage } from '@/notes-knowledge/pages/TestDocumentationPage';
-import { PermissionsTestPage } from '@/user-management/pages/PermissionsTestPage';
 import { ArchivePage } from '@/archive-management/pages/ArchivePage';
 import { DisposicionScriptsPage } from '@/disposicion-scripts/pages/DisposicionScriptsPage';
+import { RolesPage, PermissionsPage, RolePermissionsPage } from '@/user-management';
 
 function App() {
   const [isSupabaseConfigured, setIsSupabaseConfigured] = useState(false);
@@ -143,16 +141,18 @@ function AppContent() {
         
         {/* Admin Routes */}
         <Route path="/admin/users" element={<UsersPage />} />
-        <Route path="/admin/roles" element={<RolesPage />} />
-        <Route path="/admin/permissions" element={<PermissionsPage />} />
         <Route path="/admin/config" element={<ConfigurationPage />} />
         <Route path="/admin/tags" element={<TagsPage />} />
         <Route path="/admin/document-types" element={<DocumentTypesAdmin />} />
         
-        {/* Test Routes - SOLO PARA ADMINS */}
+        {/* Permissions Management Routes */}
+        <Route path="/admin/roles" element={<RolesPage />} />
+        <Route path="/admin/permissions" element={<PermissionsPage />} />
+        <Route path="/admin/role-permissions" element={<RolePermissionsPage />} />
+        
+        {/* Test Routes */}
         <Route path="/auth-test" element={<AdminOnlyRoute><AuthTestPage /></AdminOnlyRoute>} />
         <Route path="/data-test" element={<AdminOnlyRoute><DataTestPage /></AdminOnlyRoute>} />
-        <Route path="/permissions-test" element={<AdminOnlyRoute><PermissionsTestPage /></AdminOnlyRoute>} />
         
         <Route path="*" element={<div>Página no encontrada</div>} />
       </Routes>

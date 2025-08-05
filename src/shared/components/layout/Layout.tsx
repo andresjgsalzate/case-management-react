@@ -9,8 +9,6 @@ import {
   ArrowRightOnRectangleIcon,
   CogIcon,
   UsersIcon,
-  ShieldCheckIcon,
-  KeyIcon,
   WrenchScrewdriverIcon,
   ChevronDownIcon,
   SunIcon,
@@ -27,11 +25,6 @@ import { VersionDisplay } from '@/shared/components/version/VersionDisplay';
 import { VersionModal } from '@/shared/components/version/VersionModal';
 import { useAuth } from '@/shared/hooks/useAuth';
 import { usePermissions } from '@/user-management/hooks/useUserProfile';
-import { useCaseControlPermissions } from '@/time-control/hooks/useCaseControlPermissions';
-import { useTodoPermissions } from '@/task-management/hooks/useTodoPermissions';
-import { useNotesPermissions } from '@/notes-knowledge/hooks/useNotesPermissions';
-import { useDisposicionScriptsPermissions } from '@/disposicion-scripts/hooks/useDisposicionScriptsPermissions';
-import { RLSError } from '@/shared/components/guards/RLSError';
 import { useNativeTheme } from '@/shared/hooks/useNativeTheme';
 import { mapRoleToDisplayName } from '@/shared/utils/roleUtils';
 
@@ -42,11 +35,7 @@ interface LayoutProps {
 export const Layout: React.FC<LayoutProps> = ({ children }) => {
   const location = useLocation();
   const { user, signOut } = useAuth();
-  const { userProfile, canManageUsers, canManageRoles, canManagePermissions, canManageOrigenes, canManageAplicaciones, canViewUsers, canViewRoles, canViewPermissions, canViewOrigenes, canViewAplicaciones, hasRLSError, isAdmin } = usePermissions();
-  const { canAccessModule: canAccessCaseControl } = useCaseControlPermissions();
-  const { canAccessTodoModule } = useTodoPermissions();
-  const { canAccessNotesModule } = useNotesPermissions();
-  const { hasAnyPermission: canAccessDisposiciones } = useDisposicionScriptsPermissions();
+  const { userProfile, canManageUsers, canManageOrigenes, canManageAplicaciones, canViewUsers, canViewOrigenes, canViewAplicaciones, isAdmin } = usePermissions();
   const { isDark, toggleTheme } = useNativeTheme();
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showVersionModal, setShowVersionModal] = useState(false);
@@ -62,33 +51,16 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
       { name: 'Dashboard', href: '/', icon: HomeIcon },
       { name: 'Casos', href: '/cases', icon: DocumentTextIcon },
       { name: 'Nuevo Caso', href: '/cases/new', icon: PlusIcon },
+      { name: 'Control de Casos', href: '/case-control', icon: ClockIcon },
+      { name: 'Disposiciones', href: '/disposiciones', icon: DocumentArrowUpIcon },
+      { name: 'TODOs', href: '/todos', icon: ListBulletIcon },
+      { name: 'Notas', href: '/notes', icon: ChatBubbleLeftRightIcon },
+      { name: 'Base de Conocimiento', href: '/documentation', icon: BookOpenIcon },
+      { name: 'Archivo', href: '/archive', icon: ArchiveBoxIcon }
     ];
 
-    if (canAccessCaseControl()) {
-      baseNavigation.push({ name: 'Control de Casos', href: '/case-control', icon: ClockIcon });
-    }
-
-    if (canAccessDisposiciones) {
-      baseNavigation.push({ name: 'Disposiciones', href: '/disposiciones', icon: DocumentArrowUpIcon });
-    }
-
-    if (canAccessTodoModule) {
-      baseNavigation.push({ name: 'TODOs', href: '/todos', icon: ListBulletIcon });
-    }
-
-    if (canAccessNotesModule) {
-      baseNavigation.push({ name: 'Notas', href: '/notes', icon: ChatBubbleLeftRightIcon });
-    }
-
-    if (canAccessNotesModule) {
-      baseNavigation.push({ name: 'Base de Conocimiento', href: '/documentation', icon: BookOpenIcon });
-    }
-
-    // Agregar Archivo si el usuario puede acceder
-    baseNavigation.push({ name: 'Archivo', href: '/archive', icon: ArchiveBoxIcon });
-
     return baseNavigation;
-  }, [canAccessCaseControl, canAccessTodoModule, canAccessNotesModule, canAccessDisposiciones]);
+  }, []);
 
   // Secciones de administración agrupadas
   const adminSections = React.useMemo(() => {
@@ -98,24 +70,31 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
     const userManagement = [];
     if (canViewUsers() || canManageUsers()) {
       userManagement.push({ 
-        name: canManageUsers() ? 'Gestionar Usuarios' : 'Ver Usuarios', 
+        name: 'Gestionar Usuarios', 
         href: '/admin/users', 
         icon: UsersIcon 
       });
     }
-    if (canViewRoles() || canManageRoles()) {
-      userManagement.push({ 
-        name: canManageRoles() ? 'Gestionar Roles' : 'Ver Roles', 
-        href: '/admin/roles', 
-        icon: ShieldCheckIcon 
-      });
-    }
-    if (canViewPermissions() || canManagePermissions()) {
-      userManagement.push({ 
-        name: canManagePermissions() ? 'Gestionar Permisos' : 'Ver Permisos', 
-        href: '/admin/permissions', 
-        icon: KeyIcon 
-      });
+
+    // Agregar gestión de roles y permisos para admins
+    if (isAdmin()) {
+      userManagement.push(
+        { 
+          name: 'Gestionar Roles', 
+          href: '/admin/roles', 
+          icon: UserIcon 
+        },
+        { 
+          name: 'Gestionar Permisos', 
+          href: '/admin/permissions', 
+          icon: CogIcon 
+        },
+        { 
+          name: 'Asignar Permisos', 
+          href: '/admin/role-permissions', 
+          icon: WrenchScrewdriverIcon 
+        }
+      );
     }
 
     if (userManagement.length > 0) {
@@ -146,6 +125,15 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
       });
     }
 
+    // Gestión de tipos de documentos (disponible para todos los admins)
+    if (isAdmin()) {
+      systemConfig.push({ 
+        name: 'Tipos de Documentos', 
+        href: '/admin/document-types', 
+        icon: DocumentTextIcon 
+      });
+    }
+
     if (systemConfig.length > 0) {
       sections.push({
         id: 'system-config',
@@ -156,7 +144,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
     }
 
     return sections;
-  }, [userProfile, canViewUsers, canManageUsers, canViewRoles, canManageRoles, canViewPermissions, canManagePermissions, canViewOrigenes, canManageOrigenes, canViewAplicaciones, canManageAplicaciones]);
+  }, [userProfile, canViewUsers, canManageUsers, canViewOrigenes, canManageOrigenes, canViewAplicaciones, canManageAplicaciones]);
 
   // Navegación de desarrollo/test agrupada - SOLO PARA ADMINS
   const devSection = React.useMemo(() => {
@@ -263,9 +251,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
   }, [isCollapsed, userManuallyToggled]);
 
   // DESPUÉS de todos los hooks, ahora podemos hacer early return
-  if (hasRLSError) {
-    return <RLSError onRetry={() => window.location.reload()} />;
-  }
+  // Ya no hay errores RLS porque eliminamos el sistema de permisos complejo
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex">
@@ -509,7 +495,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
                       {userProfile?.fullName || user?.user_metadata?.name || 'Usuario'}
                     </div>
                     <div className="text-xs text-gray-500 dark:text-gray-400">
-                      {mapRoleToDisplayName(userProfile?.role?.name)}
+                      {mapRoleToDisplayName(userProfile?.roleName || undefined)}
                     </div>
                   </div>
                 )}
