@@ -1,0 +1,987 @@
+/**
+ * ======// Registrar fuentes personalizadas (opcional)
+// Font.register({
+//   family: 'Open Sans',
+//   src: 'https://fonts.gstatic.com/s/opensans/v17/mem8YaGs126MiZpBA-UFVZ0bf8pkAg.woff2'
+// });
+
+// Función para obtener información del usuario por ID
+const getUserDisplayName = async (userId: string): Promise<string> => {
+  try {
+    const { data, error } = await supabase
+      .from('user_profiles')
+      .select('full_name, email')
+      .eq('id', userId)
+      .single();
+
+    if (error || !data) {
+      return 'Usuario desconocido';
+    }
+
+    return data.full_name || data.email || 'Usuario desconocido';
+  } catch (error) {
+    console.error('Error obteniendo información del usuario:', error);
+    return 'Usuario desconocido';
+  }
+};
+
+// Función para procesar el documento y enriquecer los datos
+const enrichDocumentData = async (document: BlockNoteDocument): Promise<BlockNoteDocument> => {
+  const enrichedDocument = { ...document };
+  
+  // Si created_by es un UUID, obtener el nombre del usuario
+  if (document.created_by && typeof document.created_by === 'string') {
+    if (document.created_by.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
+      try {
+        const authorName = await getUserDisplayName(document.created_by);
+        enrichedDocument.created_by = authorName;
+      } catch (error) {
+        console.warn('No se pudo obtener el nombre del usuario:', error);
+      }
+    }
+  }
+  
+  return enrichedDocument;
+};
+
+/**
+ * =================================================================
+ * SERVICIO: EXPORTACIÓN PDF CON REACT-PDF
+ * =================================================================
+ * Descripción: Servicio para exportar documentos BlockNote a PDF usando @react-pdf/renderer
+ * Versión: 1.0
+ * Fecha: 5 de Agosto, 2025
+ * =================================================================
+ */
+
+import React from 'react';
+import { Document, Page, Text, View, StyleSheet, PDFDownloadLink, pdf, Image } from '@react-pdf/renderer';
+import { BlockNoteDocument, PDFContentBlock, PDFExportOptions } from '../../types/blocknotePdf';
+import { supabase } from '../lib/supabase';
+
+// Registrar fuentes personalizadas (opcional)
+// Font.register({
+//   family: 'Open Sans',
+//   src: 'https://fonts.gstatic.com/s/opensans/v17/mem8YaGs126MiZpBA-UFVZ0bf8pkAg.woff2'
+// });
+
+// Estilos para el PDF
+const styles = StyleSheet.create({
+  page: {
+    flexDirection: 'column',
+    backgroundColor: '#FFFFFF',
+    padding: 30,
+    fontFamily: 'Helvetica',
+    fontSize: 11,
+    lineHeight: 1.3,
+    color: '#000000',
+  },
+  header: {
+    marginBottom: 24,
+    paddingBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E1E5E9',
+  },
+  title: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#000000',
+    marginBottom: 6,
+    lineHeight: 1.2,
+  },
+  metadata: {
+    backgroundColor: '#F7F8FA',
+    padding: 16,
+    marginBottom: 20,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#E1E5E9',
+  },
+  metadataTitle: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: '#37352F',
+    marginBottom: 8,
+  },
+  metadataText: {
+    fontSize: 11,
+    color: '#37352F',
+    marginBottom: 4,
+    lineHeight: 1.4,
+  },
+  metadataRow: {
+    flexDirection: 'row',
+    marginBottom: 6,
+    alignItems: 'center',
+  },
+  metadataLabel: {
+    fontSize: 11,
+    fontWeight: 'bold',
+    color: '#37352F',
+    width: 80,
+    marginRight: 8,
+  },
+  metadataValue: {
+    fontSize: 11,
+    color: '#37352F',
+    flex: 1,
+  },
+  content: {
+    flex: 1,
+  },
+  footer: {
+    marginTop: 20,
+    paddingTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: '#E1E5E9',
+    fontSize: 8,
+    color: '#9B9A97',
+    textAlign: 'center',
+  },
+  // Estilos para diferentes tipos de bloques
+  heading1: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#000000',
+    marginBottom: 8,
+    marginTop: 16,
+    lineHeight: 1.2,
+  },
+  heading2: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#000000',
+    marginBottom: 6,
+    marginTop: 12,
+    lineHeight: 1.2,
+  },
+  heading3: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#000000',
+    marginBottom: 5,
+    marginTop: 10,
+    lineHeight: 1.2,
+  },
+  heading4: {
+    fontSize: 13,
+    fontWeight: 'bold',
+    color: '#000000',
+    marginBottom: 4,
+    marginTop: 8,
+    lineHeight: 1.2,
+  },
+  heading5: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: '#000000',
+    marginBottom: 3,
+    marginTop: 6,
+    lineHeight: 1.2,
+  },
+  heading6: {
+    fontSize: 11,
+    fontWeight: 'bold',
+    color: '#000000',
+    marginBottom: 3,
+    marginTop: 4,
+    lineHeight: 1.2,
+  },
+  paragraph: {
+    fontSize: 11,
+    color: '#000000',
+    marginBottom: 6,
+    lineHeight: 1.3,
+  },
+  codeBlock: {
+    backgroundColor: '#F1F3F4',
+    color: '#37352F',
+    padding: 16,
+    marginBottom: 12,
+    fontFamily: 'Courier',
+    fontSize: 10,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#D1D5DB',
+    lineHeight: 1.5,
+  },
+  quote: {
+    backgroundColor: '#F7F6F3',
+    borderLeftWidth: 3,
+    borderLeftColor: '#37352F',
+    paddingLeft: 12,
+    padding: 10,
+    marginBottom: 8,
+    fontStyle: 'italic',
+    color: '#37352F',
+    fontSize: 11,
+    lineHeight: 1.3,
+  },
+  listItem: {
+    fontSize: 11,
+    color: '#000000',
+    marginBottom: 3,
+    marginLeft: 16,
+    flexDirection: 'row',
+    lineHeight: 1.3,
+  },
+  bulletPoint: {
+    width: 12,
+    fontSize: 11,
+    color: '#000000',
+  },
+  numberedPoint: {
+    width: 16,
+    fontSize: 11,
+    color: '#000000',
+  },
+  listContent: {
+    flex: 1,
+    lineHeight: 1.3,
+  },
+  checkboxItem: {
+    fontSize: 11,
+    color: '#000000',
+    marginBottom: 3,
+    marginLeft: 16,
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    lineHeight: 1.3,
+  },
+  checkbox: {
+    width: 11,
+    height: 11,
+    borderWidth: 1,
+    borderColor: '#37352F',
+    marginRight: 6,
+    marginTop: 1,
+    borderRadius: 2,
+  },
+  checkedBox: {
+    backgroundColor: '#2F80ED',
+    borderColor: '#2F80ED',
+  },
+  checkMark: {
+    color: '#FFFFFF',
+    fontSize: 8,
+    fontWeight: 'bold',
+    lineHeight: 1,
+    textAlign: 'center',
+  },
+  // Estilos para tablas
+  table: {
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#E1E5E9',
+    borderRadius: 3,
+  },
+  tableRow: {
+    flexDirection: 'row',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E1E5E9',
+  },
+  tableHeaderRow: {
+    backgroundColor: '#F7F6F3',
+  },
+  tableCell: {
+    flex: 1,
+    padding: 8,
+    borderRightWidth: 1,
+    borderRightColor: '#E1E5E9',
+    fontSize: 10,
+    lineHeight: 1.3,
+  },
+  tableHeaderCell: {
+    fontWeight: 'bold',
+    color: '#37352F',
+  },
+  lastTableCell: {
+    borderRightWidth: 0,
+  },
+  divider: {
+    borderBottomWidth: 1,
+    borderBottomColor: '#E1E5E9',
+    marginVertical: 12,
+  },
+  // Estilos de texto
+  bold: {
+    fontWeight: 'bold',
+  },
+  italic: {
+    fontStyle: 'italic',
+  },
+  underline: {
+    textDecoration: 'underline',
+  },
+  strikethrough: {
+    textDecoration: 'line-through',
+  },
+  code: {
+    fontFamily: 'Courier',
+    backgroundColor: '#F7F6F3',
+    paddingHorizontal: 3,
+    paddingVertical: 1,
+    fontSize: 10,
+    borderRadius: 2,
+    color: '#EB5757',
+  },
+  link: {
+    color: '#2F80ED',
+    textDecoration: 'underline',
+  },
+  // Colores de texto estilo Notion
+  textRed: { color: '#E03E3E' },
+  textBlue: { color: '#2F80ED' },
+  textGreen: { color: '#0F7B0F' },
+  textYellow: { color: '#DFAB01' },
+  textPurple: { color: '#9065B0' },
+  textGray: { color: '#9B9A97' },
+  textOrange: { color: '#D9730D' },
+  textPink: { color: '#AD1A72' },
+  textDefault: { color: '#000000' },
+  // Colores de fondo estilo Notion
+  bgRed: { backgroundColor: '#FFEAEA' },
+  bgBlue: { backgroundColor: '#E7F3FF' },
+  bgGreen: { backgroundColor: '#EDFDE7' },
+  bgYellow: { backgroundColor: '#FBEFCC' },
+  bgPurple: { backgroundColor: '#F4EEFC' },
+  bgGray: { backgroundColor: '#F1F1EF' },
+  bgOrange: { backgroundColor: '#FADCC7' },
+  bgPink: { backgroundColor: '#F5E0E9' },
+  bgDefault: { backgroundColor: 'transparent' },
+  // Alineación
+  textLeft: { textAlign: 'left' },
+  textCenter: { textAlign: 'center' },
+  textRight: { textAlign: 'right' },
+  textJustify: { textAlign: 'justify' },
+  image: {
+    maxWidth: '100%',
+    maxHeight: 400,
+    marginVertical: 8,
+    alignSelf: 'center',
+    borderRadius: 3,
+  },
+  imageCaption: {
+    fontSize: 9,
+    color: '#9B9A97',
+    textAlign: 'center',
+    marginTop: 4,
+    fontStyle: 'italic',
+    lineHeight: 1.2,
+  },
+});
+
+// Función para renderizar texto con estilos
+const renderStyledText = (content: any[]) => {
+  if (!Array.isArray(content)) {
+    console.warn('⚠️ [PDF Service] Contenido de texto no es array:', content);
+    return typeof content === 'string' ? content : 'Contenido inválido';
+  }
+
+  return content.map((item, index) => {
+    if (!item || typeof item !== 'object') {
+      console.warn('⚠️ [PDF Service] Item de contenido inválido:', item);
+      return null;
+    }
+
+    // Manejar enlaces
+    if (item.type === 'link') {
+      const linkText = Array.isArray(item.content) ? 
+        item.content.map((c: any) => c.text || '').join('') : 
+        String(item.content || item.href || 'Link');
+      
+      return (
+        <Text key={index} style={styles.link}>
+          {linkText} ({item.href})
+        </Text>
+      );
+    }
+
+    // Manejar texto normal
+    if (item.type === 'text') {
+      const textStyles = [];
+      
+      // Estilos de formato
+      if (item.styles?.bold) textStyles.push(styles.bold);
+      if (item.styles?.italic) textStyles.push(styles.italic);
+      if (item.styles?.underline) textStyles.push(styles.underline);
+      if (item.styles?.strike) textStyles.push(styles.strikethrough);
+      
+      // Colores de texto - manejar "default" como negro
+      if (item.styles?.textColor) {
+        switch (item.styles.textColor) {
+          case 'default': textStyles.push(styles.textDefault); break;
+          case 'red': textStyles.push(styles.textRed); break;
+          case 'blue': textStyles.push(styles.textBlue); break;
+          case 'green': textStyles.push(styles.textGreen); break;
+          case 'yellow': textStyles.push(styles.textYellow); break;
+          case 'purple': textStyles.push(styles.textPurple); break;
+          case 'gray': textStyles.push(styles.textGray); break;
+          case 'orange': textStyles.push(styles.textOrange); break;
+          case 'pink': textStyles.push(styles.textPink); break;
+        }
+      }
+      
+      if (item.styles?.code) {
+        return (
+          <Text key={index} style={[styles.code, ...textStyles]}>
+            {item.text || ''}
+          </Text>
+        );
+      }
+      
+      return (
+        <Text key={index} style={textStyles}>
+          {item.text || ''}
+        </Text>
+      );
+    }
+    return null;
+  }).filter(Boolean);
+};
+
+// Función para renderizar un bloque de contenido
+const renderBlock = (block: PDFContentBlock): JSX.Element | null => {
+  if (!block || typeof block !== 'object') {
+    console.warn('⚠️ [PDF Service] Bloque inválido recibido:', block);
+    return null;
+  }
+
+  const key = block.id || `block-${Math.random()}`;
+  
+  // Función para obtener estilos de bloque según props
+  const getBlockStyles = (props: any) => {
+    const blockStyles = [];
+    
+    // Color de fondo - manejar "default" como transparente
+    if (props?.backgroundColor && props.backgroundColor !== 'default') {
+      switch (props.backgroundColor) {
+        case 'red': blockStyles.push(styles.bgRed); break;
+        case 'blue': blockStyles.push(styles.bgBlue); break;
+        case 'green': blockStyles.push(styles.bgGreen); break;
+        case 'yellow': blockStyles.push(styles.bgYellow); break;
+        case 'purple': blockStyles.push(styles.bgPurple); break;
+        case 'gray': blockStyles.push(styles.bgGray); break;
+        case 'orange': blockStyles.push(styles.bgOrange); break;
+        case 'pink': blockStyles.push(styles.bgPink); break;
+      }
+    }
+    
+    // Alineación de texto
+    if (props?.textAlignment) {
+      switch (props.textAlignment) {
+        case 'left': blockStyles.push(styles.textLeft); break;
+        case 'center': blockStyles.push(styles.textCenter); break;
+        case 'right': blockStyles.push(styles.textRight); break;
+        case 'justify': blockStyles.push(styles.textJustify); break;
+      }
+    }
+    
+    return blockStyles;
+  };
+  
+  try {
+    const blockStyles = getBlockStyles(block.props);
+    
+    switch (block.type) {
+      case 'heading':
+        const level = block.props?.level || 1;
+        const headingStyle = styles[`heading${level}` as keyof typeof styles] || styles.heading1;
+        return (
+          <Text key={key} style={[headingStyle, ...blockStyles]}>
+            {renderStyledText(block.content || [])}
+          </Text>
+        );
+        
+      case 'paragraph':
+        return (
+          <Text key={key} style={[styles.paragraph, ...blockStyles]}>
+            {renderStyledText(block.content || [])}
+          </Text>
+        );
+        
+      case 'codeBlock':
+        const codeText = (block.content || []).map(c => c.text || '').join('');
+        const language = block.props?.language || '';
+        return (
+          <View key={key}>
+            {language && language !== 'text' && (
+              <Text style={{ fontSize: 9, color: '#9B9A97', marginBottom: 2, fontFamily: 'Courier' }}>
+                {language.toLowerCase()}
+              </Text>
+            )}
+            <View style={[styles.codeBlock, ...blockStyles]}>
+              <Text style={{ fontFamily: 'Courier', lineHeight: 1.4 }}>{codeText}</Text>
+            </View>
+          </View>
+        );
+        
+      case 'quote':
+        return (
+          <View key={key} style={[styles.quote, ...blockStyles]}>
+            <Text>{renderStyledText(block.content || [])}</Text>
+          </View>
+        );
+        
+      case 'bulletListItem':
+        return (
+          <View key={key} style={[styles.listItem, ...blockStyles]}>
+            <Text style={styles.bulletPoint}>•</Text>
+            <Text style={styles.listContent}>
+              {renderStyledText(block.content || [])}
+            </Text>
+          </View>
+        );
+        
+      case 'numberedListItem':
+        // Intentar obtener el número de la lista o usar 1 por defecto
+        const listNumber = block.props?.listNumber || '1';
+        return (
+          <View key={key} style={[styles.listItem, ...blockStyles]}>
+            <Text style={styles.numberedPoint}>{listNumber}.</Text>
+            <Text style={styles.listContent}>
+              {renderStyledText(block.content || [])}
+            </Text>
+          </View>
+        );
+        
+      case 'checkListItem':
+        const isChecked = block.props?.checked || false;
+        return (
+          <View key={key} style={[styles.checkboxItem, ...blockStyles]}>
+            <View style={[styles.checkbox, isChecked ? styles.checkedBox : {}]}>
+              {isChecked && <Text style={styles.checkMark}>×</Text>}
+            </View>
+            <Text style={styles.listContent}>
+              {renderStyledText(block.content || [])}
+            </Text>
+          </View>
+        );
+        
+      case 'table':
+        return renderTable(block, key);
+        
+      case 'divider':
+        return <View key={key} style={styles.divider} />;
+        
+      case 'image':
+        if (block.props?.url) {
+          return (
+            <View key={key}>
+              <Image
+                style={styles.image}
+                src={block.props.url}
+              />
+              {(block.props as any)?.caption && (
+                <Text style={styles.imageCaption}>
+                  {(block.props as any).caption}
+                </Text>
+              )}
+            </View>
+          );
+        }
+        return null;
+        
+      default:
+        console.warn(`⚠️ [PDF Service] Tipo de bloque no soportado: ${(block as any).type}`);
+        return (
+          <Text key={key} style={[styles.paragraph, ...blockStyles]}>
+            {renderStyledText((block as any).content || [])}
+          </Text>
+        );
+    }
+  } catch (error) {
+    console.error(`❌ [PDF Service] Error renderizando bloque ${block.type}:`, error);
+    // Renderizar como párrafo básico en caso de error
+    return (
+      <Text key={key} style={styles.paragraph}>
+        [Error al renderizar bloque de tipo: {block.type}]
+      </Text>
+    );
+  }
+};
+
+// Función para renderizar tablas
+const renderTable = (block: any, key: string): JSX.Element | null => {
+  try {
+    if (!block.content || !block.content.rows) {
+      console.warn('⚠️ [PDF Service] Tabla sin filas válidas');
+      return null;
+    }
+
+    const { rows, headerRows = 1 } = block.content;
+    
+    return (
+      <View key={key} style={styles.table}>
+        {rows.map((row: any, rowIndex: number) => {
+          const isHeader = rowIndex < headerRows;
+          
+          return (
+            <View 
+              key={`row-${rowIndex}`} 
+              style={[styles.tableRow, isHeader ? styles.tableHeaderRow : {}]}
+            >
+              {row.cells?.map((cell: any, cellIndex: number) => {
+                const isLastCell = cellIndex === row.cells.length - 1;
+                
+                return (
+                  <View 
+                    key={`cell-${rowIndex}-${cellIndex}`}
+                    style={[
+                      styles.tableCell,
+                      isHeader ? styles.tableHeaderCell : {},
+                      isLastCell ? styles.lastTableCell : {}
+                    ]}
+                  >
+                    <Text>
+                      {renderStyledText(cell.content || [])}
+                    </Text>
+                  </View>
+                );
+              })}
+            </View>
+          );
+        })}
+      </View>
+    );
+  } catch (error) {
+    console.error('❌ [PDF Service] Error renderizando tabla:', error);
+    return (
+      <Text key={key} style={styles.paragraph}>
+        [Error al renderizar tabla]
+      </Text>
+    );
+  }
+};
+
+// Componente principal del documento PDF
+const PDFDocument: React.FC<{ document: BlockNoteDocument; options?: PDFExportOptions }> = ({ 
+  document, 
+  options = {} 
+}) => {
+  const {
+    includeMetadata = true,
+    includeHeader = true,
+    includeFooter = true
+  } = options;
+
+  return (
+    <Document
+      title={document.title}
+      author={document.created_by}
+      subject={`Documento de ${document.category || 'Documentación'}`}
+      creator="Sistema de Gestión de Casos"
+      producer="@react-pdf/renderer"
+    >
+      <Page size="A4" style={styles.page}>
+        {/* Header estilo Notion */}
+        {includeHeader && (
+          <View style={styles.header}>
+            <Text style={styles.title}>{document.title}</Text>
+            {(document.created_by || document.created_at) && (
+              <View style={{ flexDirection: 'row', marginTop: 4, fontSize: 9, color: '#9B9A97' }}>
+                {document.created_by && (
+                  <Text style={{ marginRight: 12 }}>Por {document.created_by}</Text>
+                )}
+                {document.created_at && (
+                  <Text>{new Date(document.created_at).toLocaleDateString('es-ES', { 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric' 
+                  })}</Text>
+                )}
+              </View>
+            )}
+          </View>
+        )}
+        
+        {/* Metadata mejorado estilo Notion */}
+        {includeMetadata && (document.category || document.tags?.length || document.difficulty_level || document.estimated_solution_time) && (
+          <View style={styles.metadata}>
+            <Text style={styles.metadataTitle}>Información del Documento</Text>
+            
+            {document.category && (
+              <View style={styles.metadataRow}>
+                <Text style={styles.metadataLabel}>Categoría:</Text>
+                <Text style={styles.metadataValue}>{document.category}</Text>
+              </View>
+            )}
+            
+            {document.difficulty_level && (
+              <View style={styles.metadataRow}>
+                <Text style={styles.metadataLabel}>Complejidad:</Text>
+                <Text style={styles.metadataValue}>{'⭐'.repeat(document.difficulty_level)} ({document.difficulty_level}/5)</Text>
+              </View>
+            )}
+            
+            {document.estimated_solution_time && (
+              <View style={styles.metadataRow}>
+                <Text style={styles.metadataLabel}>Tiempo est.:</Text>
+                <Text style={styles.metadataValue}>{document.estimated_solution_time} minutos</Text>
+              </View>
+            )}
+            
+            {document.tags && document.tags.length > 0 && (
+              <View style={styles.metadataRow}>
+                <Text style={styles.metadataLabel}>Etiquetas:</Text>
+                <Text style={styles.metadataValue}>{document.tags.join(', ')}</Text>
+              </View>
+            )}
+          </View>
+        )}
+        
+        {/* Contenido principal */}
+        <View style={styles.content}>
+          {document.content.map(block => renderBlock(block))}
+        </View>
+        
+        {/* Footer estilo Notion */}
+        {includeFooter && (
+          <View style={styles.footer}>
+            <Text>
+              {new Date().toLocaleDateString('es-ES', { 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+              })}
+            </Text>
+          </View>
+        )}
+      </Page>
+    </Document>
+  );
+};
+
+// Función para validar y limpiar el documento antes de la exportación
+const validateAndCleanDocument = (document: BlockNoteDocument): BlockNoteDocument => {
+  console.log('🔍 [PDF Service] Validando y limpiando documento...');
+  
+  if (!document || typeof document !== 'object') {
+    console.error('❌ [PDF Service] Documento inválido:', document);
+    return {
+      id: 'default-doc',
+      title: 'Documento Sin Título',
+      content: [{
+        id: 'default',
+        type: 'paragraph',
+        content: [{ type: 'text', text: 'Documento sin contenido válido', styles: {} }],
+        props: {},
+        children: []
+      }]
+    };
+  }
+
+  const cleanedDocument: BlockNoteDocument = {
+    id: document.id || 'doc-' + Date.now(),
+    title: typeof document.title === 'string' ? document.title : 'Documento Sin Título',
+    content: [],
+    // Preservar metadatos si existen
+    ...(document.created_by && { created_by: document.created_by }),
+    ...(document.created_at && { created_at: document.created_at }),
+    ...(document.category && { category: document.category }),
+    ...(document.tags && { tags: document.tags }),
+    ...(document.difficulty_level && { difficulty_level: document.difficulty_level }),
+    ...(document.estimated_solution_time && { estimated_solution_time: document.estimated_solution_time })
+  };
+
+  if (!Array.isArray(document.content)) {
+    console.warn('⚠️ [PDF Service] El contenido no es un array válido, creando bloque por defecto');
+    cleanedDocument.content = [{
+      id: 'default',
+      type: 'paragraph',
+      content: [{ type: 'text', text: 'Sin contenido', styles: {} }],
+      props: {},
+      children: []
+    }];
+    return cleanedDocument;
+  }
+
+  // Limpiar y validar cada bloque
+  document.content.forEach((block, index) => {
+    try {
+      if (!block || typeof block !== 'object') {
+        console.warn(`⚠️ [PDF Service] Bloque ${index} inválido:`, block);
+        return;
+      }
+
+      // Crear bloque básico válido con todas las propiedades requeridas
+      const cleanedBlock: PDFContentBlock = {
+        id: block.id || `block-${index}`,
+        type: block.type || 'paragraph',
+        content: [],
+        props: block.props || {},
+        children: block.children || []
+      } as PDFContentBlock;
+
+      // Manejar contenido según el tipo de bloque
+      if (block.type === 'table' && block.content) {
+        // Para tablas, preservar la estructura especial
+        cleanedBlock.content = block.content;
+      } else if (Array.isArray(block.content)) {
+        // Para otros bloques, limpiar el contenido de texto
+        cleanedBlock.content = block.content.map(c => ({
+          type: 'text' as const,
+          text: c.text || '',
+          styles: c.styles || {}
+        }));
+      } else {
+        // Contenido fallback
+        cleanedBlock.content = [{ 
+          type: 'text' as const, 
+          text: String(block.content || ''), 
+          styles: {} 
+        }];
+      }
+
+      // Validar tipos de bloque soportados
+      const supportedTypes = ['paragraph', 'heading', 'bulletListItem', 'numberedListItem', 'image', 'table'];
+      if (!supportedTypes.includes(cleanedBlock.type)) {
+        console.warn(`⚠️ [PDF Service] Tipo de bloque no soportado: ${cleanedBlock.type}, convirtiendo a párrafo`);
+        cleanedBlock.type = 'paragraph';
+      }
+
+      cleanedDocument.content.push(cleanedBlock);
+    } catch (blockError) {
+      console.error(`❌ [PDF Service] Error procesando bloque ${index}:`, blockError);
+    }
+  });
+
+  console.log(`✅ [PDF Service] Documento validado: ${cleanedDocument.content.length} bloques válidos`);
+  return cleanedDocument;
+};
+
+// Función para generar y descargar el PDF
+export const downloadPDF = async (
+  document: BlockNoteDocument, 
+  options: PDFExportOptions = {}
+): Promise<void> => {
+  const fileName = options.fileName || `${document.title.replace(/[^\w\s]/gi, '_')}.pdf`;
+  
+  try {
+    console.log('🚀 [PDF Service] Iniciando generación PDF:', { 
+      title: document.title, 
+      contentBlocks: document.content?.length || 0,
+      fileName 
+    });
+
+    // Enriquecer el documento con datos de usuario si es necesario
+    const enrichedDocument = await enrichDocumentData(document);
+
+    // Validar y limpiar el documento antes de procesarlo
+    const cleanedDocument = validateAndCleanDocument(enrichedDocument);
+
+    console.log('📄 [PDF Service] Documento validado:', {
+      blocks: cleanedDocument.content.length,
+      author: cleanedDocument.created_by,
+      hasValidContent: cleanedDocument.content.every(block => block && typeof block === 'object')
+    });
+
+    const blob = await pdf(<PDFDocument document={cleanedDocument} options={options} />).toBlob();
+    
+    console.log('✅ [PDF Service] PDF generado exitosamente, iniciando descarga');
+    
+    // Crear link de descarga
+    const url = URL.createObjectURL(blob);
+    const link = window.document.createElement('a');
+    link.href = url;
+    link.download = fileName;
+    
+    // Trigger download
+    window.document.body.appendChild(link);
+    link.click();
+    window.document.body.removeChild(link);
+    
+    // Cleanup
+    URL.revokeObjectURL(url);
+    
+    console.log('📥 [PDF Service] Descarga completada:', fileName);
+  } catch (error) {
+    console.error('❌ [PDF Service] Error al generar PDF:', error);
+    console.error('📋 [PDF Service] Detalles del documento:', {
+      title: document.title,
+      contentType: typeof document.content,
+      contentLength: document.content?.length,
+      documentKeys: Object.keys(document)
+    });
+    throw new Error(`Error al generar el archivo PDF: ${error instanceof Error ? error.message : 'Error desconocido'}`);
+  }
+};
+
+// Función para obtener el blob del PDF (sin descargar)
+export const generatePDFBlob = async (
+  document: BlockNoteDocument,
+  options: PDFExportOptions = {}
+): Promise<Blob> => {
+  try {
+    console.log('🚀 [PDF Service] Generando blob PDF...');
+    
+    // Validar y limpiar el documento antes de procesarlo
+    const cleanedDocument = validateAndCleanDocument(document);
+    
+    const blob = await pdf(<PDFDocument document={cleanedDocument} options={options} />).toBlob();
+    
+    console.log('✅ [PDF Service] Blob PDF generado exitosamente');
+    return blob;
+  } catch (error) {
+    console.error('❌ [PDF Service] Error al generar blob PDF:', error);
+    throw new Error(`Error al generar el archivo PDF: ${error instanceof Error ? error.message : 'Error desconocido'}`);
+  }
+};
+
+// Componente para el link de descarga
+export const PDFDownloadButton: React.FC<{
+  document: BlockNoteDocument;
+  options?: PDFExportOptions;
+  className?: string;
+  children: React.ReactNode;
+}> = ({ document, options = {}, className, children }) => {
+  const fileName = options.fileName || `${document.title.replace(/[^\w\s]/gi, '_')}.pdf`;
+  
+  // Validar y limpiar el documento antes de pasarlo al componente
+  const cleanedDocument = validateAndCleanDocument(document);
+  
+  return (
+    <PDFDownloadLink
+      document={<PDFDocument document={cleanedDocument} options={options} />}
+      fileName={fileName}
+      className={className}
+    >
+      {({ loading, error }) => {
+        if (loading) return <span>Generando PDF...</span>;
+        if (error) {
+          console.error('❌ [PDF Service] Error en PDFDownloadButton:', error);
+          return <span>Error al generar PDF</span>;
+        }
+        return children;
+      }}
+    </PDFDownloadLink>
+  );
+};
+
+// Función para crear un documento PDF de emergencia con contenido simple
+export const createFallbackPDF = async (title: string, content: string): Promise<void> => {
+  try {
+    console.log('🆘 [PDF Service] Creando PDF de emergencia...');
+    
+    const fallbackDocument: BlockNoteDocument = {
+      id: 'fallback-' + Date.now(),
+      title: title,
+      content: [{
+        id: 'fallback-block',
+        type: 'paragraph',
+        content: [{ type: 'text', text: content, styles: {} }],
+        props: {},
+        children: []
+      }]
+    };
+
+    await downloadPDF(fallbackDocument, { fileName: `${title.replace(/[^\w\s]/gi, '_')}_fallback.pdf` });
+    
+    console.log('✅ [PDF Service] PDF de emergencia creado exitosamente');
+  } catch (error) {
+    console.error('❌ [PDF Service] Error creando PDF de emergencia:', error);
+    throw error;
+  }
+};
+
+export { PDFDocument };

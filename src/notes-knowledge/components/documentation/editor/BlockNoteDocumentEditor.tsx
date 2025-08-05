@@ -66,12 +66,25 @@ export const BlockNoteDocumentEditor: React.FC<BlockNoteDocumentEditorProps> = (
         fileSize: file.size,
         fileType: file.type,
         documentId: documentId,
+        hasDocumentId: !!documentId,
+        documentIdValid: documentId && documentId.trim() !== '',
         timestamp: new Date().toISOString()
       });
 
+      // Validar que tengamos un documentId válido
+      if (!documentId || documentId.trim() === '') {
+        console.error('❌ ERROR: No hay documentId válido para subir archivos');
+        console.error('📝 Esto significa que el documento aún no se ha guardado');
+        
+        // Crear URL temporal como fallback
+        const tempUrl = URL.createObjectURL(file);
+        console.log('🔄 Usando URL temporal como fallback:', tempUrl);
+        return tempUrl;
+      }
+
       try {
         // Usar StorageService para subir archivos reales
-        console.log('📤 Llamando StorageService.uploadFile...');
+        console.log('📤 Llamando StorageService.uploadFile con documentId:', documentId);
         const result = await StorageService.uploadFile(file, documentId, {
           isEmbedded: true
         });

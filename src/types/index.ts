@@ -871,3 +871,8 @@ export interface DisposicionFilters {
 // =============================================
 // FIN TIPOS MÓDULO DISPOSICIÓN SCRIPTS
 // =============================================
+
+// =============================================
+// TIPOS MÓDULO PDF EXPORT
+// =============================================
+export * from './blocknotePdf';

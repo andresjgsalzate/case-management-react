@@ -51,6 +51,7 @@ Una plataforma integral que centraliza la gestión de casos, control de tiempo, 
 - **Categorización Automática**: Clasificación por palabras clave (Priority, Technology, Technical, Module)
 - **Algoritmo Anti-Repetición**: Evita colores duplicados en etiquetas recientes
 - **Búsqueda Avanzada**: Localización rápida de documentos por contenido y etiquetas
+- **🆕 Exportación PDF**: Generación profesional de documentos con @react-pdf/renderer
 
 ### 📋 **Gestión de TODOs Empresarial**
 - **CRUD Completo**: Crear, asignar, seguir y completar tareas
@@ -225,6 +226,14 @@ src/
 - 12 colores predefinidos con algoritmo anti-repetición
 - Categorización automática por palabras clave
 - Gestión administrativa completa
+
+**🆕 Exportación PDF Profesional:**
+- **Librería**: @react-pdf/renderer para generación nativa
+- **Formatos Completos**: Soporte para todos los tipos de bloques BlockNote
+- **Estilos Profesionales**: Tipografía mejorada y diseño empresarial
+- **Metadatos Automáticos**: Información del documento, autor, fechas
+- **Preservación de Formato**: Emojis, negrita, cursiva, checkboxes
+- **Descarga Directa**: Generación y descarga automática del archivo PDF
 
 ### **📋 Gestión de TODOs**
 

@@ -37,6 +37,7 @@ export * from './lib/validations';
 // Shared services
 export * from './services/RolesService';
 export * from './services/PermissionsService';
+export * from './services/pdfExportService';
 
 // Shared types
 export * from './types/permissions';

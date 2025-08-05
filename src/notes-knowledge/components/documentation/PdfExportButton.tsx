@@ -1,10 +1,10 @@
 /**
  * =================================================================
- * COMPONENTE: BOTÓN DE EXPORTACIÓN A PDF
+ * COMPONENTE: BOTÓN DE EXPORTACIÓN A PDF PARA DOCUMENTACIÓN
  * =================================================================
- * Descripción: Botón para exportar documentos de BlockNote a PDF
- * Versión: 7.0 - React-PDF nativo
- * Fecha: 4 de Agosto, 2025
+ * Descripción: Botón específico para exportar documentos de BlockNote a PDF
+ * Versión: 2.0 - Implementación completa con @react-pdf/renderer
+ * Fecha: 5 de Agosto, 2025
  * =================================================================
  */
 
@@ -19,6 +19,8 @@ interface PdfExportButtonProps {
   variant?: 'primary' | 'secondary' | 'outline';
   size?: 'sm' | 'md' | 'lg';
   showText?: boolean;
+  onExportSuccess?: () => void;
+  onExportError?: (error: Error) => void;
 }
 
 export const PdfExportButton: React.FC<PdfExportButtonProps> = ({
@@ -26,7 +28,9 @@ export const PdfExportButton: React.FC<PdfExportButtonProps> = ({
   className = "",
   variant = 'outline',
   size = 'md',
-  showText = true
+  showText = true,
+  onExportSuccess,
+  onExportError
 }) => {
   const getVariantClasses = () => {
     switch (variant) {
@@ -64,9 +68,35 @@ export const PdfExportButton: React.FC<PdfExportButtonProps> = ({
     }
   };
 
+  const handleExportSuccess = () => {
+    console.log('PDF exportado exitosamente desde PdfExportButton');
+    onExportSuccess?.();
+  };
+
+  const handleExportError = (error: Error) => {
+    console.error('Error en exportación PDF desde PdfExportButton:', error);
+    onExportError?.(error);
+  };
+
+  if (!documentData) {
+    console.warn('PdfExportButton: No se proporcionaron datos del documento');
+    return null;
+  }
+
+  const convertedDocument = convertToBlockNoteDocument(documentData);
+
   return (
     <PDFExportButton
-      document={convertToBlockNoteDocument(documentData)}
+      document={convertedDocument}
+      filename={`${convertedDocument.title.replace(/[^\w\s]/gi, '_')}.pdf`}
+      onExportSuccess={handleExportSuccess}
+      onExportError={handleExportError}
+      options={{
+        includeMetadata: true,
+        includeHeader: true,
+        includeFooter: true,
+        pageFormat: 'A4'
+      }}
       className={`
         inline-flex items-center gap-2 border rounded-md font-medium transition-colors duration-200
         focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2

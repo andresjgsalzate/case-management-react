@@ -134,6 +134,12 @@ export const EnhancedDocumentationEditor: React.FC<EnhancedDocumentationEditorPr
 
       // Actualizar estados
       setCurrentDocumentId(newDocument.id);
+      console.log('✅ Documento creado exitosamente:', {
+        documentId: newDocument.id,
+        title: title.trim(),
+        currentDocumentIdUpdated: true
+      });
+      
       setFormData(prev => ({ 
         ...prev, 
         title: title.trim() 
@@ -528,6 +534,12 @@ export const EnhancedDocumentationEditor: React.FC<EnhancedDocumentationEditorPr
                     documentId={currentDocumentId || document?.id}
                     className="w-full"
                   />
+                  {/* Debug info para verificar documentId */}
+                  {process.env.NODE_ENV === 'development' && (
+                    <div className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded text-xs">
+                      <strong>Debug Info:</strong> documentId = {currentDocumentId || document?.id || 'undefined'}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
