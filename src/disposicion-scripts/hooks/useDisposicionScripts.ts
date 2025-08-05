@@ -1,5 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/shared/lib/supabase';
+import { usePermissions } from '@/user-management/hooks/useUserProfile';
+import { useDisposicionScriptsPermissions } from './useDisposicionScriptsPermissions';
 import { 
   DisposicionScripts, 
   DisposicionScriptsFormData, 
@@ -11,53 +13,75 @@ import {
 // ===== CONSULTAS =====
 
 export const useDisposicionesScripts = (filters?: DisposicionFilters) => {
+  const { userProfile } = usePermissions();
+  const disposicionesPermissions = useDisposicionScriptsPermissions();
+  
   return useQuery({
-    queryKey: ['disposiciones-scripts', filters],
+    queryKey: ['disposiciones-scripts', filters, userProfile?.id],
     queryFn: async (): Promise<DisposicionScripts[]> => {
-      // Usar la nueva vista que maneja casos activos y archivados
-      let query = supabase
-        .from('disposiciones_scripts_with_case')
-        .select(`
-          *,
-          aplicacion:aplicaciones!inner(id, nombre),
-          user:user_profiles(id, full_name, email)
-        `)
-        .order('created_at', { ascending: false });
+      try {
+        // Usar la nueva vista que maneja casos activos y archivados
+        let query = supabase
+          .from('disposiciones_scripts_with_case')
+          .select(`
+            *,
+            aplicacion:aplicaciones!inner(id, nombre),
+            user:user_profiles(id, full_name, email)
+          `)
+          .order('created_at', { ascending: false });
 
-      // Aplicar filtros
-      if (filters?.year) {
-        query = query.gte('fecha', `${filters.year}-01-01`)
-                    .lte('fecha', `${filters.year}-12-31`);
-      }
+        // Aplicar filtros basados en los permisos de disposiciones
+        const highestReadScope = disposicionesPermissions.getHighestReadScope();
+        
+        if (!highestReadScope) {
+          throw new Error('No tiene permisos para ver disposiciones');
+        }
+        
+        if (highestReadScope === 'own' && userProfile?.id) {
+          // Solo puede ver sus propias disposiciones
+          query = query.eq('user_id', userProfile.id);
+        } else if (highestReadScope === 'team') {
+          // Por ahora team = all hasta implementar jerarquías
+          // query = query; // Sin filtros adicionales
+        } else if (highestReadScope === 'all') {
+          // Sin filtros adicionales - puede ver todas
+          // query = query;
+        }
 
-      if (filters?.month && filters?.year) {
-        const startDate = `${filters.year}-${filters.month.toString().padStart(2, '0')}-01`;
-        const endDate = new Date(filters.year, filters.month, 0).toISOString().split('T')[0];
-        query = query.gte('fecha', startDate).lte('fecha', endDate);
-      }
+        // Aplicar filtros adicionales
+        if (filters?.year) {
+          query = query.gte('fecha', `${filters.year}-01-01`)
+                      .lte('fecha', `${filters.year}-12-31`);
+        }
 
-      if (filters?.aplicacionId) {
-        query = query.eq('aplicacion_id', filters.aplicacionId);
-      }
+        if (filters?.month && filters?.year) {
+          const startDate = `${filters.year}-${filters.month.toString().padStart(2, '0')}-01`;
+          const endDate = new Date(filters.year, filters.month, 0).toISOString().split('T')[0];
+          query = query.gte('fecha', startDate).lte('fecha', endDate);
+        }
 
-      if (filters?.caseNumber) {
-        query = query.eq('case_number', filters.caseNumber);
-      }
+        if (filters?.aplicacionId) {
+          query = query.eq('aplicacion_id', filters.aplicacionId);
+        }
 
-      if (filters?.caseId) {
-        query = query.eq('case_id', filters.caseId);
-      }
+        if (filters?.caseNumber) {
+          query = query.eq('case_number', filters.caseNumber);
+        }
 
-      const { data, error } = await query;
+        if (filters?.caseId) {
+          query = query.eq('case_id', filters.caseId);
+        }
 
-      if (error) {
-        console.error('Error fetching disposiciones:', error);
-        throw error;
-      }
+        const { data, error } = await query;
 
-      return data?.map(item => ({
-        id: item.id,
-        fecha: item.fecha,
+        if (error) {
+          console.error('Error fetching disposiciones:', error);
+          throw error;
+        }
+
+        return data?.map(item => ({
+          id: item.id,
+          fecha: item.fecha,
         caseNumber: item.case_number,
         caseId: item.case_id,
         nombreScript: item.nombre_script,
@@ -100,11 +124,19 @@ export const useDisposicionesScripts = (filters?: DisposicionFilters) => {
           updatedAt: ''
         } : undefined
       })) || [];
+      } catch (error) {
+        console.error('💥 Fatal error fetching disposiciones:', error);
+        throw error;
+      }
     },
+    enabled: !!userProfile && disposicionesPermissions.hasAnyDisposicionesPermission(), // Solo ejecutar cuando tenga permisos
   });
 };
 
 export const useDisposicionScripts = (id: string) => {
+  const { userProfile } = usePermissions();
+  const disposicionesPermissions = useDisposicionScriptsPermissions();
+  
   return useQuery({
     queryKey: ['disposicion-scripts', id],
     queryFn: async (): Promise<DisposicionScripts | null> => {
@@ -124,6 +156,11 @@ export const useDisposicionScripts = (id: string) => {
       }
 
       if (!data) return null;
+
+      // Verificar si el usuario puede leer esta disposición específica
+      if (!userProfile?.id || !disposicionesPermissions.canPerformActionOnDisposicion(data.user_profile_id, userProfile.id, 'read')) {
+        throw new Error('No tiene permisos para ver esta disposición');
+      }
 
       return {
         id: data.id,
@@ -266,20 +303,26 @@ export const useDisposicionScriptsPorMes = (year?: number) => {
 
 export const useCreateDisposicionScripts = () => {
   const queryClient = useQueryClient();
+  const disposicionesPermissions = useDisposicionScriptsPermissions();
 
   return useMutation({
     mutationFn: async (data: DisposicionScriptsFormData): Promise<DisposicionScripts> => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Usuario no autenticado');
 
+      // Verificar permisos de creación
+      if (!disposicionesPermissions.canCreateOwnDisposiciones && !disposicionesPermissions.canCreateTeamDisposiciones && !disposicionesPermissions.canCreateAllDisposiciones) {
+        throw new Error('No tiene permisos para crear disposiciones');
+      }
+
       // Obtener el perfil del usuario
-      const { data: userProfile, error: profileError } = await supabase
+      const { data: currentUserProfile, error: profileError } = await supabase
         .from('user_profiles')
         .select('id')
         .eq('id', user.id)
         .single();
 
-      if (profileError || !userProfile) {
+      if (profileError || !currentUserProfile) {
         throw new Error('Perfil de usuario no encontrado');
       }
 
@@ -303,7 +346,7 @@ export const useCreateDisposicionScripts = () => {
         numero_revision_svn: data.numeroRevisionSvn || null,
         aplicacion_id: data.aplicacionId,
         observaciones: data.observaciones || null,
-        user_profile_id: userProfile.id,
+        user_profile_id: currentUserProfile.id,
         created_by: user.id,
         updated_by: user.id,
       };
@@ -362,11 +405,27 @@ export const useCreateDisposicionScripts = () => {
 
 export const useUpdateDisposicionScripts = () => {
   const queryClient = useQueryClient();
+  const { userProfile } = usePermissions();
+  const disposicionesPermissions = useDisposicionScriptsPermissions();
 
   return useMutation({
     mutationFn: async ({ id, data }: { id: string; data: DisposicionScriptsFormData }): Promise<DisposicionScripts> => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Usuario no autenticado');
+
+      // Obtener la disposición actual para verificar permisos
+      const { data: currentDisposicion, error: getCurrentError } = await supabase
+        .from('disposiciones_scripts')
+        .select('user_profile_id')
+        .eq('id', id)
+        .single();
+        
+      if (getCurrentError) throw getCurrentError;
+      
+      // Verificar permisos de actualización
+      if (!userProfile?.id || !disposicionesPermissions.canPerformActionOnDisposicion(currentDisposicion.user_profile_id, userProfile.id, 'update')) {
+        throw new Error('No tiene permisos para actualizar esta disposición');
+      }
 
       // Buscar el case_id basado en el número de caso
       let caseId = data.caseId;
@@ -447,9 +506,28 @@ export const useUpdateDisposicionScripts = () => {
 
 export const useDeleteDisposicionScripts = () => {
   const queryClient = useQueryClient();
+  const { userProfile } = usePermissions();
+  const disposicionesPermissions = useDisposicionScriptsPermissions();
 
   return useMutation({
     mutationFn: async (id: string): Promise<void> => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Usuario no autenticado');
+
+      // Obtener la disposición actual para verificar permisos
+      const { data: currentDisposicion, error: getDeleteError } = await supabase
+        .from('disposiciones_scripts')
+        .select('user_profile_id')
+        .eq('id', id)
+        .single();
+        
+      if (getDeleteError) throw getDeleteError;
+      
+      // Verificar permisos de eliminación
+      if (!userProfile?.id || !disposicionesPermissions.canPerformActionOnDisposicion(currentDisposicion.user_profile_id, userProfile.id, 'delete')) {
+        throw new Error('No tiene permisos para eliminar esta disposición');
+      }
+
       const { error } = await supabase
         .from('disposiciones_scripts')
         .delete()
