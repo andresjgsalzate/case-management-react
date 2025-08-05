@@ -29,10 +29,7 @@ const isValidUUID = (str: string): boolean => {
  */
 const getUserDisplayName = async (userId: string): Promise<string> => {
   try {
-    console.log('🔍 Obteniendo nombre para usuario:', userId);
-    
     if (!isValidUUID(userId)) {
-      console.log('📝 No es UUID, usando valor directo:', userId);
       return userId; // Si no es UUID, usar el valor tal como está
     }
 
@@ -49,7 +46,6 @@ const getUserDisplayName = async (userId: string): Promise<string> => {
 
     if (profile) {
       const displayName = profile.full_name || profile.email || userId;
-      console.log('✅ Usuario encontrado:', displayName);
       return displayName;
     }
 
@@ -65,8 +61,6 @@ const getUserDisplayName = async (userId: string): Promise<string> => {
  */
 const getDocumentAttachments = async (documentId: string): Promise<any[]> => {
   try {
-    console.log('📎 Obteniendo adjuntos para documento:', documentId);
-    
     const { data: attachments, error } = await supabase
       .from('document_attachments')
       .select('*')
@@ -78,7 +72,6 @@ const getDocumentAttachments = async (documentId: string): Promise<any[]> => {
       return [];
     }
     
-    console.log(`✅ Encontrados ${attachments?.length || 0} adjuntos`);
     return attachments || [];
   } catch (error) {
     console.error('❌ Error inesperado obteniendo adjuntos:', error);
@@ -882,15 +875,11 @@ export const downloadPDF = async (
   options: PDFExportOptions = {}
 ): Promise<void> => {
   try {
-    console.log('🚀 Iniciando exportación PDF...');
-    
     // Enriquecer documento con nombres de usuario
     const enrichedDocument = await enrichDocumentData(document);
-    console.log('✅ Documento enriquecido:', enrichedDocument);
     
     // Obtener adjuntos del documento
     const attachments = document.id ? await getDocumentAttachments(document.id) : [];
-    console.log(`📎 Adjuntos encontrados: ${attachments.length}`);
     
     // Generar PDF
     const blob = await pdf(<PDFDocument document={enrichedDocument} attachments={attachments} options={options} />).toBlob();
@@ -901,7 +890,6 @@ export const downloadPDF = async (
     
     // Descargar
     saveAs(blob, filename);
-    console.log('✅ PDF descargado exitosamente:', filename);
     
   } catch (error) {
     console.error('❌ Error generando PDF:', error);
@@ -917,8 +905,6 @@ export const createFallbackPDF = async (
   content: string = 'Sin contenido disponible'
 ): Promise<void> => {
   try {
-    console.log('🔄 Generando PDF fallback...');
-    
     const fallbackDocument: BlockNoteDocument = {
       id: 'fallback-doc',
       title,
@@ -936,7 +922,6 @@ export const createFallbackPDF = async (
     };
     
     await downloadPDF(fallbackDocument, { fileName: `${title}.pdf` });
-    console.log('✅ PDF fallback generado exitosamente');
     
   } catch (error) {
     console.error('❌ Error generando PDF fallback:', error);

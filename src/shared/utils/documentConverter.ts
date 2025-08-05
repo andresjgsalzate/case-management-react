@@ -12,8 +12,6 @@ import { BlockNoteDocument } from '../../types/blocknotePdf';
 
 // Convertidor mejorado de documentos
 export const convertToBlockNoteDocument = (data: any): BlockNoteDocument => {
-  console.log('DocumentConverter: Converting to BlockNote format', data);
-  
   // Si ya es un documento válido, devolverlo
   if (data && data.content && Array.isArray(data.content)) {
     return {
@@ -88,8 +86,6 @@ export const convertToBlockNoteDocument = (data: any): BlockNoteDocument => {
 };
 
 export const convertFromBlockNoteDocument = (doc: BlockNoteDocument): string => {
-  console.log('DocumentConverter: Converting from BlockNote format', doc);
-  
   if (!doc.content) return '';
   
   return doc.content

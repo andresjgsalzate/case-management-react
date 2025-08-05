@@ -7,8 +7,6 @@ export const useUsers = () => {
   return useQuery({
     queryKey: ['users'],
     queryFn: async (): Promise<UserProfile[]> => {
-      console.log('🔍 [useUsers] Iniciando consulta de usuarios...');
-      
       const { data, error } = await supabase
         .from('user_profiles')
         .select(`
@@ -22,11 +20,9 @@ export const useUsers = () => {
         .order('created_at', { ascending: false });
 
       if (error) {
-        console.error('❌ [useUsers] Error fetching users:', error);
+        console.error('Error fetching users:', error);
         throw error;
       }
-
-      console.log('✅ [useUsers] Usuarios obtenidos:', data.length);
 
       // Mapear de snake_case a camelCase
       return data.map((user: any) => ({

@@ -54,7 +54,7 @@ export const useCases = () => {
         } else if (casesPermissions.canReadTeamCases) {
           // Team: por ahora igual que 'all' hasta que se implemente la jerarquía
           // TODO: Implementar filtrado por equipo cuando se defina la estructura
-          console.log('🔧 [Cases] Filtrado por equipo no implementado aún');
+          // TODO: Implementar filtro por equipo aquí
         } else if (casesPermissions.canReadOwnCases && userProfile?.id) {
           // Own: solo sus propios casos
           query = query.eq('user_id', userProfile.id);

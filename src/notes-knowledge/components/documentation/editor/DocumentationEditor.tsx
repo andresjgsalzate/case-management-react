@@ -34,7 +34,6 @@ export const DocumentationEditor: React.FC<DocumentationEditorProps> = ({
 
   const handleSave = async () => {
     // Implementación básica - en producción usar el EnhancedDocumentationEditor
-    console.log('Guardando documento:', { title, content: blockNoteContent });
     setIsLoading(true);
     // Simular guardado
     setTimeout(() => {

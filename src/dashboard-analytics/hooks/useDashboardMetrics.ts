@@ -78,7 +78,6 @@ export const useTimeMetrics = () => {
       } else if (dashboardPermissions.canReadTeamMetrics) {
         // Team: por ahora igual que 'all' hasta que se implemente la jerarquía
         // TODO: Implementar filtrado por equipo cuando se defina la estructura
-        console.log('🔧 [Dashboard] Filtrado por equipo no implementado aún');
       } else if (dashboardPermissions.canReadOwnMetrics && userProfile?.id) {
         // Own: solo sus propios datos
         caseQuery = caseQuery.eq('user_id', userProfile.id);
@@ -115,7 +114,6 @@ export const useTimeMetrics = () => {
         // Admin: no filtrar
       } else if (dashboardPermissions.canReadTeamMetrics) {
         // Team: por ahora igual que 'all' 
-        console.log('🔧 [Dashboard] Filtrado por equipo no implementado aún');
       } else if (dashboardPermissions.canReadOwnMetrics && userProfile?.id) {
         timeQuery = timeQuery.eq('case_control.user_id', userProfile.id);
       }
@@ -138,7 +136,6 @@ export const useTimeMetrics = () => {
         // Admin: no filtrar
       } else if (dashboardPermissions.canReadTeamMetrics) {
         // Team: por ahora igual que 'all'
-        console.log('🔧 [Dashboard] Filtrado por equipo no implementado aún');
       } else if (dashboardPermissions.canReadOwnMetrics && userProfile?.id) {
         manualQuery = manualQuery.eq('case_control.user_id', userProfile.id);
       }

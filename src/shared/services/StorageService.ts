@@ -17,11 +17,9 @@ export class StorageService {
     error?: string;
   }> {
     try {
-      console.log('📁 [StorageService] Subiendo archivo:', file.name, 'para documento:', documentId);
-      
       // Validar que documentId sea válido
       if (!documentId || documentId.trim() === '') {
-        console.error('❌ documentId es inválido:', documentId);
+        console.error('documentId es inválido:', documentId);
         return {
           success: false,
           error: 'ID de documento requerido para subir archivos'
@@ -32,8 +30,6 @@ export class StorageService {
       const fileName = `${Date.now()}-${file.name}`;
       const filePath = `${documentId}/${fileName}`;
       
-      console.log('📤 [StorageService] Subiendo a ruta:', filePath, 'en bucket:', this.BUCKET_NAME);
-      
       // Subir archivo a Supabase Storage
       const { error: uploadError } = await supabase.storage
         .from(this.BUCKET_NAME)
@@ -43,7 +39,7 @@ export class StorageService {
         });
       
       if (uploadError) {
-        console.error('❌ Error al subir archivo:', uploadError);
+        console.error('Error al subir archivo:', uploadError);
         return {
           success: false,
           error: `Error al subir archivo: ${uploadError.message}`
@@ -56,7 +52,7 @@ export class StorageService {
         .getPublicUrl(filePath);
       
       if (!publicUrlData?.publicUrl) {
-        console.error('❌ Error al obtener URL pública');
+        console.error('Error al obtener URL pública');
         return {
           success: false,
           error: 'Error al obtener URL pública del archivo'
@@ -67,7 +63,7 @@ export class StorageService {
       const { data: { user }, error: userError } = await supabase.auth.getUser();
       
       if (userError || !user) {
-        console.error('❌ Error al obtener usuario:', userError);
+        console.error('Error al obtener usuario:', userError);
         return {
           success: false,
           error: 'Usuario no autenticado'
@@ -91,7 +87,7 @@ export class StorageService {
         .single();
       
       if (attachmentError) {
-        console.error('❌ Error al guardar en base de datos:', attachmentError);
+        console.error('Error al guardar en base de datos:', attachmentError);
         
         // Intentar eliminar el archivo subido si falla la inserción en BD
         await supabase.storage.from(this.BUCKET_NAME).remove([filePath]);
@@ -101,8 +97,6 @@ export class StorageService {
           error: `Error al guardar referencia: ${attachmentError.message}`
         };
       }
-      
-      console.log('✅ Archivo subido exitosamente:', publicUrlData.publicUrl);
       
       return {
         success: true,
@@ -114,7 +108,7 @@ export class StorageService {
       };
       
     } catch (error) {
-      console.error('❌ Error inesperado al subir archivo:', error);
+      console.error('Error inesperado al subir archivo:', error);
       return {
         success: false,
         error: `Error inesperado: ${error instanceof Error ? error.message : 'Error desconocido'}`
@@ -127,8 +121,6 @@ export class StorageService {
    */
   static async deleteFile(attachmentId: string): Promise<boolean> {
     try {
-      console.log('🗑️ [StorageService] Eliminando archivo:', attachmentId);
-      
       // Obtener información del archivo
       const { data: attachment, error: getError } = await supabase
         .from('document_attachments')
@@ -161,9 +153,7 @@ export class StorageService {
         return false;
       }
       
-      console.log('✅ Archivo eliminado exitosamente');
       return true;
-      
     } catch (error) {
       console.error('❌ Error inesperado al eliminar archivo:', error);
       return false;

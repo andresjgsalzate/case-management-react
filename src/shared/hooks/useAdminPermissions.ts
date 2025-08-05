@@ -70,8 +70,6 @@ export interface AdminPermissions {
 // ================================================================
 export const getUserPermissions = async (userId: string): Promise<string[]> => {
   try {
-    console.log('🔍 [AdminPermissions] Obteniendo permisos para usuario:', userId);
-    
     // Obtener el role_id del usuario
     const { data: userProfile, error: userError } = await supabase
       .from('user_profiles')
@@ -80,32 +78,19 @@ export const getUserPermissions = async (userId: string): Promise<string[]> => {
       .single();
 
     if (userError || !userProfile?.role_id) {
-      console.error('❌ [AdminPermissions] Error fetching user profile:', userError);
-      console.log('📄 [AdminPermissions] User profile data:', userProfile);
+      console.error('Error fetching user profile:', userError);
       return [];
     }
 
-    console.log('👤 [AdminPermissions] Usuario encontrado:', {
-      userId,
-      roleId: userProfile.role_id
-    });
-
-    // Obtener información del rol
-    const { data: roleInfo, error: roleError } = await supabase
+    // Obtener información del rol (solo para validación)
+    const { error: roleError } = await supabase
       .from('roles')
       .select('name, description, is_active')
       .eq('id', userProfile.role_id)
       .single();
 
     if (roleError) {
-      console.error('❌ [AdminPermissions] Error fetching role info:', roleError);
-    } else {
-      console.log('🏷️ [AdminPermissions] Información del rol:', {
-        roleId: userProfile.role_id,
-        roleName: roleInfo.name,
-        roleDescription: roleInfo.description,
-        isActive: roleInfo.is_active
-      });
+      console.error('Error fetching role info:', roleError);
     }
 
     // Obtener los permisos del rol
@@ -123,11 +108,9 @@ export const getUserPermissions = async (userId: string): Promise<string[]> => {
       .eq('role_id', userProfile.role_id);
 
     if (permissionsError) {
-      console.error('❌ [AdminPermissions] Error fetching role permissions:', permissionsError);
+      console.error('Error fetching role permissions:', permissionsError);
       return [];
     }
-
-    console.log('📋 [AdminPermissions] Permisos del rol encontrados:', rolePermissions?.length || 0);
 
     // Extraer los nombres de permisos
     const permissions: string[] = [];
@@ -139,8 +122,6 @@ export const getUserPermissions = async (userId: string): Promise<string[]> => {
       });
     }
 
-    console.log('🎯 [AdminPermissions] Total permisos extraídos:', permissions.length);
-
     return permissions;
   } catch (error) {
     console.error('💥 [AdminPermissions] Error in getUserPermissions:', error);
@@ -148,44 +129,19 @@ export const getUserPermissions = async (userId: string): Promise<string[]> => {
   }
 };
 
-// Variable para controlar logs únicos
-let hasLoggedUserProfile = false;
-
 // ================================================================
 // HOOK PRINCIPAL PARA PERMISOS DE ADMINISTRACIÓN
 // ================================================================
 export const useAdminPermissions = (): AdminPermissions => {
   const { data: userProfile } = useUserProfile();
 
-  // Log única vez cuando hay datos de userProfile
-  if (userProfile?.id && !hasLoggedUserProfile) {
-    console.log('✅ [AdminPermissions] UserProfile recibido:', {
-      userId: userProfile.id,
-      email: userProfile.email,
-      roleName: userProfile.roleName,
-      isActive: userProfile.isActive
-    });
-    hasLoggedUserProfile = true;
-  }
-
   // Obtener permisos del usuario
-  const { data: userPermissions = [], isLoading, error } = useQuery({
+  const { data: userPermissions = [] } = useQuery({
     queryKey: ['userPermissions', userProfile?.id],
     queryFn: () => getUserPermissions(userProfile!.id),
     enabled: !!userProfile?.id,
     staleTime: 5 * 60 * 1000, // 5 minutos
   });
-
-  // Solo log cuando hay cambios importantes
-  if (userProfile && userPermissions.length === 0 && !isLoading) {
-    console.log('⚠️ [AdminPermissions] Usuario con ID pero sin permisos:', {
-      userId: userProfile.id,
-      userEmail: userProfile.email,
-      permissionsCount: userPermissions.length,
-      isLoading,
-      error: error?.message
-    });
-  }
 
   // Helper para verificar permisos
   const hasPermission = (permissionName: string): boolean => {

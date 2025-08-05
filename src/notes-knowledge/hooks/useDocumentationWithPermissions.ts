@@ -58,21 +58,9 @@ export const useDocumentationWithPermissions = () => {
     // Si solo puede ver documentos propios, agregar filtro por creador
     if (readScope === 'own') {
       permissionFilters.created_by = userProfile.id;
-      console.log('📋 [DocumentationWithPermissions] Aplicando filtro: solo documentos propios');
     } else if (readScope === 'team') {
-      console.log('📋 [DocumentationWithPermissions] Aplicando filtro: documentos del equipo');
-    } else {
-      console.log('📋 [DocumentationWithPermissions] Sin filtros de permisos: acceso completo');
+      // Filtro de equipo (implementar lógica específica si es necesario)
     }
-
-    // Log para debugging
-    console.log('🔍 [DocumentationWithPermissions] Buscando documentos:', {
-      scope: readScope,
-      userId: userProfile.id,
-      filters: permissionFilters,
-      page,
-      limit
-    });
 
     return baseSearchDocuments(permissionFilters, page, limit);
   }, [userProfile?.id, getHighestReadScope, baseSearchDocuments]);
@@ -92,16 +80,9 @@ export const useDocumentationWithPermissions = () => {
       return false;
     }
 
-    console.log('📝 [DocumentationWithPermissions] Creando documento:', {
-      hasOwnPermission: canCreateOwnDocuments,
-      hasTeamPermission: canCreateTeamDocuments,
-      hasAllPermission: canCreateAllDocuments
-    });
-
     const result = await baseCreateDocument(documentData);
     
     if (result) {
-      console.log('✅ Documento creado exitosamente');
       // Refrescar la lista de documentos
       await fetchDocuments();
     }
@@ -137,17 +118,9 @@ export const useDocumentationWithPermissions = () => {
       return false;
     }
 
-    console.log('✏️ [DocumentationWithPermissions] Actualizando documento:', {
-      documentId,
-      documentCreatedBy,
-      currentUserId: userProfile.id,
-      canUpdate
-    });
-
     const result = await baseUpdateDocument(documentId, documentData);
     
     if (result) {
-      console.log('✅ Documento actualizado exitosamente');
       // Refrescar la lista
       await fetchDocuments();
     }
@@ -172,17 +145,9 @@ export const useDocumentationWithPermissions = () => {
       return false;
     }
 
-    console.log('🗑️ [DocumentationWithPermissions] Eliminando documento:', {
-      documentId,
-      documentCreatedBy,
-      currentUserId: userProfile.id,
-      canDelete
-    });
-
     const result = await baseDeleteDocument(documentId);
     
     if (result) {
-      console.log('✅ Documento eliminado exitosamente');
       // Refrescar la lista
       await fetchDocuments();
     }

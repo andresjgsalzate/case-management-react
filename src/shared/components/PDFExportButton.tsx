@@ -56,12 +56,6 @@ export const PDFExportButton: React.FC<PDFExportButtonProps> = ({
       setIsExporting(true);
       onExportStart?.();
 
-      console.log('🚀 [PDFExportButton] Starting PDF export', { 
-        title: document.title,
-        contentBlocks: document.content?.length || 0,
-        filename 
-      });
-
       const exportOptions: PDFExportOptions = {
         fileName: filename || `${document.title.replace(/[^\w\s]/gi, '_')}.pdf`,
         ...options
@@ -70,7 +64,6 @@ export const PDFExportButton: React.FC<PDFExportButtonProps> = ({
       await downloadPDF(document, exportOptions);
 
       onExportSuccess?.();
-      console.log('✅ [PDFExportButton] PDF export completed successfully');
     } catch (error) {
       console.error('❌ [PDFExportButton] Error during PDF export:', error);
       
@@ -92,7 +85,6 @@ export const PDFExportButton: React.FC<PDFExportButtonProps> = ({
       
       if (tryFallback) {
         try {
-          console.log('🆘 [PDFExportButton] Intentando PDF de emergencia...');
           const fallbackContent = document.content?.map(block => 
             Array.isArray(block.content) ? 
               block.content.map(c => c.text).join(' ') : 

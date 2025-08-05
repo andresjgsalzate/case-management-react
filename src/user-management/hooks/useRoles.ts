@@ -15,19 +15,15 @@ export const useRoles = () => {
   return useQuery({
     queryKey: ['roles'],
     queryFn: async (): Promise<Role[]> => {
-      console.log('🔍 [useRoles] Consultando roles...');
-      
       const { data, error } = await supabase
         .from('roles')
         .select('*')
         .order('name', { ascending: true });
 
       if (error) {
-        console.error('❌ [useRoles] Error fetching roles:', error);
+        console.error('Error fetching roles:', error);
         throw error;
       }
-
-      console.log('✅ [useRoles] Roles obtenidos:', data);
 
       // Mapear de snake_case a camelCase
       return data.map((role: any) => ({

@@ -45,12 +45,6 @@ const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose, user }) => {
       return; // Simplemente no continuar si faltan campos requeridos
     }
 
-    console.log('🔍 [UsersPage] Datos del formulario:', {
-      userId: user?.id,
-      formData,
-      originalUser: user
-    });
-
     try {
       if (user) {
         await updateUser.mutateAsync({ id: user.id, userData: formData });

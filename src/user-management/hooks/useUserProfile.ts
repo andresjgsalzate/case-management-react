@@ -108,18 +108,6 @@ export const useUserProfile = () => {
         updatedAt: data.updated_at,
       };
 
-      console.log('👤 [UserProfile] Perfil del usuario cargado:', {
-        userId: userProfile.id,
-        email: userProfile.email,
-        fullName: userProfile.fullName,
-        roleId: userProfile.roleId,
-        roleName: userProfile.roleName,
-        isActive: userProfile.isActive,
-        rawRoleData: data.role,
-        roleNameFromRelation: data.role?.name,
-        roleNameFromColumn: data.role_name
-      });
-
       return userProfile;
     },
     enabled: true,

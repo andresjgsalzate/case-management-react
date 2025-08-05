@@ -112,7 +112,6 @@ export const EnhancedDocumentationEditor: React.FC<EnhancedDocumentationEditorPr
   // ===== CREAR DOCUMENTO INMEDIATAMENTE =====
   const createDocumentImmediately = async (title: string) => {
     setIsCreatingDocument(true);
-    console.log('🚀 Creando documento inmediatamente con título:', title);
     
     try {
       const documentData: CreateSolutionDocumentRequest = {
@@ -134,12 +133,6 @@ export const EnhancedDocumentationEditor: React.FC<EnhancedDocumentationEditorPr
 
       // Actualizar estados
       setCurrentDocumentId(newDocument.id);
-      console.log('✅ Documento creado exitosamente:', {
-        documentId: newDocument.id,
-        title: title.trim(),
-        currentDocumentIdUpdated: true
-      });
-      
       setFormData(prev => ({ 
         ...prev, 
         title: title.trim() 
@@ -148,7 +141,7 @@ export const EnhancedDocumentationEditor: React.FC<EnhancedDocumentationEditorPr
       
       return newDocument.id;
     } catch (error) {
-      console.error('❌ Error creando documento:', error);
+      console.error('Error creando documento:', error);
       setError('Error al crear el documento');
       throw error;
     } finally {
@@ -534,12 +527,6 @@ export const EnhancedDocumentationEditor: React.FC<EnhancedDocumentationEditorPr
                     documentId={currentDocumentId || document?.id}
                     className="w-full"
                   />
-                  {/* Debug info para verificar documentId */}
-                  {process.env.NODE_ENV === 'development' && (
-                    <div className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded text-xs">
-                      <strong>Debug Info:</strong> documentId = {currentDocumentId || document?.id || 'undefined'}
-                    </div>
-                  )}
                 </div>
               </div>
             </div>

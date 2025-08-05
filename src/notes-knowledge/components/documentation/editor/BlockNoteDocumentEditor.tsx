@@ -9,7 +9,7 @@
  * =================================================================
  */
 
-import React, { useMemo, useRef } from 'react';
+import React, { useMemo } from 'react';
 import { PartialBlock } from "@blocknote/core";
 import { useCreateBlockNote } from "@blocknote/react";
 import { BlockNoteView } from "@blocknote/mantine";
@@ -35,20 +35,6 @@ export const BlockNoteDocumentEditor: React.FC<BlockNoteDocumentEditorProps> = (
   className = "",
   documentId
 }) => {
-  // Debug logs (optimizado para performance)
-  const logRef = useRef(Date.now());
-  const changeLogRef = useRef(Date.now());
-  
-  if (Date.now() - logRef.current > 2000) { // Solo log cada 2 segundos
-    console.log('🎯 BlockNoteDocumentEditor inicializado:', {
-      documentId: documentId,
-      hasDocumentId: !!documentId,
-      readOnly: readOnly,
-      hasValue: value && value.length > 0,
-      timestamp: new Date().toISOString()
-    });
-    logRef.current = Date.now();
-  }
 
   const { theme } = useNextTheme();
 
@@ -61,83 +47,37 @@ export const BlockNoteDocumentEditor: React.FC<BlockNoteDocumentEditorProps> = (
   const editor = useCreateBlockNote({
     initialContent: value && value.length > 0 ? value : undefined,
     uploadFile: async (file: File) => {
-      console.log('🔥 BLOCKNOTE UPLOAD INICIADO:', {
-        fileName: file.name,
-        fileSize: file.size,
-        fileType: file.type,
-        documentId: documentId,
-        hasDocumentId: !!documentId,
-        documentIdValid: documentId && documentId.trim() !== '',
-        timestamp: new Date().toISOString()
-      });
-
       // Validar que tengamos un documentId válido
       if (!documentId || documentId.trim() === '') {
-        console.error('❌ ERROR: No hay documentId válido para subir archivos');
-        console.error('📝 Esto significa que el documento aún no se ha guardado');
-        
         // Crear URL temporal como fallback
         const tempUrl = URL.createObjectURL(file);
-        console.log('🔄 Usando URL temporal como fallback:', tempUrl);
         return tempUrl;
       }
 
       try {
         // Usar StorageService para subir archivos reales
-        console.log('📤 Llamando StorageService.uploadFile con documentId:', documentId);
         const result = await StorageService.uploadFile(file, documentId, {
           isEmbedded: true
         });
 
-        console.log('📥 Resultado de StorageService:', {
-          success: result.success,
-          hasData: !!result.data,
-          error: result.error,
-          url: result.data?.url,
-          fileId: result.data?.id
-        });
-
         if (result.success && result.data) {
-          console.log('✅ ARCHIVO SUBIDO EXITOSAMENTE:', {
-            url: result.data.url,
-            fileId: result.data.id,
-            fileName: file.name,
-            documentId: documentId
-          });
           return result.data.url;
         } else {
-          console.error('❌ ERROR EN SUBIDA - usando URL temporal:', result.error);
           // Fallback a URL temporal si falla la subida
           const tempUrl = URL.createObjectURL(file);
-          console.log('🔄 URL temporal creada:', tempUrl);
           return tempUrl;
         }
       } catch (error) {
-        console.error('💥 EXCEPCIÓN EN UPLOAD:', {
-          error: error,
-          fileName: file.name,
-          documentId: documentId
-        });
-        // Fallback a URL temporal si hay error
+        console.error('Error en StorageService.uploadFile:', error);
+        // Fallback a URL temporal en caso de error
         const tempUrl = URL.createObjectURL(file);
-        console.log('🔄 URL temporal de emergencia:', tempUrl);
         return tempUrl;
       }
     },
   });
 
-  // ===== MANEJAR CAMBIOS (optimizado) =====
+  // ===== MANEJAR CAMBIOS =====
   const handleChange = () => {
-    // Solo log cada 3 segundos para handleChange
-    if (Date.now() - changeLogRef.current > 3000) {
-      console.log('📝 BlockNote handleChange ejecutado:', {
-        documentId: documentId,
-        hasDocument: !!documentId,
-        documentLength: editor.document.length,
-        timestamp: new Date().toISOString()
-      });
-      changeLogRef.current = Date.now();
-    }
     onChange(editor.document);
   };
 
@@ -244,13 +184,6 @@ export const convertFromLegacyToBlockNote = (legacyContent: any): PartialBlock[]
             });
         }
       }
-    });
-
-    console.log('✅ CONVERSIÓN LEGACY COMPLETADA:', {
-      originalKeysCount: Object.keys(legacyContent).length,
-      generatedBlocksCount: blocks.length,
-      blocks: blocks.map(b => ({ type: b.type, hasContent: !!b.content })),
-      willReturnEmpty: blocks.length === 0
     });
 
     return blocks.length > 0 ? blocks : createEmptyBlockNoteContent();

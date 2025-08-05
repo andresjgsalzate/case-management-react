@@ -16,9 +16,8 @@ export const useNotesPermissions = () => {
       const result = permissions.some(permission => {
         const hasIt = hasPermission(permission);
         if (hasIt) {
-          // Solo log una vez cuando encuentra un permiso exitoso
+          // Solo marcar una vez cuando encuentra un permiso exitoso
           if (!hasLoggedSuccess) {
-            console.log(`✅ [NotesPermissions] Usuario tiene permiso: ${permission}`);
             hasLoggedSuccess = true;
             // Reset después de 10 segundos
             setTimeout(() => { hasLoggedSuccess = false; }, 10000);
@@ -32,14 +31,7 @@ export const useNotesPermissions = () => {
       if (!result && lastPermissionState.current !== false && (now - lastLogTime > LOG_THROTTLE_MS)) {
         lastLogTime = now;
         lastPermissionState.current = false;
-        console.group('❌ [NotesPermissions] Sin permisos de Notas');
-        console.log('Permisos verificados:', permissions.length);
-        console.log('Muestra de permisos:', {
-          'notes.read_all': hasPermission('notes.read_all'),
-          'notes.read_own': hasPermission('notes.read_own'),
-          'notes.create_all': hasPermission('notes.create_all')
-        });
-        console.groupEnd();
+        // Permission debugging removed for production
       } else if (result && lastPermissionState.current !== true) {
         lastPermissionState.current = true;
       }

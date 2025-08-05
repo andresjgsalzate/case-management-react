@@ -69,7 +69,6 @@ export const PdfExportButton: React.FC<PdfExportButtonProps> = ({
   };
 
   const handleExportSuccess = () => {
-    console.log('PDF exportado exitosamente desde PdfExportButton');
     onExportSuccess?.();
   };
 

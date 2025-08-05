@@ -22,9 +22,8 @@ export const useDocumentationPermissions = () => {
       const result = permissions.some(permission => {
         const hasIt = hasPermission(permission);
         if (hasIt) {
-          // Solo log una vez cuando encuentra un permiso exitoso
+          // Solo marcar una vez cuando encuentra un permiso exitoso
           if (!hasLoggedSuccess) {
-            console.log(`✅ [DocumentationPermissions] Usuario tiene permiso: ${permission}`);
             hasLoggedSuccess = true;
             // Reset después de 10 segundos
             setTimeout(() => { hasLoggedSuccess = false; }, 10000);
@@ -38,14 +37,7 @@ export const useDocumentationPermissions = () => {
       if (!result && lastPermissionState.current !== false && (now - lastLogTime > LOG_THROTTLE_MS)) {
         lastLogTime = now;
         lastPermissionState.current = false;
-        console.group('❌ [DocumentationPermissions] Sin permisos de Documentación');
-        console.log('Permisos verificados:', permissions.length);
-        console.log('Muestra de permisos:', {
-          'documentation.read_all': hasPermission('documentation.read_all'),
-          'documentation.read_own': hasPermission('documentation.read_own'),
-          'documentation.create_all': hasPermission('documentation.create_all')
-        });
-        console.groupEnd();
+        // Permission debugging removed for production
       } else if (result && lastPermissionState.current !== true) {
         lastPermissionState.current = true;
       }

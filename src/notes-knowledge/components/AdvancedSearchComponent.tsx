@@ -64,36 +64,24 @@ export const AdvancedSearchComponent: React.FC<AdvancedSearchProps> = ({
 
   // Debounced functions para evitar demasiadas requests
   const debouncedGetSuggestions = debounce(async (term: string) => {
-    console.log('🔍 [SEARCH_COMPONENT] Obteniendo sugerencias para:', term);
-    
     if (term.length >= 2) {
       try {
-        console.log('🔍 [SEARCH_COMPONENT] Llamando a getSearchSuggestions...');
         const results = await DocumentationService.getSearchSuggestions(term, 5);
-        console.log('🔍 [SEARCH_COMPONENT] Sugerencias recibidas:', results);
         setSuggestions(results);
       } catch (error) {
         console.error('❌ [SEARCH_COMPONENT] Error al obtener sugerencias:', error);
         setSuggestions([]);
       }
     } else {
-      console.log('🔍 [SEARCH_COMPONENT] Término muy corto para sugerencias');
       setSuggestions([]);
     }
   }, 300);
 
   const debouncedQuickSearch = debounce(async (term: string) => {
-    console.log('⚡ [SEARCH_COMPONENT] Iniciando búsqueda rápida para:', term);
-    
     if (term.length >= 2) {
       setIsLoading(true);
       try {
-        console.log('⚡ [SEARCH_COMPONENT] Llamando a quickSearch...');
         const results = await DocumentationService.quickSearch(term, 8);
-        console.log('⚡ [SEARCH_COMPONENT] Resultados rápidos recibidos:', {
-          count: results.length,
-          results
-        });
         setQuickResults(results);
         setShowQuickResults(results.length > 0);
       } catch (error) {
@@ -103,7 +91,6 @@ export const AdvancedSearchComponent: React.FC<AdvancedSearchProps> = ({
       }
       setIsLoading(false);
     } else {
-      console.log('⚡ [SEARCH_COMPONENT] Término muy corto para búsqueda rápida');
       setQuickResults([]);
       setShowQuickResults(false);
       setIsLoading(false);
@@ -113,22 +100,14 @@ export const AdvancedSearchComponent: React.FC<AdvancedSearchProps> = ({
   // Manejar cambios en el input
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
-    console.log('📝 [SEARCH_COMPONENT] Input cambiado:', {
-      newValue,
-      length: newValue.length,
-      trimmed: newValue.trim()
-    });
-    
     onChange(newValue);
     
     // Obtener sugerencias y resultados rápidos
     if (newValue.trim()) {
-      console.log('📝 [SEARCH_COMPONENT] Activando búsquedas debounced...');
       debouncedGetSuggestions(newValue);
       debouncedQuickSearch(newValue);
       setShowSuggestions(true);
     } else {
-      console.log('📝 [SEARCH_COMPONENT] Limpiando resultados (input vacío)');
       setSuggestions([]);
       setQuickResults([]);
       setShowSuggestions(false);
@@ -138,8 +117,6 @@ export const AdvancedSearchComponent: React.FC<AdvancedSearchProps> = ({
 
   // Manejar selección de sugerencia
   const handleSuggestionSelect = (suggestion: string) => {
-    console.log('✅ [SEARCH_COMPONENT] Sugerencia seleccionada:', suggestion);
-    
     onChange(suggestion);
     setShowSuggestions(false);
     setShowQuickResults(false);
@@ -148,7 +125,6 @@ export const AdvancedSearchComponent: React.FC<AdvancedSearchProps> = ({
     
     // Ejecutar búsqueda completa
     if (onSearchExecute) {
-      console.log('🔍 [SEARCH_COMPONENT] Ejecutando búsqueda completa...');
       onSearchExecute(suggestion);
     }
   };
@@ -156,20 +132,16 @@ export const AdvancedSearchComponent: React.FC<AdvancedSearchProps> = ({
   // Manejar teclas
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && value.trim()) {
-      console.log('⏎ [SEARCH_COMPONENT] Enter presionado, ejecutando búsqueda:', value.trim());
-      
       setShowSuggestions(false);
       setShowQuickResults(false);
       saveRecentSearch(value.trim());
       
       // Ejecutar búsqueda completa
       if (onSearchExecute) {
-        console.log('🔍 [SEARCH_COMPONENT] Ejecutando búsqueda completa desde Enter...');
         onSearchExecute(value.trim());
       }
     }
     if (e.key === 'Escape') {
-      console.log('⎋ [SEARCH_COMPONENT] Escape presionado, cerrando sugerencias');
       setShowSuggestions(false);
       setShowQuickResults(false);
       inputRef.current?.blur();
@@ -333,19 +305,12 @@ export const AdvancedSearchComponent: React.FC<AdvancedSearchProps> = ({
                       key={result.id}
                       className="p-2 hover:bg-gray-50 rounded-lg cursor-pointer border border-gray-100"
                       onClick={() => {
-                        console.log('🎯 [SEARCH_COMPONENT] Resultado rápido seleccionado:', {
-                          id: result.id,
-                          title: result.title,
-                          category: result.category
-                        });
-                        
                         // Cerrar sugerencias
                         setShowSuggestions(false);
                         setShowQuickResults(false);
                         
                         // Navegar al documento
                         if (onDocumentSelect) {
-                          console.log('🎯 [SEARCH_COMPONENT] Llamando a onDocumentSelect...');
                           onDocumentSelect(result.id);
                         } else {
                           console.warn('⚠️ [SEARCH_COMPONENT] onDocumentSelect no está definido');

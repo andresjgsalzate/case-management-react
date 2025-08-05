@@ -16,9 +16,8 @@ export const useTodoPermissions = () => {
       const result = permissions.some(permission => {
         const hasIt = hasPermission(permission);
         if (hasIt) {
-          // Solo log una vez cuando encuentra un permiso exitoso
+          // Solo marcar una vez cuando encuentra un permiso exitoso
           if (!hasLoggedSuccess) {
-            console.log(`✅ [TodoPermissions] Usuario tiene permiso: ${permission}`);
             hasLoggedSuccess = true;
             // Reset después de 10 segundos
             setTimeout(() => { hasLoggedSuccess = false; }, 10000);
@@ -32,14 +31,7 @@ export const useTodoPermissions = () => {
       if (!result && lastPermissionState.current !== false && (now - lastLogTime > LOG_THROTTLE_MS)) {
         lastLogTime = now;
         lastPermissionState.current = false;
-        console.group('❌ [TodoPermissions] Sin permisos de TODOs');
-        console.log('Permisos verificados:', permissions.length);
-        console.log('Muestra de permisos:', {
-          'todos.read_all': hasPermission('todos.read_all'),
-          'todos.read_own': hasPermission('todos.read_own'),
-          'todos.create_all': hasPermission('todos.create_all')
-        });
-        console.groupEnd();
+        // Permission debugging removed for production
       } else if (result && lastPermissionState.current !== true) {
         lastPermissionState.current = true;
       }

@@ -38,7 +38,6 @@ export const TestDocumentationPage: React.FC = () => {
       <div className="h-screen">
         <EnhancedDocumentationEditor
           onSave={() => {
-            console.log('Guardado');
             setShowFullEditor(false);
           }}
           onCancel={() => setShowFullEditor(false)}
