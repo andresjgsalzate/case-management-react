@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/shared/lib/supabase';
 import { usePermissions } from '@/user-management/hooks/useUserProfile';
+import { useCaseControlPermissions } from './useCaseControlPermissions';
 import { 
   CaseControl, 
   CaseStatusControl, 
@@ -84,50 +85,68 @@ const adaptDetailedToCaseControl = (detailed: CaseControlDetailed): CaseControl 
 // ==========================================
 
 export const useCaseControls = () => {
-  const { canViewAllCases, userProfile } = usePermissions();
+  const { userProfile } = usePermissions();
+  const caseControlPermissions = useCaseControlPermissions();
   
   return useQuery({
     queryKey: ['caseControls', userProfile?.id],
     queryFn: async (): Promise<CaseControl[]> => {
-      // Usar la vista que creamos en la migración 013
-      let query = supabase
-        .from('case_control_detailed')
-        .select('*');
-
-      // Si el usuario NO puede ver todos los casos, filtrar solo los suyos
-      if (!canViewAllCases() && userProfile?.id) {
-query = query.eq('user_id', userProfile.id);
-      } else {
-}
-
-      const { data, error } = await query.order('created_at', { ascending: false });
-
-      if (error) {
-        console.error('❌ Error con vista detallada, usando fallback:', error);
-        // Fallback a consulta manual si la vista falla
-        let fallbackQuery = supabase
-          .from('case_control')
+      try {
+        // Usar la vista que creamos en la migración 013
+        let query = supabase
+          .from('case_control_detailed')
           .select('*');
 
-        // Aplicar el mismo filtrado al fallback
-        if (!canViewAllCases() && userProfile?.id) {
-          fallbackQuery = fallbackQuery.eq('user_id', userProfile.id);
+        // Aplicar filtros basados en los permisos de case control
+        const highestReadScope = caseControlPermissions.getHighestReadScope();
+        
+        if (!highestReadScope) {
+          throw new Error('No tiene permisos para ver controles de casos');
+        }
+        
+        if (highestReadScope === 'own' && userProfile?.id) {
+          // Solo puede ver sus propios controles de casos
+          query = query.eq('user_id', userProfile.id);
+        } else if (highestReadScope === 'team') {
+          // Por ahora team = all hasta implementar jerarquías
+          // query = query; // Sin filtros adicionales
+        } else if (highestReadScope === 'all') {
+          // Sin filtros adicionales - puede ver todos
+          // query = query;
         }
 
-        const { data: fallbackData, error: fallbackError } = await fallbackQuery
-          .order('created_at', { ascending: false });
+        const { data, error } = await query.order('created_at', { ascending: false });
 
-        if (fallbackError) {
-          throw fallbackError;
+        if (error) {
+          console.error('❌ Error con vista detallada, usando fallback:', error);
+          // Fallback a consulta manual si la vista falla
+          let fallbackQuery = supabase
+            .from('case_control')
+            .select('*');
+
+          // Aplicar el mismo filtrado al fallback
+          if (highestReadScope === 'own' && userProfile?.id) {
+            fallbackQuery = fallbackQuery.eq('user_id', userProfile.id);
+          }
+
+          const { data: fallbackData, error: fallbackError } = await fallbackQuery
+            .order('created_at', { ascending: false });
+
+          if (fallbackError) {
+            throw fallbackError;
+          }
+
+          return fallbackData || [];
         }
 
-        return fallbackData || [];
+        // Convertir datos de la vista al formato esperado
+        return (data || []).map(adaptDetailedToCaseControl);
+      } catch (error) {
+        console.error('💥 Fatal error fetching case controls:', error);
+        throw error;
       }
-
-      // Convertir datos de la vista al formato esperado
-      return (data || []).map(adaptDetailedToCaseControl);
     },
-    enabled: !!userProfile, // Solo ejecutar cuando tengamos el perfil del usuario
+    enabled: !!userProfile && caseControlPermissions.hasAnyCaseControlPermission(), // Solo ejecutar cuando tenga permisos
   });
 };
 
@@ -305,11 +324,17 @@ export const useManualTimeEntries = (caseControlId: string) => {
 
 export const useStartCaseControl = () => {
   const queryClient = useQueryClient();
+  const caseControlPermissions = useCaseControlPermissions();
 
   return useMutation({
     mutationFn: async (form: StartCaseControlForm): Promise<CaseControl> => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Usuario no autenticado');
+
+      // Verificar permisos de asignación
+      if (!caseControlPermissions.canAssignOwnCases && !caseControlPermissions.canAssignTeamCases && !caseControlPermissions.canAssignAllCases) {
+        throw new Error('No tiene permisos para asignar casos al control');
+      }
 
       // Verificar si ya existe un control para este caso
       const { data: existingControl, error: checkError } = await supabase
@@ -369,9 +394,25 @@ export const useStartCaseControl = () => {
 
 export const useUpdateCaseStatus = () => {
   const queryClient = useQueryClient();
+  const { userProfile } = usePermissions();
+  const caseControlPermissions = useCaseControlPermissions();
 
   return useMutation({
     mutationFn: async ({ id, statusId }: { id: string; statusId: string }): Promise<CaseControl> => {
+      // Obtener el control actual para verificar permisos
+      const { data: currentControl, error: fetchError } = await supabase
+        .from('case_control')
+        .select('user_id')
+        .eq('id', id)
+        .single();
+        
+      if (fetchError) throw fetchError;
+      
+      // Verificar permisos de actualización de estado
+      if (!userProfile?.id || !caseControlPermissions.canPerformActionOnCaseControl(currentControl.user_id, userProfile.id, 'update_status')) {
+        throw new Error('No tiene permisos para actualizar el estado de este control de caso');
+      }
+
       const updateData: any = { status_id: statusId };
 
       // Si cambia a EN CURSO y no tiene started_at, establecerlo
@@ -382,13 +423,13 @@ export const useUpdateCaseStatus = () => {
         .single();
 
       if (status?.name === 'EN CURSO') {
-        const { data: currentControl } = await supabase
+        const { data: currentControlData } = await supabase
           .from('case_control')
           .select('started_at')
           .eq('id', id)
           .single();
 
-        if (!currentControl?.started_at) {
+        if (!currentControlData?.started_at) {
           updateData.started_at = new Date().toISOString();
         }
       }
@@ -428,13 +469,15 @@ export const useUpdateCaseStatus = () => {
 
 export const useStartTimer = () => {
   const queryClient = useQueryClient();
+  const { userProfile } = usePermissions();
+  const caseControlPermissions = useCaseControlPermissions();
 
   return useMutation({
     mutationFn: async (caseControlId: string): Promise<CaseControl> => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Usuario no autenticado');
 
-      // Obtener el control actual para verificar su estado
+      // Obtener el control actual para verificar su estado y permisos
       const { data: currentControl, error: currentError } = await supabase
         .from('case_control')
         .select(`
@@ -447,6 +490,11 @@ export const useStartTimer = () => {
       if (currentError) {
         console.error('Error getting current control:', currentError);
         throw currentError;
+      }
+
+      // Verificar permisos de control de timer
+      if (!userProfile?.id || !caseControlPermissions.canPerformActionOnCaseControl(currentControl.user_id, userProfile.id, 'timer')) {
+        throw new Error('No tiene permisos para controlar el timer de este caso');
       }
 
       // Detener cualquier timer activo del usuario
@@ -646,6 +694,8 @@ export const usePauseTimer = () => {
 
 export const useAddManualTime = () => {
   const queryClient = useQueryClient();
+  const { userProfile } = usePermissions();
+  const caseControlPermissions = useCaseControlPermissions();
 
   return useMutation({
     mutationFn: async ({ 
@@ -658,7 +708,21 @@ export const useAddManualTime = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Usuario no autenticado');
 
-const { data, error } = await supabase
+      // Obtener el control de caso para verificar permisos
+      const { data: caseControl, error: fetchError } = await supabase
+        .from('case_control')
+        .select('user_id')
+        .eq('id', caseControlId)
+        .single();
+        
+      if (fetchError) throw fetchError;
+      
+      // Verificar permisos de tiempo manual
+      if (!userProfile?.id || !caseControlPermissions.canPerformActionOnCaseControl(caseControl.user_id, userProfile.id, 'manual_time')) {
+        throw new Error('No tiene permisos para gestionar el tiempo manual de este caso');
+      }
+
+      const { data, error } = await supabase
         .from('manual_time_entries')
         .insert({
           case_control_id: caseControlId,
@@ -671,7 +735,7 @@ const { data, error } = await supabase
         .select('*')
         .single();
 
-if (error) {
+      if (error) {
         console.error('Error adding manual time:', error);
         throw error;
       }
