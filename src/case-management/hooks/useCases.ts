@@ -3,6 +3,7 @@ import { supabase } from '@/shared/lib/supabase';
 import { Case, CaseFormData } from '@/types';
 import { calcularPuntuacion, clasificarCaso } from '@/shared/utils/caseUtils';
 import { usePermissions } from '@/user-management/hooks/useUserProfile';
+import { useCasesPermissions } from './useCasesPermissions';
 
 // Función para mapear datos de DB a formato frontend
 const mapCaseFromDB = (dbCase: any): Case => {
@@ -30,7 +31,8 @@ const mapCaseFromDB = (dbCase: any): Case => {
 
 // Hook para obtener todos los casos (filtrado según permisos del usuario)
 export const useCases = () => {
-  const { canViewAllCases, userProfile } = usePermissions();
+  const { userProfile } = usePermissions();
+  const casesPermissions = useCasesPermissions();
   
   return useQuery({
     queryKey: ['cases'],
@@ -45,9 +47,20 @@ export const useCases = () => {
           `)
           .order('created_at', { ascending: false });
 
-        // Si el usuario NO puede ver todos los casos, filtrar solo los suyos
-        if (!canViewAllCases() && userProfile?.id) {
+        // Aplicar filtros basados en los permisos de cases
+        if (casesPermissions.canReadAllCases) {
+          // Admin: puede ver todos los casos
+          // No agregar filtros adicionales
+        } else if (casesPermissions.canReadTeamCases) {
+          // Team: por ahora igual que 'all' hasta que se implemente la jerarquía
+          // TODO: Implementar filtrado por equipo cuando se defina la estructura
+          console.log('🔧 [Cases] Filtrado por equipo no implementado aún');
+        } else if (casesPermissions.canReadOwnCases && userProfile?.id) {
+          // Own: solo sus propios casos
           query = query.eq('user_id', userProfile.id);
+        } else {
+          // Sin permisos: no devolver casos
+          throw new Error('No tiene permisos para ver casos');
         }
         
         const { data, error } = await query;
@@ -71,12 +84,15 @@ export const useCases = () => {
         throw error;
       }
     },
-    enabled: !!userProfile, // Solo ejecutar cuando tengamos el perfil del usuario
+    enabled: !!userProfile && casesPermissions.hasAnyCasesPermission(), // Solo ejecutar cuando tenga permisos
   });
 };
 
 // Hook para obtener un caso específico
 export const useCase = (id: string) => {
+  const { userProfile } = usePermissions();
+  const casesPermissions = useCasesPermissions();
+  
   return useQuery({
     queryKey: ['case', id],
     queryFn: async () => {
@@ -91,18 +107,32 @@ export const useCase = (id: string) => {
         .single();
       
       if (error) throw error;
-      return mapCaseFromDB(data);
+      
+      // Verificar si el usuario puede leer este caso específico
+      const case_ = mapCaseFromDB(data);
+      if (!userProfile?.id || !case_.userId || !casesPermissions.canPerformActionOnCase(case_.userId, userProfile.id, 'read')) {
+        throw new Error('No tiene permisos para ver este caso');
+      }
+      
+      return case_;
     },
-    enabled: !!id,
+    enabled: !!id && !!userProfile && casesPermissions.hasAnyCasesPermission(),
   });
 };
 
 // Hook para crear un caso
 export const useCreateCase = () => {
   const queryClient = useQueryClient();
+  const { userProfile } = usePermissions();
+  const casesPermissions = useCasesPermissions();
 
   return useMutation({
     mutationFn: async (caseData: CaseFormData) => {
+      // Verificar permisos de creación
+      if (!casesPermissions.canCreateOwnCases) {
+        throw new Error('No tiene permisos para crear casos');
+      }
+      
       const { data: user } = await supabase.auth.getUser();
       if (!user.user) throw new Error('Usuario no autenticado');
 
@@ -157,9 +187,25 @@ export const useCreateCase = () => {
 // Hook para actualizar un caso
 export const useUpdateCase = () => {
   const queryClient = useQueryClient();
+  const { userProfile } = usePermissions();
+  const casesPermissions = useCasesPermissions();
 
   return useMutation({
     mutationFn: async ({ id, ...caseData }: CaseFormData & { id: string }) => {
+      // Primero obtener el caso actual para verificar permisos
+      const { data: currentCase, error: fetchError } = await supabase
+        .from('cases')
+        .select('user_id')
+        .eq('id', id)
+        .single();
+        
+      if (fetchError) throw fetchError;
+      
+      // Verificar permisos de actualización
+      if (!userProfile?.id || !casesPermissions.canPerformActionOnCase(currentCase.user_id, userProfile.id, 'update')) {
+        throw new Error('No tiene permisos para actualizar este caso');
+      }
+      
       const puntuacion = calcularPuntuacion(
         caseData.historialCaso,
         caseData.conocimientoModulo,
@@ -213,9 +259,25 @@ export const useUpdateCase = () => {
 // Hook para eliminar un caso
 export const useDeleteCase = () => {
   const queryClient = useQueryClient();
+  const { userProfile } = usePermissions();
+  const casesPermissions = useCasesPermissions();
 
   return useMutation({
     mutationFn: async (id: string) => {
+      // Primero obtener el caso actual para verificar permisos
+      const { data: currentCase, error: fetchError } = await supabase
+        .from('cases')
+        .select('user_id')
+        .eq('id', id)
+        .single();
+        
+      if (fetchError) throw fetchError;
+      
+      // Verificar permisos de eliminación
+      if (!userProfile?.id || !casesPermissions.canPerformActionOnCase(currentCase.user_id, userProfile.id, 'delete')) {
+        throw new Error('No tiene permisos para eliminar este caso');
+      }
+      
       const { error } = await supabase
         .from('cases')
         .delete()
