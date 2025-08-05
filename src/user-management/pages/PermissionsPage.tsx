@@ -5,6 +5,8 @@
 import React, { useState } from 'react';
 import { usePermissions, useCreatePermission, useUpdatePermission, useDeletePermission, useResources, useActions } from '../../shared/hooks/usePermissions';
 import { Button, Input, Modal, LoadingSpinner, Select } from '../../shared';
+import { ConfirmationModal } from '../../shared/components/ui/ConfirmationModal';
+import { useNotification } from '../../shared/components/notifications/NotificationSystem';
 import type { Permission, CreatePermissionData, UpdatePermissionData } from '../../shared/types/permissions';
 
 export function PermissionsPage() {
@@ -14,8 +16,16 @@ export function PermissionsPage() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedPermission, setSelectedPermission] = useState<Permission | null>(null);
+  const [deleteModal, setDeleteModal] = useState<{
+    isOpen: boolean;
+    permission: Permission | null;
+  }>({
+    isOpen: false,
+    permission: null
+  });
 
   // Hooks
+  const { showSuccess, showError } = useNotification();
   const { data: permissionsData, isLoading, error } = usePermissions({ 
     search: searchTerm,
     resource: filterResource || undefined,
@@ -32,30 +42,48 @@ export function PermissionsPage() {
   const handleCreatePermission = async (data: CreatePermissionData) => {
     try {
       await createPermissionMutation.mutateAsync(data);
+      showSuccess('Permiso creado exitosamente');
       setIsCreateModalOpen(false);
     } catch (error) {
       console.error('Error creating permission:', error);
+      showError('Error al crear permiso', error instanceof Error ? error.message : 'Error desconocido');
     }
   };
 
   const handleUpdatePermission = async (data: UpdatePermissionData) => {
     try {
       await updatePermissionMutation.mutateAsync(data);
+      showSuccess('Permiso actualizado exitosamente');
       setIsEditModalOpen(false);
       setSelectedPermission(null);
     } catch (error) {
       console.error('Error updating permission:', error);
+      showError('Error al actualizar permiso', error instanceof Error ? error.message : 'Error desconocido');
     }
   };
 
-  const handleDeletePermission = async (id: string) => {
-    if (window.confirm('¿Está seguro de que desea eliminar este permiso?')) {
+  const handleDeletePermission = (permission: Permission) => {
+    setDeleteModal({
+      isOpen: true,
+      permission: permission
+    });
+  };
+
+  const confirmDeletePermission = async () => {
+    if (deleteModal.permission) {
       try {
-        await deletePermissionMutation.mutateAsync(id);
+        await deletePermissionMutation.mutateAsync(deleteModal.permission.id);
+        showSuccess('Permiso eliminado exitosamente');
+        setDeleteModal({ isOpen: false, permission: null });
       } catch (error) {
         console.error('Error deleting permission:', error);
+        showError('Error al eliminar permiso', error instanceof Error ? error.message : 'Error desconocido');
       }
     }
+  };
+
+  const cancelDeletePermission = () => {
+    setDeleteModal({ isOpen: false, permission: null });
   };
 
   const openEditModal = (permission: Permission) => {
@@ -185,7 +213,7 @@ export function PermissionsPage() {
                     Editar
                   </Button>
                   <Button
-                    onClick={() => handleDeletePermission(permission.id)}
+                    onClick={() => handleDeletePermission(permission)}
                     className="bg-red-600 hover:bg-red-700 text-white text-sm px-3 py-1"
                     disabled={deletePermissionMutation.isPending}
                   >
@@ -222,6 +250,18 @@ export function PermissionsPage() {
         onSubmit={handleUpdatePermission}
         isLoading={updatePermissionMutation.isPending}
         permission={selectedPermission}
+      />
+
+      {/* Modal de Confirmación de Eliminación */}
+      <ConfirmationModal
+        isOpen={deleteModal.isOpen}
+        title="Confirmar eliminación"
+        message={`¿Está seguro de que desea eliminar el permiso "${deleteModal.permission?.name}"? Esta acción no se puede deshacer.`}
+        confirmText="Eliminar"
+        cancelText="Cancelar"
+        onConfirm={confirmDeletePermission}
+        onClose={cancelDeletePermission}
+        type="danger"
       />
     </div>
   );

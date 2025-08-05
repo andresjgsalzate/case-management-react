@@ -5,6 +5,8 @@
 import React, { useState } from 'react';
 import { useRoles, useCreateRole, useUpdateRole, useDeleteRole, useAllRolesStats } from '../../shared/hooks/useRoles';
 import { Button, Input, Modal, LoadingSpinner } from '../../shared';
+import { ConfirmationModal } from '../../shared/components/ui/ConfirmationModal';
+import { useNotification } from '../../shared/components/notifications/NotificationSystem';
 import type { Role, CreateRoleData, UpdateRoleData } from '../../shared/types/permissions';
 
 export function RolesPage() {
@@ -12,8 +14,16 @@ export function RolesPage() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedRole, setSelectedRole] = useState<Role | null>(null);
+  const [deleteModal, setDeleteModal] = useState<{
+    isOpen: boolean;
+    role: Role | null;
+  }>({
+    isOpen: false,
+    role: null
+  });
 
   // Hooks
+  const { showSuccess, showError } = useNotification();
   const { data: rolesData, isLoading, error } = useRoles({ 
     search: searchTerm,
     is_active: true 
@@ -27,30 +37,48 @@ export function RolesPage() {
   const handleCreateRole = async (data: CreateRoleData) => {
     try {
       await createRoleMutation.mutateAsync(data);
+      showSuccess('Rol creado exitosamente');
       setIsCreateModalOpen(false);
     } catch (error) {
       console.error('Error creating role:', error);
+      showError('Error al crear rol', error instanceof Error ? error.message : 'Error desconocido');
     }
   };
 
   const handleUpdateRole = async (data: UpdateRoleData) => {
     try {
       await updateRoleMutation.mutateAsync(data);
+      showSuccess('Rol actualizado exitosamente');
       setIsEditModalOpen(false);
       setSelectedRole(null);
     } catch (error) {
       console.error('Error updating role:', error);
+      showError('Error al actualizar rol', error instanceof Error ? error.message : 'Error desconocido');
     }
   };
 
-  const handleDeleteRole = async (id: string) => {
-    if (window.confirm('¿Está seguro de que desea eliminar este rol?')) {
+  const handleDeleteRole = (role: Role) => {
+    setDeleteModal({
+      isOpen: true,
+      role: role
+    });
+  };
+
+  const confirmDeleteRole = async () => {
+    if (deleteModal.role) {
       try {
-        await deleteRoleMutation.mutateAsync(id);
+        await deleteRoleMutation.mutateAsync(deleteModal.role.id);
+        showSuccess('Rol eliminado exitosamente');
+        setDeleteModal({ isOpen: false, role: null });
       } catch (error) {
         console.error('Error deleting role:', error);
+        showError('Error al eliminar rol', error instanceof Error ? error.message : 'Error desconocido');
       }
     }
+  };
+
+  const cancelDeleteRole = () => {
+    setDeleteModal({ isOpen: false, role: null });
   };
 
   const openEditModal = (role: Role) => {
@@ -217,7 +245,7 @@ export function RolesPage() {
                     Editar
                   </Button>
                   <Button
-                    onClick={() => handleDeleteRole(role.id)}
+                    onClick={() => handleDeleteRole(role)}
                     className="bg-red-600 hover:bg-red-700 text-white text-sm px-3 py-1"
                     disabled={deleteRoleMutation.isPending}
                   >
@@ -254,6 +282,18 @@ export function RolesPage() {
         onSubmit={handleUpdateRole}
         isLoading={updateRoleMutation.isPending}
         role={selectedRole}
+      />
+
+      {/* Modal de Confirmación de Eliminación */}
+      <ConfirmationModal
+        isOpen={deleteModal.isOpen}
+        title="Confirmar eliminación"
+        message={`¿Está seguro de que desea eliminar el rol "${deleteModal.role?.name}"? Esta acción no se puede deshacer.`}
+        confirmText="Eliminar"
+        cancelText="Cancelar"
+        onConfirm={confirmDeleteRole}
+        onClose={cancelDeleteRole}
+        type="danger"
       />
     </div>
   );

@@ -12,11 +12,13 @@ import { Button } from '@/shared/components/ui/Button';
 import { Input } from '@/shared/components/ui/Input';
 import { Select } from '@/shared/components/ui/Select';
 import { LoadingSpinner } from '@/shared/components/ui/LoadingSpinner';
+import { ConfirmationModal } from '@/shared/components/ui/ConfirmationModal';
 import { PageWrapper } from '@/shared/components/layout/PageWrapper';
 import { DisposicionScriptsForm } from '@/disposicion-scripts/components/DisposicionScriptsForm';
 import { DisposicionScriptsMensualCard } from '@/disposicion-scripts/components/DisposicionScriptsMensualCard';
 import DisposicionScriptsTable from '@/disposicion-scripts/components/DisposicionScriptsTable';
 import { useNotification } from '@/shared/components/notifications/NotificationSystem';
+import { useUserProfile } from '@/user-management/hooks/useUserProfile';
 import { 
   useDisposicionesScripts,
   useDisposicionScriptsPorMes,
@@ -32,6 +34,7 @@ import { exportDisposicionScriptsPorMes, exportAllDisposicionScripts } from '@/s
 
 export const DisposicionScriptsPage: React.FC = () => {
   const { showSuccess, showError } = useNotification();
+  const { data: userProfile } = useUserProfile();
   const permissions = useDisposicionScriptsPermissions();
   const { data: aplicaciones = [] } = useAplicaciones();
   const { data: availableYears = [] } = useDisposicionScriptsYears();
@@ -49,6 +52,13 @@ export const DisposicionScriptsPage: React.FC = () => {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedDisposicion, setSelectedDisposicion] = useState<DisposicionScripts | null>(null);
   const [isEdit, setIsEdit] = useState(false);
+  const [deleteModal, setDeleteModal] = useState<{
+    isOpen: boolean;
+    disposicion: DisposicionScripts | null;
+  }>({
+    isOpen: false,
+    disposicion: null
+  });
 
   // Queries
   const disposicionesPorMesQuery = useDisposicionScriptsPorMes(filters.year);
@@ -85,7 +95,7 @@ export const DisposicionScriptsPage: React.FC = () => {
 
   const handleEditDisposicion = (disposicion: DisposicionScripts) => {
     // Verificar permisos antes de permitir la edición
-    if (!permissions.canEditSpecificDisposicion(disposicion)) {
+    if (!permissions.canEditSpecificDisposicion(disposicion.userId, userProfile?.id || '')) {
       showError('No tienes permisos para editar esta disposición');
       return;
     }
@@ -115,7 +125,7 @@ export const DisposicionScriptsPage: React.FC = () => {
     }
   };
 
-  const handleDeleteDisposicion = async (id: string) => {
+  const handleDeleteDisposicion = (id: string) => {
     // Buscar la disposición para verificar permisos
     const disposicion = disposicionesQuery.data?.find(d => d.id === id);
     if (!disposicion) {
@@ -124,20 +134,41 @@ export const DisposicionScriptsPage: React.FC = () => {
     }
     
     // Verificar permisos antes de permitir la eliminación
-    if (!permissions.canDeleteSpecificDisposicion(disposicion)) {
+    if (!permissions.canDeleteSpecificDisposicion(disposicion.userId, userProfile?.id || '')) {
       showError('No tienes permisos para eliminar esta disposición');
       return;
     }
-    
-    if (window.confirm('¿Estás seguro de que quieres eliminar esta disposición?')) {
+
+    setDeleteModal({
+      isOpen: true,
+      disposicion: disposicion
+    });
+  };
+
+  const confirmDeleteDisposicion = async () => {
+    if (deleteModal.disposicion) {
       try {
-        await deleteDisposicion.mutateAsync(id);
+        await deleteDisposicion.mutateAsync(deleteModal.disposicion.id);
         showSuccess('Disposición eliminada exitosamente');
+        setDeleteModal({ isOpen: false, disposicion: null });
       } catch (error) {
         console.error('Error al eliminar disposición:', error);
         showError('Error al eliminar disposición');
       }
     }
+  };
+
+  const cancelDeleteDisposicion = () => {
+    setDeleteModal({ isOpen: false, disposicion: null });
+  };
+
+  // Funciones wrapper para permisos específicos
+  const canEditSpecific = (disposicion: DisposicionScripts) => {
+    return permissions.canEditSpecificDisposicion(disposicion.userId, userProfile?.id || '');
+  };
+
+  const canDeleteSpecific = (disposicion: DisposicionScripts) => {
+    return permissions.canDeleteSpecificDisposicion(disposicion.userId, userProfile?.id || '');
   };
 
   const handleExportMonth = async (year: number, month: number) => {
@@ -357,8 +388,8 @@ export const DisposicionScriptsPage: React.FC = () => {
           onDelete={handleDeleteDisposicion}
           canEdit={permissions.canUpdateDisposiciones}
           canDelete={permissions.canDeleteDisposiciones}
-          canEditSpecific={permissions.canEditSpecificDisposicion}
-          canDeleteSpecific={permissions.canDeleteSpecificDisposicion}
+          canEditSpecific={canEditSpecific}
+          canDeleteSpecific={canDeleteSpecific}
           isLoading={disposicionesQuery.isLoading}
         />
       )}
@@ -382,6 +413,18 @@ export const DisposicionScriptsPage: React.FC = () => {
         } : undefined}
         isEdit={isEdit}
         loading={createDisposicion.isPending || updateDisposicion.isPending}
+      />
+
+      {/* Modal de Confirmación de Eliminación */}
+      <ConfirmationModal
+        isOpen={deleteModal.isOpen}
+        title="Confirmar eliminación"
+        message={`¿Está seguro de que desea eliminar la disposición "${deleteModal.disposicion?.nombreScript}"? Esta acción no se puede deshacer.`}
+        confirmText="Eliminar"
+        cancelText="Cancelar"
+        onConfirm={confirmDeleteDisposicion}
+        onClose={cancelDeleteDisposicion}
+        type="danger"
       />
     </PageWrapper>
   );
