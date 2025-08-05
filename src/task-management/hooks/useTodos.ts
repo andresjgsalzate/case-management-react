@@ -8,19 +8,46 @@ import {
 } from '@/types';
 import { useAuth } from '@/shared/hooks/useAuth';
 import { usePermissions } from '@/user-management/hooks/useUserProfile';
+import { useTodoPermissions } from './useTodoPermissions';
 
-export function useTodos() {
+// Cache para throttling de errores
+const errorLogCache = new Map<string, number>();
+
+export const useTodos = () => {
   const [todos, setTodos] = useState<TodoItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [hasPermissionError, setHasPermissionError] = useState<boolean>(false);
   const { user } = useAuth();
   const { userProfile } = usePermissions();
+  const todoPermissions = useTodoPermissions();
 
-  // Cargar TODOs con filtros
+  // Cargar TODOs con filtros y permisos
   const fetchTodos = useCallback(async (filters?: TodoFilters) => {
     try {
       setLoading(true);
       setError(null);
+
+      // Verificar permisos de acceso al módulo
+      if (!todoPermissions.hasAnyTodosPermission) {
+        const errorMsg = 'No tiene permisos para acceder a los TODOs';
+        setHasPermissionError(true);
+        // Log solo una vez cada 5 segundos para evitar spam
+        const now = Date.now();
+        const errorKey = 'todos-permission-error';
+        const lastLog = errorLogCache.get(errorKey) || 0;
+        if (now - lastLog > 5000) {
+          errorLogCache.set(errorKey, now);
+          console.warn('🔒 [useTodos] Sin permisos de acceso al módulo de TODOs');
+        }
+        throw new Error(errorMsg);
+      }
+
+      // Determinar el scope más alto de lectura
+      const readScope = todoPermissions.getHighestReadScope();
+      if (!readScope) {
+        throw new Error('No tiene permisos de lectura para TODOs');
+      }
 
       let query = supabase
         .from('todos')
@@ -37,9 +64,16 @@ export function useTodos() {
         `)
         .order('created_at', { ascending: false });
 
-      // Las políticas RLS de la base de datos ya manejan los filtros de permisos
-      // Los analistas solo verán TODOs que les pertenecen según las políticas RLS
-      // No necesitamos filtrar aquí porque la base de datos ya lo hace
+      // Aplicar filtros de scope de permisos
+      if (readScope === 'own' && userProfile?.id) {
+        // Solo TODOs propios (creados por el usuario o asignados al usuario)
+        query = query.or(`created_by_user_id.eq.${userProfile.id},assigned_user_id.eq.${userProfile.id}`);
+      } else if (readScope === 'team' && userProfile?.id) {
+        // TODOs del equipo (implementar lógica de equipo según sea necesario)
+        // Por ahora, incluimos todos los TODOs hasta que se implemente la lógica de equipos
+        // query = query.or(`created_by_user_id.eq.${userProfile.id},assigned_user_id.eq.${userProfile.id}`);
+      }
+      // Si readScope === 'all', no aplicamos filtros adicionales
 
       // Aplicar filtros adicionales
       if (filters) {
@@ -149,17 +183,32 @@ export function useTodos() {
 
       setTodos(formattedTodos);
     } catch (err) {
-      console.error('Error fetching todos:', err);
-      setError(err instanceof Error ? err.message : 'Error desconocido');
+      const errorMsg = err instanceof Error ? err.message : 'Error desconocido';
+      
+      // Solo log de errores una vez cada 3 segundos para evitar spam
+      const now = Date.now();
+      const errorKey = `todos-fetch-error-${errorMsg.slice(0, 20)}`;
+      const lastLog = errorLogCache.get(errorKey) || 0;
+      if (now - lastLog > 3000) {
+        errorLogCache.set(errorKey, now);
+        console.error('❌ [useTodos] Error al cargar TODOs:', errorMsg);
+      }
+      
+      setError(errorMsg);
     } finally {
       setLoading(false);
     }
-  }, [userProfile]);
+  }, [userProfile, todoPermissions]);
 
   // Crear nuevo TODO
   const createTodo = async (todoData: CreateTodoData): Promise<TodoItem | null> => {
     try {
       setError(null);
+
+      // Verificar permisos de creación
+      if (!todoPermissions.canCreateOwnTodos && !todoPermissions.canCreateTeamTodos && !todoPermissions.canCreateAllTodos) {
+        throw new Error('No tiene permisos para crear TODOs');
+      }
 
       const { data, error: createError } = await supabase
         .from('todos')
@@ -190,6 +239,21 @@ export function useTodos() {
   const updateTodo = async (todoData: UpdateTodoData): Promise<boolean> => {
     try {
       setError(null);
+
+      // Obtener el TODO actual para verificar permisos
+      const currentTodo = todos.find(todo => todo.id === todoData.id);
+      if (!currentTodo) {
+        throw new Error('TODO no encontrado');
+      }
+
+      // Verificar permisos de actualización
+      if (!userProfile?.id || !todoPermissions.canPerformActionOnTodo(
+        currentTodo.createdBy || currentTodo.assignedUserId || null, 
+        userProfile.id, 
+        'update'
+      )) {
+        throw new Error('No tiene permisos para actualizar este TODO');
+      }
 
       const updateData: any = {
         updated_at: new Date().toISOString()
@@ -222,6 +286,22 @@ export function useTodos() {
   const deleteTodo = async (todoId: string): Promise<boolean> => {
     try {
       setError(null);
+
+      // Obtener el TODO actual para verificar permisos
+      const currentTodo = todos.find(todo => todo.id === todoId);
+      if (!currentTodo) {
+        throw new Error('TODO no encontrado');
+      }
+
+      // Verificar permisos de eliminación
+      if (!userProfile?.id || !todoPermissions.canPerformActionOnTodo(
+        currentTodo.createdBy || currentTodo.assignedUserId || null, 
+        userProfile.id, 
+        'delete'
+      )) {
+        throw new Error('No tiene permisos para eliminar este TODO');
+      }
+
 const { data, error: deleteError } = await supabase
         .from('todos')
         .delete()
@@ -275,12 +355,14 @@ await fetchTodos(); // Recargar la lista
     return todos.filter(todo => !todo.control);
   };
 
-  // Cargar TODOs al montar el componente
+  // Cargar TODOs al montar el componente (solo si tiene permisos)
   useEffect(() => {
-    if (userProfile) {
+    // Solo ejecutar si cambia realmente el estado de los permisos o el usuario
+    if (userProfile?.id && todoPermissions.hasAnyTodosPermission && !hasPermissionError) {
       fetchTodos();
     }
-  }, [fetchTodos, userProfile]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userProfile?.id, todoPermissions.hasAnyTodosPermission]); // Removemos hasPermissionError para evitar bucles
 
   return {
     todos,

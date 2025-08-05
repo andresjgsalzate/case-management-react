@@ -9,19 +9,42 @@ import {
   TodoManualTimeEntry
 } from '@/types';
 import { useAuth } from '@/shared/hooks/useAuth';
+import { usePermissions } from '@/user-management/hooks/useUserProfile';
+import { useTodoPermissions } from './useTodoPermissions';
 
-export function useTodoControl() {
+// Cache para throttling de errores
+const controlErrorLogCache = new Map<string, number>();
+
+export const useTodoControl = () => {
   const [controls, setControls] = useState<TodoControl[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [hasPermissionError, setHasPermissionError] = useState<boolean>(false);
   const { user } = useAuth();
+  const { userProfile } = usePermissions();
+  const todoPermissions = useTodoPermissions();
   const queryClient = useQueryClient();
 
-  // Cargar controles de TODO
+  // Cargar controles de TODO con permisos
   const fetchControls = useCallback(async (filters?: { userId?: string; todoId?: string }) => {
     try {
       setLoading(true);
       setError(null);
+
+      // Verificar permisos de control
+      if (!todoPermissions.canControlOwnTodos && !todoPermissions.canControlTeamTodos && !todoPermissions.canControlAllTodos) {
+        const errorMsg = 'No tiene permisos para acceder al control de TODOs';
+        setHasPermissionError(true);
+        // Log solo una vez cada 5 segundos para evitar spam
+        const now = Date.now();
+        const errorKey = 'todo-control-permission-error';
+        const lastLog = controlErrorLogCache.get(errorKey) || 0;
+        if (now - lastLog > 5000) {
+          controlErrorLogCache.set(errorKey, now);
+          console.warn('🔒 [useTodoControl] Sin permisos de control de TODOs');
+        }
+        throw new Error(errorMsg);
+      }
 
       let query = supabase
         .from('todo_control')
@@ -38,7 +61,13 @@ export function useTodoControl() {
         `)
         .order('created_at', { ascending: false });
 
-      // Aplicar filtros
+      // Aplicar filtros de scope de permisos
+      if (todoPermissions.canControlOwnTodos && !todoPermissions.canControlAllTodos && userProfile?.id) {
+        // Solo controles de TODOs propios
+        query = query.eq('user_id', userProfile.id);
+      }
+
+      // Aplicar filtros adicionales
       if (filters?.userId) {
         query = query.eq('user_id', filters.userId);
       }
@@ -134,17 +163,32 @@ export function useTodoControl() {
 
       setControls(formattedControls);
     } catch (err) {
-      console.error('Error fetching todo controls:', err);
-      setError(err instanceof Error ? err.message : 'Error desconocido');
+      const errorMsg = err instanceof Error ? err.message : 'Error desconocido';
+      
+      // Solo log de errores una vez cada 3 segundos para evitar spam
+      const now = Date.now();
+      const errorKey = `todo-control-fetch-error-${errorMsg.slice(0, 20)}`;
+      const lastLog = controlErrorLogCache.get(errorKey) || 0;
+      if (now - lastLog > 3000) {
+        controlErrorLogCache.set(errorKey, now);
+        console.error('❌ [useTodoControl] Error al cargar controles:', errorMsg);
+      }
+      
+      setError(errorMsg);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [userProfile, todoPermissions]);
 
   // Crear control de TODO
   const createControl = async (todoId: string, assignedUserId?: string): Promise<TodoControl | null> => {
     try {
       setError(null);
+
+      // Verificar permisos de control
+      if (!todoPermissions.canControlOwnTodos && !todoPermissions.canControlTeamTodos && !todoPermissions.canControlAllTodos) {
+        throw new Error('No tiene permisos para crear controles de TODOs');
+      }
 
       // Obtener estado "PENDIENTE"
       const { data: pendingStatus } = await supabase
@@ -185,6 +229,21 @@ export function useTodoControl() {
   const updateControl = async (controlId: string, updates: TodoControlUpdate): Promise<boolean> => {
     try {
       setError(null);
+
+      // Obtener el control actual para verificar permisos
+      const currentControl = controls.find(control => control.id === controlId);
+      if (!currentControl) {
+        throw new Error('Control no encontrado');
+      }
+
+      // Verificar permisos de control
+      if (!userProfile?.id || !todoPermissions.canPerformActionOnTodo(
+        currentControl.userId || null, 
+        userProfile.id, 
+        'control'
+      )) {
+        throw new Error('No tiene permisos para actualizar este control');
+      }
 
       const updateData: any = {
         updated_at: new Date().toISOString()
@@ -583,10 +642,18 @@ export function useTodoControl() {
     }
   };
 
-  // Cargar controles al montar el componente
+  // Cargar controles al montar el componente (solo si tiene permisos)
   useEffect(() => {
-    fetchControls();
-  }, [fetchControls]);
+    const hasControlPermissions = todoPermissions.canControlOwnTodos || todoPermissions.canControlTeamTodos || todoPermissions.canControlAllTodos;
+    if (hasControlPermissions && !hasPermissionError) {
+      fetchControls();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    todoPermissions.canControlOwnTodos, 
+    todoPermissions.canControlTeamTodos, 
+    todoPermissions.canControlAllTodos
+  ]); // Removemos hasPermissionError para evitar bucles
 
   return {
     controls,
