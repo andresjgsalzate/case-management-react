@@ -25,5 +25,9 @@ export * from '../hooks/useSolutionFeedback';
 export * from '../hooks/useSolutionCategories';
 export { useDocumentTypes, useActiveDocumentTypes } from './hooks/useDocumentTypes';
 
+// Hooks de notas (con permisos integrados)
+export { useNotesWithPermissions } from './hooks/useNotesWithPermissions';
+export { useNotesPermissions } from './hooks/useNotesPermissions';
+
 // Tipos
 export type { DocumentType } from './types';

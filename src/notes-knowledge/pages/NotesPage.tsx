@@ -3,10 +3,7 @@ import {
   PlusIcon, 
   MagnifyingGlassIcon, 
   FunnelIcon,
-  DocumentTextIcon,
-  ClockIcon,
-  ArchiveBoxIcon,
-  ExclamationTriangleIcon
+  DocumentTextIcon
 } from '@heroicons/react/24/outline';
 import { PageWrapper } from '@/shared/components/layout/PageWrapper';
 import { Button } from '@/shared/components/ui/Button';
@@ -18,21 +15,36 @@ import { NoteForm } from '@/notes-knowledge/components/NoteForm';
 import { NotesSearchComponent } from '@/notes-knowledge/components/NotesQuickSearch';
 import { ConfirmationModal } from '@/shared/components/ui/ConfirmationModal';
 import { useNotification } from '@/shared/components/notifications/NotificationSystem';
-import { useNotes, useCreateNote, useUpdateNote, useDeleteNote, useArchiveNote, useNotesStats, useNoteTags } from '@/notes-knowledge/hooks/useNotes';
-import { useNotesPermissions } from '@/notes-knowledge/hooks/useNotesPermissions';
+import { useNotesWithPermissions } from '@/notes-knowledge/hooks/useNotesWithPermissions';
+import { useNoteTags } from '@/notes-knowledge/hooks/useNotes'; // Solo para tags por ahora
 import { useCases } from '@/case-management/hooks/useCases';
 import { useUsers } from '@/user-management/hooks/useUsers';
 import { useAuth } from '@/shared/hooks/useAuth';
-import { Note, NoteFormData, NoteFilters } from '@/types';
+import { Note, NoteFormData, NoteFilters, CreateNoteData, UpdateNoteData } from '@/types';
 
 export const NotesPage: React.FC = () => {
   const { user } = useAuth();
-  const { 
-    canCreateNotes, 
-    canAccessNotesModule, 
-    canViewAllNotes
-  } = useNotesPermissions();
+  
+  // Hook principal con permisos integrados
+  const {
+    notes,
+    loading: notesLoading,
+    createNote: createNoteMutation,
+    updateNote: updateNoteMutation,
+    deleteNote: deleteNoteMutation,
+    toggleArchiveNote,
+    permissions,
+    hasAccess,
+    hasPermissionError,
+    fetchNotes
+  } = useNotesWithPermissions();
+  
   const { showSuccess, showError } = useNotification();
+
+  // Hooks auxiliares (mantener por ahora hasta migrar completamente)
+  const { data: tags } = useNoteTags();
+  const { data: cases } = useCases();
+  const { data: users } = useUsers();
 
   // Estado para filtros
   const [filters, setFilters] = useState<NoteFilters>({
@@ -55,21 +67,8 @@ export const NotesPage: React.FC = () => {
   const [showFilters, setShowFilters] = useState(false);
   const [viewMode, setViewMode] = useState<'all' | 'my' | 'assigned' | 'important' | 'archived'>('all');
 
-  // Hooks para datos
-  const { data: notes, isLoading: notesLoading } = useNotes(filters);
-  const { data: stats } = useNotesStats();
-  const { data: tags } = useNoteTags();
-  const { data: cases } = useCases();
-  const { data: users } = useUsers();
-
-  // Mutaciones
-  const createNote = useCreateNote();
-  const updateNote = useUpdateNote();
-  const deleteNote = useDeleteNote();
-  const archiveNote = useArchiveNote();
-
-  // Verificar permisos
-  if (!canAccessNotesModule) {
+  // Verificar permisos de acceso
+  if (!hasAccess || hasPermissionError) {
     return (
       <PageWrapper>
         <div className="text-center py-12">
@@ -123,10 +122,7 @@ export const NotesPage: React.FC = () => {
 
   const handleArchiveNote = async (note: Note) => {
     try {
-      await archiveNote.mutateAsync({
-        noteId: note.id,
-        archive: !note.isArchived
-      });
+      await toggleArchiveNote(note.id);
       showSuccess(`Nota ${note.isArchived ? 'desarchivada' : 'archivada'} exitosamente`);
     } catch (error) {
       showError('Error al archivar nota', error instanceof Error ? error.message : 'Error desconocido');
@@ -136,13 +132,31 @@ export const NotesPage: React.FC = () => {
   const handleFormSubmit = async (data: NoteFormData) => {
     try {
       if (isEdit && selectedNote) {
-        await updateNote.mutateAsync({
+        // Convertir NoteFormData a UpdateNoteData (incluir ID requerido por el tipo)
+        const updateData: UpdateNoteData = {
           id: selectedNote.id,
-          ...data
-        });
+          title: data.title,
+          content: data.content,
+          tags: data.tags,
+          caseId: data.caseId,
+          assignedTo: data.assignedTo,
+          isImportant: data.isImportant,
+          reminderDate: data.reminderDate
+        };
+        await updateNoteMutation(selectedNote.id, updateData);
         showSuccess('Nota actualizada exitosamente');
       } else {
-        await createNote.mutateAsync(data);
+        // Convertir NoteFormData a CreateNoteData
+        const createData: CreateNoteData = {
+          title: data.title,
+          content: data.content,
+          tags: data.tags,
+          caseId: data.caseId,
+          assignedTo: data.assignedTo,
+          isImportant: data.isImportant,
+          reminderDate: data.reminderDate
+        };
+        await createNoteMutation(createData);
         showSuccess('Nota creada exitosamente');
       }
       setIsFormOpen(false);
@@ -154,7 +168,7 @@ export const NotesPage: React.FC = () => {
   const confirmDelete = async () => {
     if (deleteModal.note) {
       try {
-        await deleteNote.mutateAsync(deleteModal.note.id);
+        await deleteNoteMutation(deleteModal.note.id);
         showSuccess('Nota eliminada exitosamente');
         setDeleteModal({ isOpen: false, note: null });
       } catch (error) {
@@ -164,17 +178,36 @@ export const NotesPage: React.FC = () => {
   };
 
   // Actualizar filtros
-  const updateFilters = (newFilters: Partial<NoteFilters>) => {
-    setFilters(prev => ({ ...prev, ...newFilters }));
+  const updateFilters = async (newFilters: Partial<NoteFilters>) => {
+    const updatedFilters = { ...filters, ...newFilters };
+    setFilters(updatedFilters);
+    
+    // Recargar notas con los nuevos filtros
+    try {
+      await fetchNotes(updatedFilters);
+    } catch (error) {
+      showError('Error al aplicar filtros', error instanceof Error ? error.message : 'Error desconocido');
+    }
   };
 
   // Cambiar modo de vista
-  const handleViewModeChange = (mode: typeof viewMode) => {
+  const handleViewModeChange = async (mode: typeof viewMode) => {
     setViewMode(mode);
+    const newFilters = { ...filters };
+    
     if (mode === 'archived') {
-      updateFilters({ isArchived: true });
+      newFilters.isArchived = true;
     } else {
-      updateFilters({ isArchived: false });
+      newFilters.isArchived = false;
+    }
+    
+    setFilters(newFilters);
+    
+    // Recargar notas con los nuevos filtros
+    try {
+      await fetchNotes(newFilters);
+    } catch (error) {
+      showError('Error al cargar notas', error instanceof Error ? error.message : 'Error desconocido');
     }
   };
 
@@ -209,7 +242,7 @@ export const NotesPage: React.FC = () => {
             <FunnelIcon className="h-5 w-5 mr-2" />
             Filtros
           </Button>
-          {canCreateNotes && (
+          {permissions.canCreateOwnNotes && (
             <Button
               onClick={handleCreateNote}
               className="flex items-center"
@@ -222,6 +255,7 @@ export const NotesPage: React.FC = () => {
       </div>
 
       {/* Stats Cards */}
+      {/* TODO: Implementar estadísticas en useNotesWithPermissions
       {stats && (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
           <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
@@ -280,6 +314,7 @@ export const NotesPage: React.FC = () => {
           </div>
         </div>
       )}
+      */}
 
       {/* View Mode Tabs */}
       <div className="flex flex-wrap gap-2 mb-6">
@@ -399,7 +434,7 @@ export const NotesPage: React.FC = () => {
               ))}
             </Select>
 
-            {canViewAllNotes && (
+            {permissions.canViewAllNotes && (
               <Select
                 label="Creado por"
                 value={filters.createdBy || ''}
@@ -446,7 +481,7 @@ export const NotesPage: React.FC = () => {
               ? 'No se encontraron notas que coincidan con los filtros.'
               : 'Comienza creando tu primera nota.'}
           </p>
-          {canCreateNotes && !filters.search && !filters.tags?.length && !filters.caseId && !filters.createdBy && (
+          {permissions.canCreateOwnNotes && !filters.search && !filters.tags?.length && !filters.caseId && !filters.createdBy && (
             <div className="mt-6">
               <Button onClick={handleCreateNote} className="flex items-center">
                 <PlusIcon className="h-5 w-5 mr-2" />
@@ -464,7 +499,7 @@ export const NotesPage: React.FC = () => {
         onSubmit={handleFormSubmit}
         initialData={selectedNote || undefined}
         isEdit={isEdit}
-        loading={createNote.isPending || updateNote.isPending}
+        loading={notesLoading}
       />
 
       {/* Delete Confirmation Modal */}

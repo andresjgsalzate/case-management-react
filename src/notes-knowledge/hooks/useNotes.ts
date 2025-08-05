@@ -2,7 +2,21 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/shared/lib/supabase';
 import { Note, CreateNoteData, UpdateNoteData, NoteFilters, NoteStats, NoteSearchResult } from '@/types';
 
-// Hook para obtener todas las notas con filtros
+/**
+ * @deprecated Este hook NO incluye validación de permisos y está siendo 
+ * deprecado en favor de useNotesWithPermissions que incluye validación
+ * de permisos basada en scopes (own/team/all).
+ * 
+ * ⚠️ IMPORTANTE: Este hook NO verifica permisos de usuario y puede exponer
+ * datos sin autorización. Solo usar para casos específicos donde la 
+ * validación de permisos se hace externamente.
+ * 
+ * ✅ Para implementaciones nuevas usar: useNotesWithPermissions
+ * 
+ * @see useNotesWithPermissions Hook seguro con validación de permisos
+ */
+
+// Hook para obtener todas las notas con filtros (SIN VALIDACIÓN DE PERMISOS)
 export const useNotes = (filters?: NoteFilters) => {
   return useQuery({
     queryKey: ['notes', filters],
