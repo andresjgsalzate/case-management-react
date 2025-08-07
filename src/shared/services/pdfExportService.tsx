@@ -427,6 +427,22 @@ const styles = StyleSheet.create({
     fontSize: 10,
     color: '#6B7280',
     textAlign: 'center'
+  },
+  
+  // Estilos para página de adjuntos
+  attachmentPageInfo: {
+    marginBottom: 20,
+    padding: 15,
+    backgroundColor: '#f3f4f6',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#d1d5db',
+  },
+  attachmentPageTitle: {
+    fontSize: 14,
+    fontWeight: 'bold' as any,
+    color: '#374151',
+    textAlign: 'center' as any,
   }
 });
 
@@ -520,6 +536,62 @@ const renderBlock = (block: PDFContentBlock, index: number, numberedListCounter?
         </Text>
       );
   }
+};
+
+// =================== FUNCIONES AUXILIARES ===================
+
+/**
+ * Obtiene el icono correspondiente para un tipo de archivo
+ */
+const getAttachmentIcon = (fileType?: string, mimeType?: string): string => {
+  const type = fileType?.toLowerCase() || '';
+  const mime = mimeType?.toLowerCase() || '';
+  
+  // Documentos de texto
+  if (type === 'document' || mime.includes('word') || mime.includes('doc')) {
+    return '[DOC]';
+  }
+  
+  // PDFs
+  if (type === 'pdf' || mime.includes('pdf')) {
+    return '[PDF]';
+  }
+  
+  // Hojas de cálculo
+  if (type === 'spreadsheet' || mime.includes('sheet') || mime.includes('excel')) {
+    return '[XLS]';
+  }
+  
+  // Presentaciones
+  if (type === 'presentation' || mime.includes('presentation') || mime.includes('powerpoint')) {
+    return '[PPT]';
+  }
+  
+  // Archivos de texto
+  if (type === 'text' || mime.includes('text')) {
+    return '[TXT]';
+  }
+  
+  // Archivos comprimidos
+  if (type === 'archive' || mime.includes('zip') || mime.includes('rar')) {
+    return '[ZIP]';
+  }
+  
+  // Por defecto
+  return '[FILE]';
+};
+
+/**
+ * Formatea el tamaño de archivo de forma legible
+ */
+const formatAttachmentFileSize = (bytes: number): string => {
+  if (bytes === 0) return '0 Bytes';
+  
+  const k = 1024;
+  const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 };
 
 const renderInlineContent = (content: any): React.ReactNode => {
@@ -699,54 +771,8 @@ const renderImage = (block: PDFContentBlock, index: number): React.ReactElement 
 };
 
 /**
- * Renderiza la sección de adjuntos del documento
+ * Renderiza la sección de adjuntos del documento (solo documentos, no imágenes)
  */
-const renderAttachmentsSection = (attachments: any[]): React.ReactElement | null => {
-  if (!attachments || attachments.length === 0) {
-    return null;
-  }
-
-  const getFileIcon = (fileType: string, mimeType: string): string => {
-    if (fileType === 'image' || mimeType?.startsWith('image/')) return '[IMG]';
-    if (fileType === 'document' || mimeType?.includes('pdf')) return '[DOC]';
-    if (fileType === 'spreadsheet' || mimeType?.includes('sheet')) return '[XLS]';
-    if (mimeType?.startsWith('video/')) return '[VID]';
-    if (mimeType?.startsWith('audio/')) return '[AUD]';
-    return '[FILE]';
-  };
-
-  const formatFileSize = (bytes: number): string => {
-    if (bytes === 0) return '0 Bytes';
-    const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-  };
-
-  return (
-    <View style={styles.attachmentsSection}>
-      <Text style={styles.attachmentsTitle}>Adjuntos del Documento</Text>
-      {attachments.map((attachment, index) => (
-        <View key={index} style={styles.attachmentItem}>
-          <Text style={styles.attachmentIcon}>
-            {getFileIcon(attachment.file_type, attachment.mime_type)}
-          </Text>
-          <View style={styles.attachmentInfo}>
-            <Text style={styles.attachmentName}>
-              {attachment.file_name}
-            </Text>
-            <Text style={styles.attachmentDetails}>
-              Tipo: {attachment.file_type || 'Desconocido'} • 
-              Tamaño: {formatFileSize(attachment.file_size || 0)} • 
-              Subido: {new Date(attachment.created_at).toLocaleDateString('es-ES')}
-            </Text>
-          </View>
-        </View>
-      ))}
-    </View>
-  );
-};
-
 // =================== COMPONENTE PDF ===================
 
 interface PDFDocumentProps {
@@ -770,8 +796,20 @@ const PDFDocument: React.FC<PDFDocumentProps> = ({ document, attachments = [] })
     return minutes > 0 ? `${hours}h ${minutes}min` : `${hours} horas`;
   };
 
+  // Filtrar adjuntos para obtener solo documentos (no imágenes)
+  const documentAttachments = attachments.filter(attachment => {
+    const mimeType = attachment.mime_type || '';
+    const fileType = attachment.file_type || '';
+    
+    // Excluir imágenes y archivos embebidos
+    return !mimeType.startsWith('image/') && 
+           fileType !== 'image' && 
+           !attachment.is_embedded;
+  });
+
   return (
     <Document>
+      {/* Página principal con contenido */}
       <Page size="A4" style={styles.page}>
         {/* Header */}
         <View style={styles.header}>
@@ -815,7 +853,12 @@ const PDFDocument: React.FC<PDFDocumentProps> = ({ document, attachments = [] })
           {document.tags && document.tags.length > 0 && (
             <View style={styles.metadataRow}>
               <Text style={styles.metadataLabel}>Etiquetas:</Text>
-              <Text style={styles.metadataValue}>{document.tags.join(', ')}</Text>
+              <Text style={styles.metadataValue}>
+                {Array.isArray(document.tags) 
+                  ? document.tags.map(tag => typeof tag === 'string' ? tag : (tag as any).name || (tag as any).label || '').filter(Boolean).join(', ')
+                  : String(document.tags)
+                }
+              </Text>
             </View>
           )}
           
@@ -853,14 +896,54 @@ const PDFDocument: React.FC<PDFDocumentProps> = ({ document, attachments = [] })
           })()}
         </View>
 
-        {/* Sección de adjuntos */}
-        {attachments.length > 0 && renderAttachmentsSection(attachments)}
-
-        {/* Footer */}
+        {/* Footer de la página principal */}
         <Text style={styles.footer}>
           Generado el {new Date().toLocaleDateString('es-ES')} a las {new Date().toLocaleTimeString('es-ES')}
         </Text>
       </Page>
+
+      {/* Página separada para adjuntos (solo si hay documentos adjuntos) */}
+      {documentAttachments.length > 0 && (
+        <Page size="A4" style={styles.page}>
+          {/* Header de la página de adjuntos */}
+          <View style={styles.header}>
+            <Text style={styles.title}>Adjuntos del Documento</Text>
+          </View>
+
+          {/* Información del documento original */}
+          <View style={styles.attachmentPageInfo}>
+            <Text style={styles.attachmentPageTitle}>
+              Documento: {document.title || 'Sin título'}
+            </Text>
+          </View>
+
+          {/* Lista de adjuntos */}
+          <View style={styles.attachmentsSection}>
+            {documentAttachments.map((attachment, index) => (
+              <View key={index} style={styles.attachmentItem}>
+                <Text style={styles.attachmentIcon}>
+                  {getAttachmentIcon(attachment.file_type, attachment.mime_type)}
+                </Text>
+                <View style={styles.attachmentInfo}>
+                  <Text style={styles.attachmentName}>
+                    {attachment.file_name}
+                  </Text>
+                  <Text style={styles.attachmentDetails}>
+                    Tipo: {attachment.file_type || 'Documento'}  •  
+                    Tamaño: {formatAttachmentFileSize(attachment.file_size || 0)}  •  
+                    Subido: {new Date(attachment.created_at).toLocaleDateString('es-ES')}
+                  </Text>
+                </View>
+              </View>
+            ))}
+          </View>
+
+          {/* Footer de la página de adjuntos */}
+          <Text style={styles.footer}>
+            Página de adjuntos - Generado el {new Date().toLocaleDateString('es-ES')}
+          </Text>
+        </Page>
+      )}
     </Document>
   );
 };
