@@ -11,7 +11,7 @@ if (!supabaseUrl || !supabaseAnonKey ||
   console.error('❌ Variables de entorno de Supabase no configuradas correctamente');
   console.error('Por favor configura VITE_SUPABASE_URL y VITE_SUPABASE_ANON_KEY en tu archivo .env');
   console.error('Ejemplo:');
-  console.error('VITE_SUPABASE_URL=https://tu-proyecto.supabase.co');
+  console.error('VITE_SUPABASE_URL=https://zckfwedteqvjytembgpu.supabase.co');
   console.error('VITE_SUPABASE_ANON_KEY=tu_clave_anonima_aqui');
   throw new Error('Missing or invalid Supabase environment variables. Please check your .env file.');
 }

@@ -61,9 +61,20 @@ export const useDisposicionScriptsPermissions = () => {
        * @returns 'all' | 'team' | 'own' | null
        */
       getHighestReadScope(): 'all' | 'team' | 'own' | null {
-        if (adminPermissions.hasPermission('disposiciones.read_all')) return 'all';
-        if (adminPermissions.hasPermission('disposiciones.read_team')) return 'team';
-        if (adminPermissions.hasPermission('disposiciones.read_own')) return 'own';
+        const hasAll = adminPermissions.hasPermission('disposiciones.read_all');
+        const hasTeam = adminPermissions.hasPermission('disposiciones.read_team');
+        const hasOwn = adminPermissions.hasPermission('disposiciones.read_own');
+        
+        if (hasAll) {
+          return 'all';
+        }
+        if (hasTeam) {
+          return 'team';
+        }
+        if (hasOwn) {
+          return 'own';
+        }
+        
         return null;
       },
       
@@ -163,7 +174,13 @@ export const useDisposicionScriptsPermissions = () => {
           'disposiciones.export_own', 'disposiciones.export_team', 'disposiciones.export_all',
           'disposiciones.admin_own', 'disposiciones.admin_team', 'disposiciones.admin_all'
         ];
-        return allPermissions.some(permission => adminPermissions.hasPermission(permission));
+        
+        const hasAnyPermission = allPermissions.some(permission => {
+          const hasPermission = adminPermissions.hasPermission(permission);
+          return hasPermission;
+        });
+        
+        return hasAnyPermission;
       },
       
       /**

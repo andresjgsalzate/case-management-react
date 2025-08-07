@@ -123,7 +123,6 @@ export const useCase = (id: string) => {
 // Hook para crear un caso
 export const useCreateCase = () => {
   const queryClient = useQueryClient();
-  const { userProfile } = usePermissions();
   const casesPermissions = useCasesPermissions();
 
   return useMutation({

@@ -124,99 +124,173 @@ export const usePermissions = () => {
     return !!userProfile && userProfile.isActive;
   };
 
+  // ================================================================
+  // PERMISOS BASADOS EN SISTEMA GRANULAR
+  // ================================================================
+  
+  // Helper: Import del hook de permisos granulares
+  const { data: userPermissions = [] } = useQuery({
+    queryKey: ['userPermissions', userProfile?.id],
+    queryFn: async () => {
+      if (!userProfile?.id) return [];
+      
+      try {
+        const { data: rolePermissions, error } = await supabase
+          .from('role_permissions')
+          .select(`
+            permissions (
+              name,
+              description,
+              resource,
+              action,
+              scope
+            )
+          `)
+          .eq('role_id', userProfile.roleId);
+
+        if (error) {
+          console.error('Error fetching role permissions:', error);
+          return [];
+        }
+
+        const permissions: string[] = [];
+        if (rolePermissions) {
+          rolePermissions.forEach((rp: any) => {
+            if (rp.permissions?.name) {
+              permissions.push(rp.permissions.name);
+            }
+          });
+        }
+
+        return permissions;
+      } catch (error) {
+        console.error('Error in getUserPermissions:', error);
+        return [];
+      }
+    },
+    enabled: !!userProfile?.id,
+    staleTime: 5 * 60 * 1000, // 5 minutos
+  });
+
+  // Helper para verificar permisos granulares
+  const hasPermission = (permissionName: string): boolean => {
+    return userPermissions.includes(permissionName);
+  };
+
+  // Helper para verificar permisos con scope
+  const hasPermissionWithScope = (resource: string, action: string, scopes: string[] = ['own', 'team', 'all']): boolean => {
+    return scopes.some(scope => hasPermission(`${resource}.${action}_${scope}`));
+  };
+
+  // ================================================================
+  // FUNCIONES DE COMPATIBILIDAD (usando permisos granulares)
+  // ================================================================
+  
   const isAdmin = (): boolean => {
-    return userProfile?.roleName?.toLowerCase() === 'admin' || false;
+    // Un usuario es "admin" si tiene permisos administrativos globales
+    return hasPermission('users.admin_all') || 
+           hasPermission('roles.admin_all') || 
+           hasPermission('permissions.admin_all');
   };
 
   const isSupervisor = (): boolean => {
-    return userProfile?.roleName === 'supervisor' || false;
+    // Un usuario es "supervisor" si tiene permisos de equipo
+    return hasPermissionWithScope('users', 'admin', ['team']) ||
+           hasPermissionWithScope('cases', 'admin', ['team']) ||
+           hasPermissionWithScope('todos', 'control', ['team']);
   };
 
   const isAuditor = (): boolean => {
-    return userProfile?.roleName === 'auditor' || false;
+    // Un usuario es "auditor" si tiene permisos de lectura amplios
+    return hasPermissionWithScope('cases', 'read', ['all', 'team']) ||
+           hasPermissionWithScope('documentation', 'read', ['all', 'team']);
   };
 
   // ================================================================
-  // PERMISOS BASADOS EN ROLES - NO TODOS LOS USUARIOS TIENEN ACCESO
+  // PERMISOS ESPECÍFICOS USANDO SISTEMA GRANULAR
   // ================================================================
   
   const canAccessAdmin = (): boolean => {
-    return isAdmin();
+    return hasPermissionWithScope('users', 'read') || 
+           hasPermissionWithScope('roles', 'read') ||
+           hasPermissionWithScope('permissions', 'read');
   };
 
   const canViewUsers = (): boolean => {
-    return isAdmin();
+    return hasPermissionWithScope('users', 'read');
   };
 
   const canViewRoles = (): boolean => {
-    return isAdmin();
+    return hasPermissionWithScope('roles', 'read');
   };
 
   const canViewPermissions = (): boolean => {
-    return isAdmin();
+    return hasPermissionWithScope('permissions', 'read');
   };
 
   const canViewOrigenes = (): boolean => {
-    return isAdmin();
+    return hasPermissionWithScope('config', 'read');
   };
 
   const canViewAplicaciones = (): boolean => {
-    return isAdmin();
+    return hasPermissionWithScope('config', 'read');
   };
 
   const canViewCaseStatuses = (): boolean => {
-    return isAdmin();
+    return hasPermissionWithScope('config', 'read');
   };
 
   const canManageUsers = (): boolean => {
-    return isAdmin();
+    return hasPermissionWithScope('users', 'update') || 
+           hasPermissionWithScope('users', 'create') ||
+           hasPermissionWithScope('users', 'delete');
   };
 
   const canManageRoles = (): boolean => {
-    return isAdmin();
+    return hasPermissionWithScope('roles', 'update') || 
+           hasPermissionWithScope('roles', 'create') ||
+           hasPermissionWithScope('roles', 'delete');
   };
 
   const canManagePermissions = (): boolean => {
-    return isAdmin();
+    return hasPermissionWithScope('permissions', 'update') || 
+           hasPermissionWithScope('permissions', 'create') ||
+           hasPermissionWithScope('permissions', 'delete');
   };
 
   const canManageOrigenes = (): boolean => {
-    return isAdmin();
+    return hasPermissionWithScope('config', 'update') || hasPermissionWithScope('config', 'admin');
   };
 
   const canManageAplicaciones = (): boolean => {
-    return isAdmin();
+    return hasPermissionWithScope('config', 'update') || hasPermissionWithScope('config', 'admin');
   };
 
   const canCreateCaseStatuses = (): boolean => {
-    return isAdmin();
+    return hasPermissionWithScope('config', 'create');
   };
 
   const canUpdateCaseStatuses = (): boolean => {
-    return isAdmin();
+    return hasPermissionWithScope('config', 'update');
   };
 
   const canDeleteCaseStatuses = (): boolean => {
-    return isAdmin();
+    return hasPermissionWithScope('config', 'delete');
   };
 
   const canManageCaseStatuses = (): boolean => {
-    return isAdmin();
+    return hasPermissionWithScope('config', 'admin') || canCreateCaseStatuses() || canUpdateCaseStatuses() || canDeleteCaseStatuses();
   };
 
   const canViewAllCases = (): boolean => {
-    // Los admins pueden ver todos los casos, otros usuarios solo los suyos
-    return isAdmin();
-  };
-
-  // Función de permiso genérica que verifica si es admin
-  const hasPermission = (_resource: string, _action: string): boolean => {
-    return isAdmin();
+    return hasPermission('cases.read_all');
   };
 
   return {
     userProfile,
     hasPermission,
+    hasPermissionWithScope,
+    userPermissions,
     isAdmin,
     isSupervisor,
     isAuditor,

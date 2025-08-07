@@ -131,11 +131,10 @@ const exampleDocument: BlockNoteDocument = {
 
 export const PDFExportExample: React.FC = () => {
   const handleExportStart = () => {
-    console.log('Iniciando exportación PDF...');
+    // PDF export started
   };
 
   const handleExportSuccess = () => {
-    console.log('PDF exportado exitosamente');
     alert('¡PDF generado y descargado exitosamente! 🎉');
   };
 

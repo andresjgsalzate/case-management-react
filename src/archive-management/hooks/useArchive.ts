@@ -10,6 +10,7 @@ import {
   RestoreActionData
 } from '@/types';
 import { useAuth } from '@/shared/hooks/useAuth';
+import { usePermissions } from '@/user-management/hooks/useUserProfile';
 
 export function useArchive() {
   const [archivedCases, setArchivedCases] = useState<ArchivedCase[]>([]);
@@ -19,6 +20,7 @@ export function useArchive() {
   const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const { hasPermission } = usePermissions();
 
   // Cargar elementos archivados
   const fetchArchivedItems = useCallback(async (filters?: ArchiveFilters) => {
@@ -26,121 +28,92 @@ export function useArchive() {
       setLoading(true);
       setError(null);
 
-      const promises = [];
+      if (!user?.id) {
+        setArchivedCases([]);
+        setArchivedTodos([]);
+        return;
+      }
 
-      // Cargar casos archivados
+      // Cargar casos archivados usando función con permisos granulares
       if (!filters?.type || filters.type === 'cases' || filters.type === 'all') {
-        let casesQuery = supabase
-          .from('archived_cases')
-          .select(`
-            *,
-            archived_by_user:user_profiles!archived_cases_archived_by_fkey(
-              id,
-              full_name,
-              email
-            ),
-            restored_by_user:user_profiles!archived_cases_restored_by_fkey(
-              id,
-              full_name,
-              email
-            )
-          `)
-          .order('archived_at', { ascending: false });
+        const { data: casesData, error: casesError } = await supabase
+          .rpc('get_accessible_archived_cases', {
+            p_user_id: user.id,
+            p_limit: 1000, // Aumentar límite para obtener todos los casos
+            p_offset: 0
+          });
 
-        // Aplicar filtros
+        if (casesError) throw casesError;
+        
+        let filteredCases = casesData || [];
+        
+        // Aplicar filtros del lado del cliente
         if (filters) {
           if (filters.archivedBy) {
-            casesQuery = casesQuery.eq('archived_by', filters.archivedBy);
+            filteredCases = filteredCases.filter((c: any) => c.archived_by === filters.archivedBy);
           }
           if (filters.dateFrom) {
-            casesQuery = casesQuery.gte('archived_at', filters.dateFrom);
+            filteredCases = filteredCases.filter((c: any) => c.archived_at >= filters.dateFrom!);
           }
           if (filters.dateTo) {
-            casesQuery = casesQuery.lte('archived_at', filters.dateTo);
-          }
-          if (filters.classification) {
-            casesQuery = casesQuery.eq('classification', filters.classification);
+            filteredCases = filteredCases.filter((c: any) => c.archived_at <= filters.dateTo!);
           }
           if (filters.search) {
-            casesQuery = casesQuery.or(
-              `case_number.ilike.%${filters.search}%,description.ilike.%${filters.search}%`
+            const searchLower = filters.search.toLowerCase();
+            filteredCases = filteredCases.filter((c: any) => 
+              c.case_number?.toLowerCase().includes(searchLower) ||
+              c.description?.toLowerCase().includes(searchLower)
             );
           }
           if (filters.showRestored !== undefined) {
-            casesQuery = casesQuery.eq('is_restored', filters.showRestored);
+            filteredCases = filteredCases.filter((c: any) => 
+              filters.showRestored ? c.restored_at : !c.restored_at
+            );
           }
         }
 
-        promises.push(casesQuery);
+        setArchivedCases(filteredCases.map(mapArchivedCaseFromDB) || []);
       }
 
-      // Cargar TODOs archivados
+      // Cargar TODOs archivados usando función con permisos granulares
       if (!filters?.type || filters.type === 'todos' || filters.type === 'all') {
-        let todosQuery = supabase
-          .from('archived_todos')
-          .select(`
-            *,
-            archived_by_user:user_profiles!archived_todos_archived_by_fkey(
-              id,
-              full_name,
-              email
-            ),
-            restored_by_user:user_profiles!archived_todos_restored_by_fkey(
-              id,
-              full_name,
-              email
-            )
-          `)
-          .order('archived_at', { ascending: false });
+        const { data: todosData, error: todosError } = await supabase
+          .rpc('get_accessible_archived_todos', {
+            p_user_id: user.id,
+            p_limit: 1000, // Aumentar límite para obtener todos los todos
+            p_offset: 0
+          });
 
-        // Aplicar filtros
+        if (todosError) throw todosError;
+        
+        let filteredTodos = todosData || [];
+        
+        // Aplicar filtros del lado del cliente
         if (filters) {
           if (filters.archivedBy) {
-            todosQuery = todosQuery.eq('archived_by', filters.archivedBy);
+            filteredTodos = filteredTodos.filter((t: any) => t.archived_by === filters.archivedBy);
           }
           if (filters.dateFrom) {
-            todosQuery = todosQuery.gte('archived_at', filters.dateFrom);
+            filteredTodos = filteredTodos.filter((t: any) => t.archived_at >= filters.dateFrom!);
           }
           if (filters.dateTo) {
-            todosQuery = todosQuery.lte('archived_at', filters.dateTo);
-          }
-          if (filters.priority) {
-            todosQuery = todosQuery.eq('priority', filters.priority);
+            filteredTodos = filteredTodos.filter((t: any) => t.archived_at <= filters.dateTo!);
           }
           if (filters.search) {
-            todosQuery = todosQuery.or(
-              `title.ilike.%${filters.search}%,description.ilike.%${filters.search}%`
+            const searchLower = filters.search.toLowerCase();
+            filteredTodos = filteredTodos.filter((t: any) => 
+              t.title?.toLowerCase().includes(searchLower) ||
+              t.description?.toLowerCase().includes(searchLower)
             );
           }
           if (filters.showRestored !== undefined) {
-            todosQuery = todosQuery.eq('is_restored', filters.showRestored);
+            filteredTodos = filteredTodos.filter((t: any) => 
+              filters.showRestored ? t.restored_at : !t.restored_at
+            );
           }
         }
 
-        promises.push(todosQuery);
-      }
-
-      const results = await Promise.all(promises);
-      
-      // Procesar resultados
-      if (results.length === 2) {
-        const [casesResult, todosResult] = results;
-        if (casesResult.error) throw casesResult.error;
-        if (todosResult.error) throw todosResult.error;
-        
-        setArchivedCases(casesResult.data?.map(mapArchivedCaseFromDB) || []);
-        setArchivedTodos(todosResult.data?.map(mapArchivedTodoFromDB) || []);
-      } else if (results.length === 1) {
-        const [result] = results;
-        if (result.error) throw result.error;
-        
-        if (filters?.type === 'cases') {
-          setArchivedCases(result.data?.map(mapArchivedCaseFromDB) || []);
-          setArchivedTodos([]);
-        } else {
-          setArchivedTodos(result.data?.map(mapArchivedTodoFromDB) || []);
-          setArchivedCases([]);
-        }
+        setArchivedTodos(filteredTodos.map(mapArchivedTodoFromDB) || []);
       }
 
     } catch (err) {
@@ -149,45 +122,49 @@ export function useArchive() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [user?.id]);
 
   // Cargar estadísticas
   const fetchStats = useCallback(async () => {
     try {
-      // Obtener estadísticas básicas
-      const { data: basicStats, error: basicError } = await supabase
-        .from('archive_stats')
-        .select('*')
-        .single();
+      // Usar los datos ya cargados en lugar de hacer consultas separadas
+      const totalArchivedCases = archivedCases.length;
+      const totalArchivedTodos = archivedTodos.length;
+      
+      const currentMonth = new Date().toISOString().split('T')[0].substring(0, 7); // YYYY-MM
+      
+      const archivedThisMonth = [
+        ...archivedCases.map(c => ({ archived_at: c.archivedAt })),
+        ...archivedTodos.map(t => ({ archived_at: t.archivedAt }))
+      ].filter(item => item.archived_at?.startsWith(currentMonth)).length;
+      
+      const restoredThisMonth = [
+        ...archivedCases.filter(c => c.restoredAt),
+        ...archivedTodos.filter(t => t.restoredAt)
+      ].filter(item => {
+        const restoredAt = 'restoredAt' in item ? item.restoredAt : null;
+        return restoredAt?.startsWith(currentMonth);
+      }).length;
 
-      if (basicError) throw basicError;
-
-      // Obtener estadísticas por usuario
-      const { data: userStats, error: userError } = await supabase
-        .rpc('get_archive_stats_by_user');
-
-      if (userError) throw userError;
-
-      // Obtener estadísticas mensuales
-      const { data: monthlyStats, error: monthlyError } = await supabase
-        .rpc('get_archive_stats_monthly');
-
-      if (monthlyError) throw monthlyError;
+      const totalArchivedTimeMinutes = [
+        ...archivedCases.map(c => c.totalTimeMinutes || 0),
+        ...archivedTodos.map(t => t.totalTimeMinutes || 0)
+      ].reduce((sum, time) => sum + time, 0);
 
       setStats({
-        totalArchivedCases: basicStats.total_archived_cases || 0,
-        totalArchivedTodos: basicStats.total_archived_todos || 0,
-        totalArchivedTimeMinutes: basicStats.total_archived_time_minutes || 0,
-        archivedThisMonth: basicStats.archived_this_month || 0,
-        restoredThisMonth: basicStats.restored_this_month || 0,
-        byUser: userStats || [],
-        monthlyStats: monthlyStats || []
+        totalArchivedCases,
+        totalArchivedTodos,
+        totalArchivedTimeMinutes,
+        archivedThisMonth,
+        restoredThisMonth,
+        byUser: [], // Se puede implementar más adelante
+        monthlyStats: [] // Se puede implementar más adelante
       });
 
     } catch (err) {
       console.error('Error fetching archive stats:', err);
     }
-  }, []);
+  }, [archivedCases, archivedTodos]);
 
   // Archivar caso
   const archiveCase = useCallback(async (data: ArchiveActionData) => {
@@ -321,42 +298,36 @@ export function useArchive() {
     }
   }, [user?.id, fetchArchivedItems, fetchStats, queryClient]);
 
-  // Verificar permisos
+  // Verificar permisos usando el sistema granular local
   const canArchive = useCallback(async () => {
     if (!user?.id) return false;
     
-    try {
-      const { data, error } = await supabase
-        .rpc('can_archive_items', { user_id: user.id });
-      
-      if (error) throw error;
-      return data;
-    } catch (err) {
-      console.error('Error checking archive permissions:', err);
-      return false;
-    }
-  }, [user?.id]);
+    // Usar el sistema de permisos granulares del hook
+    return hasPermission('archive.create_own') || 
+           hasPermission('archive.create_team') || 
+           hasPermission('archive.create_all');
+  }, [user?.id, hasPermission]);
 
   const canRestore = useCallback(async () => {
     if (!user?.id) return false;
     
-    try {
-      const { data, error } = await supabase
-        .rpc('can_restore_items', { user_id: user.id });
-      
-      if (error) throw error;
-      return data;
-    } catch (err) {
-      console.error('Error checking restore permissions:', err);
-      return false;
-    }
-  }, [user?.id]);
+    // Usar el sistema de permisos granulares del hook
+    return hasPermission('archive.restore_own') || 
+           hasPermission('archive.restore_team') || 
+           hasPermission('archive.restore_all');
+  }, [user?.id, hasPermission]);
 
   // Cargar datos iniciales
   useEffect(() => {
     fetchArchivedItems();
-    fetchStats();
-  }, [fetchArchivedItems, fetchStats]);
+  }, [fetchArchivedItems]);
+
+  // Actualizar estadísticas cuando cambien los datos
+  useEffect(() => {
+    if (archivedCases.length > 0 || archivedTodos.length > 0) {
+      fetchStats();
+    }
+  }, [archivedCases, archivedTodos, fetchStats]);
 
   return {
     archivedCases,

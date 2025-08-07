@@ -2,7 +2,41 @@ import { supabase } from '../lib/supabase';
 
 // Servicio de Storage usando Supabase
 export class StorageService {
-  private static readonly BUCKET_NAME = 'documents'; // Bucket que existe en las migraciones
+  private static readonly BUCKET_NAME = 'document-attachments'; // Bucket correcto según documentación
+  
+  /**
+   * Verifica si el bucket existe (simplificado)
+   */
+  private static async ensureBucketExists(): Promise<boolean> {
+    try {
+      // Verificación simple del bucket
+      const { data: buckets, error } = await supabase.storage.listBuckets();
+      
+      console.log('🔍 [StorageService] Buckets encontrados:', buckets?.length || 0);
+      console.log('🗂️ [StorageService] Lista de buckets:', buckets?.map(b => ({ id: b.id, name: b.name, public: b.public })));
+      
+      if (error) {
+        console.error('Error al verificar buckets:', error);
+        return false;
+      }
+      
+      // Los buckets de Supabase tienen tanto 'id' como 'name', usar 'id' que es más confiable
+      const bucketExists = buckets?.some(bucket => bucket.id === this.BUCKET_NAME || bucket.name === this.BUCKET_NAME);
+      
+      if (!bucketExists) {
+        console.warn(`⚠️ Bucket '${this.BUCKET_NAME}' no existe. Verifique configuración de Supabase.`);
+        console.log('📋 [StorageService] Buckets disponibles:', buckets?.map(b => ({ id: b.id, name: b.name })));
+        return false;
+      }
+      
+      console.log('✅ [StorageService] Bucket encontrado:', buckets?.find(b => b.id === this.BUCKET_NAME || b.name === this.BUCKET_NAME));
+      
+      return true;
+    } catch (error) {
+      console.error('Error al verificar bucket:', error);
+      return false;
+    }
+  }
   
   /**
    * Sube un archivo a Supabase Storage y guarda referencia en document_attachments
@@ -17,9 +51,26 @@ export class StorageService {
     error?: string;
   }> {
     try {
+      console.log('📁 [StorageService] Iniciando subida de archivo');
+      console.log('📋 [StorageService] Archivo:', { name: file.name, size: file.size, type: file.type });
+      console.log('📋 [StorageService] DocumentId:', documentId);
+      console.log('📋 [StorageService] Options:', options);
+
+      // Verificar que el bucket existe
+      console.log('🔍 [StorageService] Verificando bucket');
+      const bucketExists = await this.ensureBucketExists();
+      if (!bucketExists) {
+        console.error('❌ [StorageService] Bucket no disponible');
+        return {
+          success: false,
+          error: `Bucket '${this.BUCKET_NAME}' no está disponible. Verifique configuración de storage.`
+        };
+      }
+      console.log('✅ [StorageService] Bucket verificado');
+      
       // Validar que documentId sea válido
       if (!documentId || documentId.trim() === '') {
-        console.error('documentId es inválido:', documentId);
+        console.error('❌ [StorageService] DocumentId inválido:', documentId);
         return {
           success: false,
           error: 'ID de documento requerido para subir archivos'
@@ -29,8 +80,10 @@ export class StorageService {
       // Generar nombre único para el archivo
       const fileName = `${Date.now()}-${file.name}`;
       const filePath = `${documentId}/${fileName}`;
+      console.log('📝 [StorageService] Ruta del archivo:', filePath);
       
       // Subir archivo a Supabase Storage
+      console.log('📡 [StorageService] Subiendo archivo a Storage');
       const { error: uploadError } = await supabase.storage
         .from(this.BUCKET_NAME)
         .upload(filePath, file, {
@@ -39,57 +92,61 @@ export class StorageService {
         });
       
       if (uploadError) {
-        console.error('Error al subir archivo:', uploadError);
+        console.error('❌ [StorageService] Error al subir archivo:', uploadError);
         return {
           success: false,
           error: `Error al subir archivo: ${uploadError.message}`
         };
       }
+      console.log('✅ [StorageService] Archivo subido al Storage');
       
       // Obtener URL pública del archivo
+      console.log('📡 [StorageService] Obteniendo URL pública');
       const { data: publicUrlData } = supabase.storage
         .from(this.BUCKET_NAME)
         .getPublicUrl(filePath);
       
       if (!publicUrlData?.publicUrl) {
-        console.error('Error al obtener URL pública');
+        console.error('❌ [StorageService] Error al obtener URL pública');
         return {
           success: false,
           error: 'Error al obtener URL pública del archivo'
         };
       }
+      console.log('✅ [StorageService] URL pública obtenida:', publicUrlData.publicUrl);
       
       // Obtener información del usuario actual
+      console.log('👤 [StorageService] Obteniendo usuario actual');
       const { data: { user }, error: userError } = await supabase.auth.getUser();
       
       if (userError || !user) {
-        console.error('Error al obtener usuario:', userError);
+        console.error('❌ [StorageService] Error al obtener usuario:', userError);
         return {
           success: false,
           error: 'Usuario no autenticado'
         };
       }
+      console.log('✅ [StorageService] Usuario obtenido:', user.id);
       
-      // Guardar referencia en la tabla document_attachments
-      const { data: attachmentData, error: attachmentError } = await supabase
-        .from('document_attachments')
-        .insert({
-          document_id: documentId,
-          file_name: file.name,
-          file_path: filePath,
-          file_size: file.size,
-          mime_type: file.type,
-          file_type: this.getFileType(file.type),
-          is_embedded: options?.isEmbedded || false,
-          uploaded_by: user.id
-        })
-        .select()
-        .single();
+      // Determinar tipo de archivo
+      const fileType = this.getFileType(file.type);
+      console.log('🔍 [StorageService] Tipo de archivo determinado:', fileType);
+      
+      // Usar la función SQL para guardar el adjunto
+      console.log('📡 [StorageService] Guardando referencia en BD con función SQL');
+      const { data: attachmentId, error: attachmentError } = await supabase.rpc('save_document_attachment_final', {
+        p_document_id: documentId,
+        p_file_name: file.name,
+        p_file_path: filePath,
+        p_file_size: file.size,
+        p_mime_type: file.type
+      });
       
       if (attachmentError) {
-        console.error('Error al guardar en base de datos:', attachmentError);
+        console.error('❌ [StorageService] Error al guardar en base de datos:', attachmentError);
         
         // Intentar eliminar el archivo subido si falla la inserción en BD
+        console.log('🗑️ [StorageService] Intentando limpiar archivo subido');
         await supabase.storage.from(this.BUCKET_NAME).remove([filePath]);
         
         return {
@@ -98,17 +155,22 @@ export class StorageService {
         };
       }
       
-      return {
+      console.log('✅ [StorageService] Adjunto guardado con ID:', attachmentId);
+
+      const result = {
         success: true,
         data: {
           url: publicUrlData.publicUrl,
-          id: attachmentData.id,
+          id: attachmentId,
           publicUrl: publicUrlData.publicUrl
         }
       };
+
+      console.log('🎉 [StorageService] Proceso completado exitosamente:', result);
+      return result;
       
     } catch (error) {
-      console.error('Error inesperado al subir archivo:', error);
+      console.error('💥 [StorageService] Error inesperado al subir archivo:', error);
       return {
         success: false,
         error: `Error inesperado: ${error instanceof Error ? error.message : 'Error desconocido'}`

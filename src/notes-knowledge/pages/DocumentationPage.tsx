@@ -20,9 +20,11 @@ import { useDocumentationPermissions } from '../hooks/useDocumentationPermission
 import { DocumentSearchFilters, SolutionDocument } from '../types';
 import { Trash2, FileText } from 'lucide-react';
 import { ConfirmationModal } from '@/shared/components/ui/ConfirmationModal';
+import { useNotification } from '@/shared/components/notifications/NotificationSystem';
 
 export const DocumentationPage: React.FC = () => {
   const navigate = useNavigate();
+  const { showSuccess, showError } = useNotification();
   const [showEditor, setShowEditor] = useState(false);
   const [showTemplateSelector, setShowTemplateSelector] = useState(false);
   // @ts-ignore: selectedTemplate se usará cuando se implemente el paso de plantilla al editor
@@ -70,10 +72,11 @@ export const DocumentationPage: React.FC = () => {
     try {
       await deleteDocument(id);
       setDocumentToDelete(null);
+      showSuccess('Documento eliminado exitosamente');
       // Refrescar la lista (esto se hace automáticamente en el hook)
     } catch (error) {
       console.error('Error al eliminar documento:', error);
-      // Aquí podrías mostrar una notificación de error
+      showError('Error al eliminar el documento');
     }
   };
 

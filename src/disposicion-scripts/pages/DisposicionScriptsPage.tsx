@@ -21,10 +21,10 @@ import { useNotification } from '@/shared/components/notifications/NotificationS
 import { useUserProfile } from '@/user-management/hooks/useUserProfile';
 import { 
   useDisposicionesScripts,
-  useDisposicionScriptsPorMes,
-  useCreateDisposicionScripts,
-  useUpdateDisposicionScripts,
-  useDeleteDisposicionScripts
+  useDisposicionesMensuales,
+  useCreateDisposicionScript,
+  useUpdateDisposicionScript,
+  useDeleteDisposicionScript
 } from '@/disposicion-scripts/hooks/useDisposicionScripts';
 import { useDisposicionScriptsPermissions } from '@/disposicion-scripts/hooks/useDisposicionScriptsPermissions';
 import { useDisposicionScriptsYears } from '@/disposicion-scripts/hooks/useDisposicionScriptsYears';
@@ -61,13 +61,13 @@ export const DisposicionScriptsPage: React.FC = () => {
   });
 
   // Queries
-  const disposicionesPorMesQuery = useDisposicionScriptsPorMes(filters.year);
+  const disposicionesPorMesQuery = useDisposicionesMensuales(filters.year);
   const disposicionesQuery = useDisposicionesScripts(filters);
 
   // Mutations
-  const createDisposicion = useCreateDisposicionScripts();
-  const updateDisposicion = useUpdateDisposicionScripts();
-  const deleteDisposicion = useDeleteDisposicionScripts();
+  const createDisposicion = useCreateDisposicionScript();
+  const updateDisposicion = useUpdateDisposicionScript();
+  const deleteDisposicion = useDeleteDisposicionScript();
 
   // Verificar permisos
   if (!permissions.hasAnyPermission) {
@@ -120,7 +120,6 @@ export const DisposicionScriptsPage: React.FC = () => {
       setIsFormOpen(false);
       setSelectedDisposicion(null);
     } catch (error) {
-      console.error('Error al guardar disposición:', error);
       showError('Error al guardar disposición');
     }
   };
@@ -152,7 +151,6 @@ export const DisposicionScriptsPage: React.FC = () => {
         showSuccess('Disposición eliminada exitosamente');
         setDeleteModal({ isOpen: false, disposicion: null });
       } catch (error) {
-        console.error('Error al eliminar disposición:', error);
         showError('Error al eliminar disposición');
       }
     }
@@ -186,7 +184,6 @@ export const DisposicionScriptsPage: React.FC = () => {
       await exportDisposicionScriptsPorMes(year, monthData);
       showSuccess('Reporte exportado exitosamente');
     } catch (error) {
-      console.error('Error al exportar:', error);
       showError('Error al exportar reporte');
     }
   };
@@ -201,7 +198,6 @@ export const DisposicionScriptsPage: React.FC = () => {
       await exportAllDisposicionScripts(disposicionesQuery.data);
       showSuccess('Todas las disposiciones exportadas exitosamente');
     } catch (error) {
-      console.error('Error al exportar:', error);
       showError('Error al exportar disposiciones');
     }
   };

@@ -9,11 +9,12 @@ interface AccessDeniedProps {
 
 /**
  * Componente AccessDenied - Se muestra cuando:
- * 1. Usuario recién registrado (role_name='user', is_active=false)
- * 2. Usuario con rol 'user' pero activo (is_active=true) - sigue sin acceso
- * 3. Usuario inactivo (is_active=false) independiente del rol
+ * 1. Usuario recién registrado (sin permisos del sistema, is_active=false)
+ * 2. Usuario activo pero sin permisos del sistema (is_active=true pero sin role_permissions)
+ * 3. Usuario inactivo (is_active=false) independiente de los permisos
  * 
- * Solo usuarios con is_active=true Y role_name != 'user' pueden acceder
+ * Solo usuarios con is_active=true Y con permisos del sistema pueden acceder
+ * El sistema ahora usa permisos granulares en lugar de verificaciones de rol hardcodeadas
  */
 export const AccessDenied: React.FC<AccessDeniedProps> = ({ userEmail, userRole }) => {
   const { signOut } = useAuth();

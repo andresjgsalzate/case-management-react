@@ -12,7 +12,6 @@ export const useDisposicionScriptsYears = () => {
         .order('fecha', { ascending: false });
 
       if (error) {
-        console.error('Error fetching disposiciones years:', error);
         throw error;
       }
 

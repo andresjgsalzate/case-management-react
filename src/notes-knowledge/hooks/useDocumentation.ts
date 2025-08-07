@@ -176,6 +176,7 @@ export const useDocumentation = () => {
 
       return true;
     } catch (error) {
+      console.error('Error al eliminar documento:', error);
       setState(prev => ({
         ...prev,
         isLoading: false,

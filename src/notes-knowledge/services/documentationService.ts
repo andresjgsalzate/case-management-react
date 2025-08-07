@@ -126,7 +126,7 @@ export class DocumentationService {
 
       return data || [];
     } catch (error) {
-      console.error('Error searching cases:', error);
+      console.error('Exception in searchCases:', error);
       return [];
     }
   }
@@ -259,20 +259,11 @@ export class DocumentationService {
     // Extraer tag_ids de los datos
     const { tag_ids, ...docData } = documentData;
 
-    // Limpiar datos para la base de datos
-    const cleanedData = this.cleanDataForDatabase(docData);
-
-    // Actualizar el documento
-    const { error } = await supabase
-      .from('solution_documents')
-      .update({
-        ...cleanedData,
-        updated_by: userData.user.id,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', id)
-      .select()
-      .single();
+    // Usar la función SQL simplificada para actualizar solo contenido
+    const { error } = await supabase.rpc('update_solution_document_final', {
+      p_document_id: id,
+      p_content: docData.content || []
+    });
 
     if (error) {
       throw new Error(`Error al actualizar documento: ${error.message}`);
@@ -508,16 +499,13 @@ export class DocumentationService {
 
   // ===== ELIMINAR DOCUMENTO =====
   static async deleteDocument(id: string): Promise<void> {
-    // Primero eliminar asociaciones de etiquetas
-    await SolutionTagsService.removeAllTagsFromDocument(id);
-
-    // Luego eliminar el documento
-    const { error } = await supabase
-      .from('solution_documents')
-      .delete()
-      .eq('id', id);
+    // Usar la función SQL que maneja eliminaciones en cascada correctamente
+    const { error } = await supabase.rpc('delete_solution_document_final', {
+      p_document_id: id
+    });
 
     if (error) {
+      console.error('Error eliminando documento:', error);
       throw new Error(`Error al eliminar documento: ${error.message}`);
     }
   }

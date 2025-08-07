@@ -8,37 +8,36 @@ import {
   TimeEntry, 
   ManualTimeEntry,
   StartCaseControlForm,
-  AddManualTimeForm,
-  CaseControlDetailed
+  AddManualTimeForm
 } from '@/types';
 
 // ==========================================
 // UTILITY FUNCTIONS
 // ==========================================
 
-// Función para convertir datos de la vista detallada al formato CaseControl
-const adaptDetailedToCaseControl = (detailed: CaseControlDetailed): CaseControl => {
+// Función para convertir datos con joins al formato CaseControl
+const adaptDetailedToCaseControl = (data: any): CaseControl => {
   return {
-    id: detailed.id,
-    caseId: detailed.case_id,
-    userId: detailed.user_id,
-    statusId: detailed.status_id,
-    totalTimeMinutes: detailed.total_time_minutes,
-    timerStartAt: detailed.timer_start_at,
-    isTimerActive: detailed.is_timer_active,
-    assignedAt: detailed.assigned_at,
-    startedAt: detailed.started_at,
-    completedAt: detailed.completed_at,
-    createdAt: detailed.created_at,
-    updatedAt: detailed.updated_at,
+    id: data.id,
+    caseId: data.case_id,
+    userId: data.user_id,
+    statusId: data.status_id,
+    totalTimeMinutes: data.total_time_minutes,
+    timerStartAt: data.timer_start_at,
+    isTimerActive: data.is_timer_active,
+    assignedAt: data.assigned_at,
+    startedAt: data.started_at,
+    completedAt: data.completed_at,
+    createdAt: data.created_at,
+    updatedAt: data.updated_at,
     
-    // Datos poblados desde la vista - más robustos
-    case: (detailed.case_number || detailed.case_id) ? {
-      id: detailed.case_id,
-      numeroCaso: detailed.case_number || 'N/A',
-      descripcion: detailed.case_description || 'Sin descripción',
-      clasificacion: detailed.case_classification || 'Baja Complejidad',
-      puntuacion: detailed.case_score || 5,
+    // Datos poblados desde los joins
+    case: data.cases ? {
+      id: data.case_id,
+      numeroCaso: data.cases.numero_caso || 'N/A',
+      descripcion: data.cases.descripcion || 'Sin descripción',
+      clasificacion: data.cases.clasificacion || 'Baja Complejidad',
+      puntuacion: 5, // placeholder - no disponible en join básico
       fecha: new Date().toISOString().split('T')[0], // placeholder
       historialCaso: 1,
       conocimientoModulo: 1,
@@ -49,29 +48,29 @@ const adaptDetailedToCaseControl = (detailed: CaseControlDetailed): CaseControl 
       updatedAt: '',
       userId: '',
       // Añadir aplicación si está disponible
-      aplicacion: detailed.application_name ? {
+      aplicacion: data.cases?.aplicaciones ? {
         id: '',
-        nombre: detailed.application_name,
-        descripcion: detailed.application_description || '',
+        nombre: data.cases.aplicaciones.nombre,
+        descripcion: data.cases.aplicaciones.descripcion || '',
         isActive: true,
         createdAt: '',
         updatedAt: ''
       } : undefined
     } as any : undefined,
     
-    user: (detailed.assigned_user_name || detailed.user_id) ? {
-      id: detailed.user_id,
-      fullName: detailed.assigned_user_name || 'Usuario desconocido',
-      email: detailed.assigned_user_email || '',
+    user: (data.user_profiles?.full_name || data.user_id) ? {
+      id: data.user_id,
+      fullName: data.user_profiles?.full_name || 'Usuario desconocido',
+      email: data.user_profiles?.email || '',
       created_at: '',
       updated_at: ''
     } as any : undefined,
     
-    status: (detailed.status_name || detailed.status_id) ? {
-      id: detailed.status_id,
-      name: detailed.status_name || 'Estado desconocido',
-      description: detailed.status_description || '',
-      color: detailed.status_color || '#6B7280',
+    status: (data.case_status_control?.name || data.status_id) ? {
+      id: data.status_id,
+      name: data.case_status_control?.name || 'Estado desconocido',
+      description: data.case_status_control?.description || '',
+      color: data.case_status_control?.color || '#6B7280',
       isActive: true,
       displayOrder: 0,
       createdAt: '',
@@ -92,10 +91,26 @@ export const useCaseControls = () => {
     queryKey: ['caseControls', userProfile?.id],
     queryFn: async (): Promise<CaseControl[]> => {
       try {
-        // Usar la vista que creamos en la migración 013
+        // Usar la tabla case_control con joins necesarios
         let query = supabase
-          .from('case_control_detailed')
-          .select('*');
+          .from('case_control')
+          .select(`
+            id,
+            case_id,
+            user_id,
+            status_id,
+            total_time_minutes,
+            timer_start_at,
+            is_timer_active,
+            assigned_at,
+            started_at,
+            completed_at,
+            created_at,
+            updated_at,
+            cases(numero_caso, descripcion, clasificacion, aplicaciones(nombre, descripcion)),
+            user_profiles(full_name, email),
+            case_status_control(name, color, description)
+          `);
 
         // Aplicar filtros basados en los permisos de case control
         const highestReadScope = caseControlPermissions.getHighestReadScope();
@@ -154,10 +169,26 @@ export const useCaseControl = (id: string) => {
   return useQuery({
     queryKey: ['caseControl', id],
     queryFn: async (): Promise<CaseControl | null> => {
-      // Usar la vista detallada
+      // Usar la tabla case_control con joins necesarios
       const { data, error } = await supabase
-        .from('case_control_detailed')
-        .select('*')
+        .from('case_control')
+        .select(`
+          id,
+          case_id,
+          user_id,
+          status_id,
+          total_time_minutes,
+          timer_start_at,
+          is_timer_active,
+          assigned_at,
+          started_at,
+          completed_at,
+          created_at,
+          updated_at,
+          cases(numero_caso, descripcion, clasificacion),
+          user_profiles(full_name, email),
+          case_status_control(name, color)
+        `)
         .eq('id', id)
         .single();
 
@@ -188,10 +219,26 @@ export const useCaseControlByCase = (caseId: string) => {
   return useQuery({
     queryKey: ['caseControl', 'byCase', caseId],
     queryFn: async (): Promise<CaseControl | null> => {
-      // Usar la vista detallada
+      // Usar la tabla case_control con joins necesarios
       const { data, error } = await supabase
-        .from('case_control_detailed')
-        .select('*')
+        .from('case_control')
+        .select(`
+          id,
+          case_id,
+          user_id,
+          status_id,
+          total_time_minutes,
+          timer_start_at,
+          is_timer_active,
+          assigned_at,
+          started_at,
+          completed_at,
+          created_at,
+          updated_at,
+          cases(numero_caso, descripcion, clasificacion),
+          user_profiles(full_name, email),
+          case_status_control(name, color)
+        `)
         .eq('case_id', caseId)
         .single();
 
@@ -261,7 +308,7 @@ export const useTimeEntries = (caseControlId: string) => {
         .order('start_time', { ascending: false });
 
       if (error) {
-        console.error('Error fetching time entries:', error);
+        console.error('❌ Error fetching time entries:', error);
         throw error;
       }
 
@@ -296,7 +343,7 @@ export const useManualTimeEntries = (caseControlId: string) => {
         .order('date', { ascending: false });
 
       if (error) {
-        console.error('Error fetching manual time entries:', error);
+        console.error('❌ Error fetching manual time entries:', error);
         throw error;
       }
 

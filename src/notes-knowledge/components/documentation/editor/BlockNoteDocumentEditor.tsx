@@ -35,7 +35,6 @@ export const BlockNoteDocumentEditor: React.FC<BlockNoteDocumentEditorProps> = (
   className = "",
   documentId
 }) => {
-
   const { theme } = useNextTheme();
 
   // ===== DERIVAR isDarkMode del tema =====

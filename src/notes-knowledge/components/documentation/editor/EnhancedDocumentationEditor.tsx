@@ -16,15 +16,14 @@ import { BlockNoteDocumentEditor, convertFromLegacyToBlockNote, createEmptyBlock
 
 import { TagSelector } from '../TagSelector';
 import { CaseValidator } from '../CaseValidator';
-import { useDocumentation } from '../../../hooks/useDocumentation';
+import { useCreateSolutionDocument, useUpdateSolutionDocument } from '@/hooks/useSolutionDocuments';
 import { useActiveDocumentTypes } from '../../../hooks/useDocumentTypes';
 import type { 
   SolutionDocument, 
   SolutionType, 
-  CaseReferenceType,
-  CreateSolutionDocumentRequest,
-  UpdateSolutionDocumentRequest 
+  CaseReferenceType
 } from '../../../types';
+import type { SolutionDocumentFormData } from '@/types/documentation';
 import { Save, X, FileText, Trash2 } from 'lucide-react';
 import { DIFFICULTY_LEVELS } from '../../../types';
 
@@ -45,13 +44,14 @@ export const EnhancedDocumentationEditor: React.FC<EnhancedDocumentationEditorPr
   onDelete,
   showDeleteButton = !!document
 }) => {
-  const { createDocument, updateDocument } = useDocumentation();
+  const createDocument = useCreateSolutionDocument();
+  const updateDocument = useUpdateSolutionDocument();
   const { data: documentTypes, isLoading: isLoadingTypes } = useActiveDocumentTypes();
 
   // ===== ESTADOS DEL FORMULARIO =====
   const [formData, setFormData] = useState({
     title: document?.title || 'Nuevo Documento de Solución',
-    solution_type: (document?.solution_type || 'solution') as SolutionType,
+    solution_type: (document?.solution_type || 'SOLUTION') as SolutionType,
     difficulty_level: document?.difficulty_level || 1,
     complexity_notes: document?.complexity_notes || '',
     prerequisites: document?.prerequisites || '',
@@ -65,7 +65,8 @@ export const EnhancedDocumentationEditor: React.FC<EnhancedDocumentationEditorPr
   });
 
   const [blockNoteContent, setBlockNoteContent] = useState(() => {
-    return document?.content ? convertFromLegacyToBlockNote(document.content) : createEmptyBlockNoteContent();
+    const content = document?.content ? convertFromLegacyToBlockNote(document.content) : createEmptyBlockNoteContent();
+    return content;
   });
 
   const [isLoading, setIsLoading] = useState(false);
@@ -88,18 +89,22 @@ export const EnhancedDocumentationEditor: React.FC<EnhancedDocumentationEditorPr
       setShowCreateModal(false);
       
       // Actualizar form data con datos del documento
-      setFormData(prev => ({
-        ...prev,
-        title: document.title || '',
-        solution_type: document.solution_type || 'solution',
-        difficulty_level: document.difficulty_level || 1,
-        case_id: document.case_id || caseId,
-        archived_case_id: document.archived_case_id,
-        case_reference_type: document.case_reference_type || 'active',
-        selected_tag_ids: document.tags?.map(tag => tag.id) || [],
-        is_template: document.is_template || false,
-        is_published: document.is_published || false,
-      }));
+      setFormData(prev => {
+        const newFormData = {
+          ...prev,
+          title: document.title || '',
+          solution_type: document.solution_type || 'SOLUTION',
+          difficulty_level: document.difficulty_level || 1,
+          case_id: document.case_id || caseId,
+          archived_case_id: document.archived_case_id,
+          case_reference_type: document.case_reference_type || 'active',
+          selected_tag_ids: document.tags?.map(tag => tag.id) || [],
+          is_template: document.is_template || false,
+          is_published: document.is_published || false,
+        };
+        
+        return newFormData;
+      });
 
       // Actualizar contenido de BlockNote
       if (document.content) {
@@ -114,19 +119,19 @@ export const EnhancedDocumentationEditor: React.FC<EnhancedDocumentationEditorPr
     setIsCreatingDocument(true);
     
     try {
-      const documentData: CreateSolutionDocumentRequest = {
+      const documentData: SolutionDocumentFormData = {
         title: title.trim(),
         content: createEmptyBlockNoteContent() as any,
-        solution_type: 'solution',
-        difficulty_level: 1,
-        is_template: false,
-        is_published: false,
-        case_id: caseId,
-        case_reference_type: 'active',
-        tag_ids: [],
+        category: 'SOLUTION',
+        difficultyLevel: 1,
+        isTemplate: false,
+        isPublished: false,
+        caseId: caseId,
+        tags: [],
       };
 
-      const newDocument = await createDocument(documentData);
+      const newDocument = await createDocument.mutateAsync(documentData);
+      
       if (!newDocument?.id) {
         throw new Error('No se pudo crear el documento');
       }
@@ -157,6 +162,7 @@ export const EnhancedDocumentationEditor: React.FC<EnhancedDocumentationEditorPr
     try {
       await createDocumentImmediately(newDocumentTitle);
     } catch (error) {
+      console.error('Error en handleCreateDocument:', error);
       // Error ya manejado en createDocumentImmediately
     }
   };
@@ -189,33 +195,30 @@ export const EnhancedDocumentationEditor: React.FC<EnhancedDocumentationEditorPr
     setError(undefined);
 
     try {
-      const documentData: CreateSolutionDocumentRequest | UpdateSolutionDocumentRequest = {
+      const documentData: SolutionDocumentFormData = {
         title: formData.title.trim(),
         content: blockNoteContent as any, // Conversión temporal mientras se actualiza el backend
-        solution_type: formData.solution_type,
-        difficulty_level: formData.difficulty_level,
-        complexity_notes: formData.complexity_notes || undefined,
-        prerequisites: formData.prerequisites || undefined,
-        estimated_solution_time: formData.estimated_solution_time,
-        is_template: formData.is_template,
-        is_published: formData.is_published,
-        case_id: formData.case_id,
-        archived_case_id: formData.archived_case_id,
-        case_reference_type: formData.case_reference_type,
-        tag_ids: formData.selected_tag_ids,
+        category: formData.solution_type, // Mapear solution_type a category para SolutionDocumentFormData
+        difficultyLevel: formData.difficulty_level,
+        estimatedSolutionTime: formData.estimated_solution_time,
+        isTemplate: formData.is_template,
+        isPublished: formData.is_published,
+        caseId: formData.case_id,
+        tags: formData.selected_tag_ids || [],
       };
 
       if (document || currentDocumentId) {
         // Actualizar documento existente
         const documentIdToUpdate = document?.id || currentDocumentId!;
-        await updateDocument(documentIdToUpdate, documentData as UpdateSolutionDocumentRequest);
+        await updateDocument.mutateAsync({ id: documentIdToUpdate, ...documentData });
       } else {
         // Esto no debería pasar ya que creamos el documento inmediatamente
-        await createDocument(documentData as CreateSolutionDocumentRequest);
+        await createDocument.mutateAsync(documentData);
       }
       
       onSave?.();
     } catch (error) {
+      console.error('Error en handleSave:', error);
       setError(error instanceof Error ? error.message : 'Error al guardar documento');
     } finally {
       setIsLoading(false);
@@ -247,7 +250,9 @@ export const EnhancedDocumentationEditor: React.FC<EnhancedDocumentationEditorPr
               label="Título del Documento *"
               type="text"
               value={newDocumentTitle}
-              onChange={(e) => setNewDocumentTitle(e.target.value)}
+              onChange={(e) => {
+                setNewDocumentTitle(e.target.value);
+              }}
               placeholder="Ej: Solución para problema X"
               autoFocus
               onKeyPress={(e) => {
@@ -272,7 +277,9 @@ export const EnhancedDocumentationEditor: React.FC<EnhancedDocumentationEditorPr
                 Cancelar
               </Button>
               <Button
-                onClick={handleCreateDocument}
+                onClick={() => {
+                  handleCreateDocument();
+                }}
                 disabled={!newDocumentTitle.trim() || isCreatingDocument}
                 className="flex-1 bg-blue-600 hover:bg-blue-700"
               >
@@ -365,14 +372,16 @@ export const EnhancedDocumentationEditor: React.FC<EnhancedDocumentationEditorPr
                   </label>
                   <select
                     value={formData.solution_type}
-                    onChange={(e) => updateFormData('solution_type', e.target.value)}
+                    onChange={(e) => {
+                      updateFormData('solution_type', e.target.value);
+                    }}
                     className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-md focus:ring-blue-500 focus:border-blue-500"
                     disabled={isLoadingTypes}
                   >
                     {isLoadingTypes ? (
                       <option value="">Cargando tipos...</option>
                     ) : (
-                      documentTypes?.map(type => (
+                      documentTypes?.map((type) => (
                         <option key={type.id} value={type.code}>
                           {type.name} - {type.description}
                         </option>

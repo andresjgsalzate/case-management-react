@@ -68,8 +68,8 @@ export const useTimeMetrics = () => {
       
       // Obtener casos activos (para contadores base)
       let caseQuery = supabase
-        .from('case_control_detailed')
-        .select('case_id, is_timer_active');
+        .from('case_control')
+        .select('case_id, is_timer_active, user_id');
 
       // Aplicar filtros basados en los permisos de dashboard
       if (dashboardPermissions.canReadAllMetrics) {

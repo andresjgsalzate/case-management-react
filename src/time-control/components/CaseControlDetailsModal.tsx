@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { 
   ClockIcon, 
   PlusIcon, 
@@ -61,10 +61,6 @@ export const CaseControlDetailsModal: React.FC<CaseControlDetailsModalProps> = (
   const timeEntries = timeEntriesQuery.data || [];
   const manualTimeEntries = manualTimeEntriesQuery.data || [];
   const loading = timeEntriesQuery.isLoading || manualTimeEntriesQuery.isLoading;
-
-  useEffect(() => {
-    // Los queries se ejecutan automáticamente cuando cambia el ID
-  }, []);
 
   const handleAddManualTime = async () => {
     if (!caseControl) return;

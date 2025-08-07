@@ -70,7 +70,7 @@ export const ConfigurationRequired: React.FC = () => {
                   Edita el archivo <code className="bg-purple-100 dark:bg-purple-800 px-1 rounded">.env</code>:
                 </p>
                 <pre className="text-xs bg-purple-100 dark:bg-purple-800 p-2 rounded overflow-x-auto">
-{`VITE_SUPABASE_URL=https://tu-proyecto.supabase.co
+{`VITE_SUPABASE_URL=https://zckfwedteqvjytembgpu.supabase.co
 VITE_SUPABASE_ANON_KEY=tu_clave_aqui`}
                 </pre>
               </div>

@@ -108,9 +108,11 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
   const adminSections = React.useMemo(() => {
     const sections = [];
 
-    // Sección de usuarios y roles
+    // Sección de usuarios y roles - SOLO PARA ADMINS CON PERMISOS ESPECÍFICOS
     const userManagement = [];
-    if (userPermissions.canViewUsers() || userPermissions.canManageUsers()) {
+    
+    // Solo mostrar si tiene permiso administrativo específico (NO users.read_own)
+    if (adminPermissions.hasPermission('users.admin_all') || adminPermissions.hasPermission('users.read_all')) {
       userManagement.push({ 
         name: 'Gestionar Usuarios', 
         href: '/admin/users', 
@@ -118,8 +120,8 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
       });
     }
 
-    // Agregar gestión de roles y permisos para admins
-    if (adminPermissions.canReadRoles) {
+    // Agregar gestión de roles y permisos para admins reales
+    if (adminPermissions.canReadRoles && adminPermissions.hasPermission('roles.read_all')) {
       userManagement.push({
         name: 'Gestionar Roles', 
         href: '/admin/roles', 
@@ -152,9 +154,11 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
       });
     }
 
-    // Sección de configuración del sistema
+    // Sección de configuración del sistema - SOLO PARA ADMINS REALES
     const systemConfig = [];
-    if (userPermissions.canViewOrigenes() || userPermissions.canManageOrigenes() || userPermissions.canViewAplicaciones() || userPermissions.canManageAplicaciones() || adminPermissions.canReadConfig) {
+    
+    // Solo mostrar configuración si tiene permisos administrativos reales (NO config.read_own)
+    if (adminPermissions.hasPermission('config.admin_all') || adminPermissions.hasPermission('config.read_all')) {
       systemConfig.push({ 
         name: 'Configuración', 
         href: '/admin/config', 
@@ -162,7 +166,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
       });
     }
 
-    // Gestión de etiquetas
+    // Gestión de etiquetas - solo para admins
     if (adminPermissions.canReadTags) {
       systemConfig.push({ 
         name: 'Etiquetas', 
@@ -171,7 +175,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
       });
     }
 
-    // Gestión de tipos de documentos
+    // Gestión de tipos de documentos - solo para admins
     if (adminPermissions.canReadDocumentTypes) {
       systemConfig.push({ 
         name: 'Tipos de Documentos', 
@@ -192,9 +196,13 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
     return sections;
   }, [userProfile, userPermissions, adminPermissions]);
 
-  // Navegación de desarrollo/test agrupada - SOLO PARA ADMINS
+  // Navegación de desarrollo/test agrupada - SOLO PARA ADMINS REALES
   const devSection = React.useMemo(() => {
-    if (!userProfile || !adminPermissions.hasAnyAdminPermission) return null;
+    // Usar verificación más estricta - solo admins con permisos específicos
+    if (!userProfile || !adminPermissions.isAdmin || 
+        (!adminPermissions.hasPermission('users.admin_all') && !adminPermissions.hasPermission('config.admin_all'))) {
+      return null;
+    }
     
     return {
       id: 'development',

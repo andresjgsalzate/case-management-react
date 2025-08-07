@@ -39,10 +39,15 @@ export const useAdminRoutePermissions = () => {
       
       /**
        * Verifica si el usuario puede acceder a rutas administrativas
-       * Por ahora, cualquier usuario activo puede acceder
+       * CORREGIDO: Solo para admins con permisos reales (NO users.read_own)
        */
       canAccessAdminRoutes: (): boolean => {
-        return !!userProfile && userProfile.isActive;
+        return adminPermissions.hasPermission('users.read_all') ||
+               adminPermissions.hasPermission('users.admin_all') ||
+               adminPermissions.hasPermission('config.read_all') ||
+               adminPermissions.hasPermission('config.admin_all') ||
+               adminPermissions.hasPermission('roles.read_all') ||
+               adminPermissions.hasPermission('roles.admin_all');
       },
       
       /**

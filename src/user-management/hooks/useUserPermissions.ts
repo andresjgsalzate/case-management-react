@@ -274,24 +274,31 @@ export const useUserPermissions = () => {
       // FUNCIONES DE COMPATIBILIDAD CON EL CÓDIGO EXISTENTE
       // ================================================================
       
-      // Métodos legacy para mantener compatibilidad
-      canViewUsers: () => adminPermissions.hasPermission('users.read_own') || adminPermissions.hasPermission('users.read_team') || adminPermissions.hasPermission('users.read_all'),
-      canManageUsers: () => adminPermissions.hasPermission('users.update_own') || adminPermissions.hasPermission('users.update_team') || adminPermissions.hasPermission('users.update_all') || adminPermissions.hasPermission('users.admin_own') || adminPermissions.hasPermission('users.admin_team') || adminPermissions.hasPermission('users.admin_all'),
+      // Métodos legacy para mantener compatibilidad - CORREGIDOS PARA EVITAR ACCESO NO AUTORIZADO
       
-      canViewRoles: () => adminPermissions.hasPermission('roles.read_own') || adminPermissions.hasPermission('roles.read_team') || adminPermissions.hasPermission('roles.read_all'),
-      canManageRoles: () => adminPermissions.hasPermission('roles.update_team') || adminPermissions.hasPermission('roles.update_all') || adminPermissions.hasPermission('roles.admin_team') || adminPermissions.hasPermission('roles.admin_all'),
+      // ✅ SOLO para módulos administrativos (NO para perfil propio)
+      canViewUsers: () => adminPermissions.hasPermission('users.read_all') || adminPermissions.hasPermission('users.admin_all'),
+      canManageUsers: () => adminPermissions.hasPermission('users.update_all') || adminPermissions.hasPermission('users.admin_all'),
       
-      canViewConfig: () => adminPermissions.hasPermission('config.read_own') || adminPermissions.hasPermission('config.read_team') || adminPermissions.hasPermission('config.read_all'),
-      canManageConfig: () => adminPermissions.hasPermission('config.update_own') || adminPermissions.hasPermission('config.update_team') || adminPermissions.hasPermission('config.update_all') || adminPermissions.hasPermission('config.admin_own') || adminPermissions.hasPermission('config.admin_team') || adminPermissions.hasPermission('config.admin_all'),
+      canViewRoles: () => adminPermissions.hasPermission('roles.read_all') || adminPermissions.hasPermission('roles.admin_all'),
+      canManageRoles: () => adminPermissions.hasPermission('roles.update_all') || adminPermissions.hasPermission('roles.admin_all'),
       
-      // Para ConfigurationPage
-      canViewOrigenes: () => adminPermissions.hasPermission('config.read_own') || adminPermissions.hasPermission('config.read_team') || adminPermissions.hasPermission('config.read_all'),
-      canManageOrigenes: () => adminPermissions.hasPermission('config.update_own') || adminPermissions.hasPermission('config.update_team') || adminPermissions.hasPermission('config.update_all') || adminPermissions.hasPermission('config.admin_own') || adminPermissions.hasPermission('config.admin_team') || adminPermissions.hasPermission('config.admin_all'),
-      canViewAplicaciones: () => adminPermissions.hasPermission('config.read_own') || adminPermissions.hasPermission('config.read_team') || adminPermissions.hasPermission('config.read_all'),
-      canManageAplicaciones: () => adminPermissions.hasPermission('config.update_own') || adminPermissions.hasPermission('config.update_team') || adminPermissions.hasPermission('config.update_all') || adminPermissions.hasPermission('config.admin_own') || adminPermissions.hasPermission('config.admin_team') || adminPermissions.hasPermission('config.admin_all'),
-      canViewCaseStatuses: () => adminPermissions.hasPermission('config.read_own') || adminPermissions.hasPermission('config.read_team') || adminPermissions.hasPermission('config.read_all'),
-      canManageCaseStatuses: () => adminPermissions.hasPermission('config.update_own') || adminPermissions.hasPermission('config.update_team') || adminPermissions.hasPermission('config.update_all') || adminPermissions.hasPermission('config.admin_own') || adminPermissions.hasPermission('config.admin_team') || adminPermissions.hasPermission('config.admin_all'),
-      canCreateCaseStatuses: () => adminPermissions.hasPermission('config.create_own') || adminPermissions.hasPermission('config.create_team') || adminPermissions.hasPermission('config.create_all'),
+      canViewConfig: () => adminPermissions.hasPermission('config.read_all') || adminPermissions.hasPermission('config.admin_all'),
+      canManageConfig: () => adminPermissions.hasPermission('config.update_all') || adminPermissions.hasPermission('config.admin_all'),
+      
+      // ✅ NUEVOS métodos específicos para perfil propio (NO administrativos)
+      canViewOwnProfile: () => adminPermissions.hasPermission('profile.read_own') || adminPermissions.hasPermission('users.read_own'),
+      canUpdateOwnProfile: () => adminPermissions.hasPermission('profile.update_own') || adminPermissions.hasPermission('users.update_own'),
+      canChangePassword: () => adminPermissions.hasPermission('profile.change_password'),
+      
+      // Para ConfigurationPage - SOLO para admins reales
+      canViewOrigenes: () => adminPermissions.hasPermission('config.read_all') || adminPermissions.hasPermission('config.admin_all'),
+      canManageOrigenes: () => adminPermissions.hasPermission('config.update_all') || adminPermissions.hasPermission('config.admin_all'),
+      canViewAplicaciones: () => adminPermissions.hasPermission('config.read_all') || adminPermissions.hasPermission('config.admin_all'),
+      canManageAplicaciones: () => adminPermissions.hasPermission('config.update_all') || adminPermissions.hasPermission('config.admin_all'),
+      canViewCaseStatuses: () => adminPermissions.hasPermission('config.read_all') || adminPermissions.hasPermission('config.admin_all'),
+      canManageCaseStatuses: () => adminPermissions.hasPermission('config.update_all') || adminPermissions.hasPermission('config.admin_all'),
+      canCreateCaseStatuses: () => adminPermissions.hasPermission('config.create_all') || adminPermissions.hasPermission('config.admin_all'),
       
       // ================================================================
       // PROPIEDADES HEREDADAS

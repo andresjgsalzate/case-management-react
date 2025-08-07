@@ -2,16 +2,49 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/shared/lib/supabase';
 import { useAuth } from '@/shared/hooks/useAuth';
 
-interface SystemAccessResult {
-  hasAccess: boolean;
-  userRole: string | null;
-  userEmail: string | null;
-  isLoading: boolean;
-  error: Error | null;
-}
+// interface SystemAccessResult {
+//   hasAccess: boolean;
+//   userRole: string | null;
+//   userEmail: string | null;
+//   isLoading: boolean;
+//   error: Error | null;
+// }
 
 // Hook simplificado para verificar acceso al sistema
-export const useSystemAccess = (): SystemAccessResult => {
+// Función auxiliar para verificar si el usuario tiene permisos del sistema
+const checkUserHasSystemPermissions = async (userId: string): Promise<boolean> => {
+  try {
+    // Obtener el perfil del usuario para conseguir su role_id
+    const { data: userProfile, error: profileError } = await supabase
+      .from('user_profiles')
+      .select('role_id')
+      .eq('id', userId)
+      .single();
+
+    if (profileError || !userProfile?.role_id) {
+      return false;
+    }
+
+    // Verificar si el rol tiene algún permiso del sistema
+    const { data: rolePermissions, error: permissionsError } = await supabase
+      .from('role_permissions')
+      .select('permission_id')
+      .eq('role_id', userProfile.role_id)
+      .limit(1);
+
+    if (permissionsError) {
+      return false;
+    }
+
+    // Si tiene al menos un permiso, puede acceder al sistema
+    return rolePermissions && rolePermissions.length > 0;
+  } catch (error) {
+    console.error('Error checking system permissions:', error);
+    return false;
+  }
+};
+
+export const useSystemAccess = () => {
   const { user } = useAuth();
 
   const { data, isLoading, error } = useQuery({
@@ -85,16 +118,15 @@ export const useSystemAccess = (): SystemAccessResult => {
         finalProfileData = newProfile;
       }
 
-      // Determinar el rol del usuario (priorizar la relación role sobre role_name)
-      const userRole = finalProfileData?.role?.name || finalProfileData?.role_name || 'user';
+      // Determinar el acceso basado en permisos granulares  
+      const hasSystemPermissions = finalProfileData ? await checkUserHasSystemPermissions(finalProfileData.id) : false;
       
-      // Solo usuarios activos Y con rol diferente a 'user' tienen acceso
+      // Solo usuarios activos Y con permisos del sistema tienen acceso
       const hasAccess = finalProfileData ? 
-        (finalProfileData.is_active && userRole !== 'user') : false;
+        (finalProfileData.is_active && hasSystemPermissions) : false;
 
       return {
         hasAccess,
-        userRole: userRole,
         userEmail: finalProfileData?.email || user.email || null,
         userProfile: finalProfileData,
       };
@@ -106,24 +138,19 @@ export const useSystemAccess = (): SystemAccessResult => {
 
   return {
     hasAccess: data?.hasAccess || false,
-    userRole: data?.userRole || null,
     userEmail: data?.userEmail || null,
     isLoading,
     error: error as Error | null,
   };
 };
 
-// Hook simplificado para verificar roles específicos
-export const useHasRole = (requiredRole: string | string[]) => {
-  const { userRole } = useSystemAccess();
+// Hook simplificado para verificar roles específicos usando sistema granular
+export const useHasRole = (_requiredRole: string | string[]) => {
+  const { hasAccess } = useSystemAccess();
   
-  if (!userRole) return false;
-  
-  if (Array.isArray(requiredRole)) {
-    return requiredRole.includes(userRole);
-  }
-  
-  return userRole === requiredRole;
+  // Con el sistema granular, se podría implementar una verificación más específica
+  // Por ahora, retornamos si tiene acceso al sistema
+  return hasAccess;
 };
 
 // Hook para verificar permisos - ahora siempre retorna true para usuarios activos

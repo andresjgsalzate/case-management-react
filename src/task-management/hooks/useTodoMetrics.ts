@@ -62,19 +62,44 @@ export function useTodoMetrics() {
         `);
 
       // Filtrar según rol del usuario
-      const { data: userProfile } = await supabase
-        .from('user_profiles')
-        .select('role_id, roles(name)')
-        .eq('id', user?.id)
-        .single();
+      // ================================================================
+      // VERIFICACIÓN DE PERMISOS GRANULARES
+      // ================================================================
+      // Obtener permisos del usuario para determinar scope de acceso
+      const { data: rolePermissions } = await supabase
+        .from('role_permissions')
+        .select(`
+          permissions (name)
+        `)
+        .in('role_id', [
+          (await supabase
+            .from('user_profiles')
+            .select('role_id')
+            .eq('id', user?.id)
+            .single()
+          ).data?.role_id
+        ].filter(Boolean));
 
-      const userRole = (userProfile as any)?.roles?.name;
+      const userPermissions = rolePermissions?.map(rp => (rp.permissions as any).name) || [];
 
-      if (userRole === 'analista') {
-        // Analistas solo ven sus TODOs
+      // Verificar permisos de TODOs
+      const canReadAllTodos = userPermissions.includes('todos.read_all');
+      const canReadTeamTodos = userPermissions.includes('todos.read_team');
+      const canReadOwnTodos = userPermissions.includes('todos.read_own');
+
+      if (canReadAllTodos) {
+        // Usuario con permisos completos ve todos los TODOs
+        // No agregar filtros adicionales
+      } else if (canReadTeamTodos) {
+        // Usuario con permisos de equipo ve todos (implementar lógica de equipo en el futuro)
+        // No agregar filtros adicionales por ahora
+      } else if (canReadOwnTodos) {
+        // Usuario solo ve sus TODOs propios
         todosQuery = todosQuery.or(`created_by_user_id.eq.${user?.id},assigned_user_id.eq.${user?.id}`);
+      } else {
+        // Sin permisos, no ve nada
+        todosQuery = todosQuery.eq('id', 'never-match');
       }
-      // Admin y supervisor ven todos
 
       const { data: todos, error: todosError } = await todosQuery;
 
@@ -117,8 +142,8 @@ export function useTodoMetrics() {
         `)
         .not('duration_minutes', 'is', null);
 
-      if (userRole === 'analista') {
-        // Filtrar entradas de tiempo del usuario
+      if (canReadOwnTodos && !canReadTeamTodos && !canReadAllTodos) {
+        // Filtrar entradas de tiempo del usuario (solo permisos propios)
         timeQuery = timeQuery.eq('todo_control.user_id', user?.id);
       }
 
@@ -179,7 +204,7 @@ export function useTodoMetrics() {
           )
         `);
 
-      if (userRole === 'analista') {
+      if (canReadOwnTodos && !canReadTeamTodos && !canReadAllTodos) {
         manualTimeQuery = manualTimeQuery.eq('todo_control.user_id', user?.id);
       }
 

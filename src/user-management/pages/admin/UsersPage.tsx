@@ -187,7 +187,7 @@ export const UsersPage: React.FC = () => {
     }
   };
 
-  // Verificar permisos
+  // Verificar permisos administrativos específicos
   if (!canViewUsers() && !canManageUsers()) {
     return (
       <div className="text-center py-12">
@@ -196,7 +196,7 @@ export const UsersPage: React.FC = () => {
           Acceso denegado
         </h3>
         <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-          No tienes permisos para ver usuarios.
+          No tienes permisos para acceder al módulo de administración de usuarios.
         </p>
       </div>
     );

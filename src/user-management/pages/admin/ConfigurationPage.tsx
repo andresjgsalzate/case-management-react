@@ -488,7 +488,7 @@ export const ConfigurationPage: React.FC = () => {
           Acceso denegado
         </h3>
         <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-          No tienes permisos para ver la configuración.
+          No tienes permisos para acceder al módulo de configuración administrativa.
         </p>
       </div>
     );

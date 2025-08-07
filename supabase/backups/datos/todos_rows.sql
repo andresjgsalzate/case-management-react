@@ -1,0 +1,3 @@
+INSERT INTO "public"."todos" ("id", "title", "description", "priority_id", "assigned_user_id", "created_by_user_id", "due_date", "estimated_minutes", "is_completed", "completed_at", "created_at", "updated_at") VALUES ('c17894e2-b003-48f8-adbd-e0220bc76043', 'Proyecto ETL LAB -SAP: Revisión de novedad en ambiente de producción (post control de cambio)', 'Proyecto ETL LAB -SAP: Revisión de novedad en ambiente de producción (post control de cambio)
+
+04/08/2025', '10357b5f-50d5-4bea-bf01-c6b0ceb3418d', 'd30bfacf-ba57-435d-a6dc-808176ab2132', 'd30bfacf-ba57-435d-a6dc-808176ab2132', null, '120', 'true', null, '2025-08-04 21:02:25.356578+00', '2025-08-04 21:02:49.866797+00'); 

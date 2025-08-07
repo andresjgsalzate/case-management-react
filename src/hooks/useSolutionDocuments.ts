@@ -360,35 +360,63 @@ export const useCreateSolutionDocument = () => {
   
   return useMutation({
     mutationFn: async (data: SolutionDocumentFormData): Promise<SolutionDocument> => {
+      console.log('🚀 [useCreateSolutionDocument] Iniciando creación de documento');
+      console.log('📋 [useCreateSolutionDocument] Datos recibidos:', data);
+
       const user = await supabase.auth.getUser();
-      if (!user.data.user) throw new Error('Usuario no autenticado');
+      console.log('👤 [useCreateSolutionDocument] Usuario obtenido:', user.data.user?.id);
+      
+      if (!user.data.user) {
+        console.error('❌ [useCreateSolutionDocument] Usuario no autenticado');
+        throw new Error('Usuario no autenticado');
+      }
 
-      const insertData: any = {
-        title: data.title,
-        content: data.content,
-        tags: data.tags || [],
-        difficulty_level: data.difficultyLevel,
-        is_template: data.isTemplate,
-        is_published: data.isPublished,
-        created_by: user.data.user.id,
-        updated_by: user.data.user.id
+      // Usar la función SQL completa con todos los parámetros
+      console.log('📡 [useCreateSolutionDocument] Llamando función SQL create_solution_document_final');
+      
+      const params = {
+        p_title: data.title,
+        p_content: data.content || [],
+        p_solution_type: data.category || 'solution',
+        p_difficulty_level: data.difficultyLevel || 1,
+        p_case_id: data.caseId || null,
+        p_archived_case_id: null, // Por ahora no manejamos casos archivados en creación
+        p_case_reference_type: 'active',
+        p_complexity_notes: null,
+        p_prerequisites: null,
+        p_estimated_solution_time: data.estimatedSolutionTime || null,
+        p_is_template: data.isTemplate || false,
+        p_is_published: data.isPublished || false
       };
+      
+      console.log('📝 [useCreateSolutionDocument] Parámetros SQL:', params);
 
-      // Solo agregar campos opcionales si tienen valor
-      if (data.caseId) insertData.case_id = data.caseId;
-      if (data.category) insertData.category = data.category;
-      if (data.estimatedSolutionTime) insertData.estimated_solution_time = data.estimatedSolutionTime;
+      const { data: documentId, error } = await supabase.rpc('create_solution_document_final', params);
 
-      const { data: result, error } = await supabase
+      if (error) {
+        console.error('❌ [useCreateSolutionDocument] Error en función SQL:', error);
+        throw error;
+      }
+
+      console.log('✅ [useCreateSolutionDocument] Documento creado con ID:', documentId);
+
+      // Obtener el documento creado
+      console.log('📡 [useCreateSolutionDocument] Obteniendo documento creado desde BD');
+      const { data: result, error: fetchError } = await supabase
         .from('solution_documents')
-        .insert(insertData)
         .select('*')
+        .eq('id', documentId)
         .single();
 
-      if (error) throw error;
+      if (fetchError) {
+        console.error('❌ [useCreateSolutionDocument] Error al obtener documento:', fetchError);
+        throw fetchError;
+      }
       
+      console.log('✅ [useCreateSolutionDocument] Documento obtenido de BD:', result);
+
       // Mapear campos snake_case a camelCase
-      return {
+      const mappedResult = {
         ...result,
         caseId: result.case_id,
         createdBy: result.created_by,
@@ -402,6 +430,9 @@ export const useCreateSolutionDocument = () => {
         createdAt: result.created_at,
         updatedAt: result.updated_at
       };
+
+      console.log('🔄 [useCreateSolutionDocument] Documento mapeado:', mappedResult);
+      return mappedResult;
     },
     onSuccess: (data) => {
       // Invalidar queries relacionadas
@@ -427,57 +458,93 @@ export const useUpdateSolutionDocument = () => {
   
   return useMutation({
     mutationFn: async ({ id, ...data }: { id: string } & Partial<SolutionDocumentFormData>): Promise<SolutionDocument> => {
-      const user = await supabase.auth.getUser();
-      if (!user.data.user) throw new Error('Usuario no autenticado');
+      console.log('🔄 [useUpdateSolutionDocument] Iniciando actualización de documento');
+      console.log('📋 [useUpdateSolutionDocument] ID del documento:', id);
+      console.log('📋 [useUpdateSolutionDocument] Datos a actualizar:', data);
 
-      // Verificar si el contenido cambió para crear versión
-      let newVersion = 1;
-      if (data.content) {
-        const currentDoc = await supabase
+      const user = await supabase.auth.getUser();
+      console.log('👤 [useUpdateSolutionDocument] Usuario obtenido:', user.data.user?.id);
+      
+      if (!user.data.user) {
+        console.error('❌ [useUpdateSolutionDocument] Usuario no autenticado');
+        throw new Error('Usuario no autenticado');
+      }
+
+      // Usar la función SQL completa para actualización
+      if (data.content || data.title || data.category || data.difficultyLevel || data.isPublished || data.isTemplate) {
+        console.log('📡 [useUpdateSolutionDocument] Llamando función SQL update_solution_document_final');
+        
+        const params = {
+          p_document_id: id,
+          p_title: data.title || null,
+          p_content: data.content || null,
+          p_solution_type: data.category || null,
+          p_difficulty_level: data.difficultyLevel || null,
+          p_case_id: data.caseId || null,
+          p_archived_case_id: null,
+          p_case_reference_type: null,
+          p_complexity_notes: null,
+          p_prerequisites: null,
+          p_estimated_solution_time: data.estimatedSolutionTime || null,
+          p_is_template: data.isTemplate !== undefined ? data.isTemplate : null,
+          p_is_published: data.isPublished !== undefined ? data.isPublished : null
+        };
+        
+        console.log('📝 [useUpdateSolutionDocument] === PARÁMETROS RECIBIDOS EN HOOK ===');
+        console.log('🎯 [useUpdateSolutionDocument] data.category (mapped to solution_type):', data.category);
+        console.log('⭐ [useUpdateSolutionDocument] data.difficultyLevel:', data.difficultyLevel);
+        console.log('📄 [useUpdateSolutionDocument] data.title:', data.title);
+        console.log('📝 [useUpdateSolutionDocument] data completo:', data);
+        
+        console.log('📝 [useUpdateSolutionDocument] === PARÁMETROS SQL FINALES ===');
+        console.log('🎯 [useUpdateSolutionDocument] p_solution_type:', params.p_solution_type);
+        console.log('⭐ [useUpdateSolutionDocument] p_difficulty_level:', params.p_difficulty_level);
+        console.log('📄 [useUpdateSolutionDocument] p_title:', params.p_title);
+        console.log('🔧 [useUpdateSolutionDocument] params completos:', params);
+
+        const { error } = await supabase.rpc('update_solution_document_final', params);
+
+        if (error) {
+          console.error('❌ [useUpdateSolutionDocument] Error en función SQL:', error);
+          throw error;
+        }
+
+        console.log('✅ [useUpdateSolutionDocument] Función SQL ejecutada exitosamente');
+        
+        // Verificar inmediatamente qué se guardó en la BD
+        console.log('🔍 [useUpdateSolutionDocument] === VERIFICANDO DATOS EN BD ===');
+        const { data: verificacion, error: errorVerificacion } = await supabase
           .from('solution_documents')
-          .select('content, version')
+          .select('id, title, solution_type, difficulty_level, is_template, is_published')
           .eq('id', id)
           .single();
         
-        if (currentDoc.data && JSON.stringify(data.content) !== JSON.stringify(currentDoc.data.content)) {
-          // Crear versión del contenido anterior
-          await supabase.rpc('create_document_version', {
-            document_id_param: id,
-            content_param: currentDoc.data.content,
-            change_summary_param: 'Actualización de contenido'
-          });
-          newVersion = (currentDoc.data.version || 1) + 1;
-        } else {
-          newVersion = currentDoc.data?.version || 1;
+        if (!errorVerificacion && verificacion) {
+          console.log('📋 [useUpdateSolutionDocument] Datos actuales en BD:', verificacion);
+          console.log('🎯 [useUpdateSolutionDocument] BD solution_type:', verificacion.solution_type);
+          console.log('⭐ [useUpdateSolutionDocument] BD difficulty_level:', verificacion.difficulty_level);
         }
+
+        console.log('✅ [useUpdateSolutionDocument] Documento actualizado con éxito');
       }
 
-      const updateData: Record<string, any> = {};
-      
-      if (data.title !== undefined) updateData.title = data.title;
-      if (data.content !== undefined) updateData.content = data.content;
-      if (data.caseId !== undefined) updateData.case_id = data.caseId;
-      if (data.tags !== undefined) updateData.tags = data.tags;
-      if (data.category !== undefined) updateData.category = data.category;
-      if (data.difficultyLevel !== undefined) updateData.difficulty_level = data.difficultyLevel;
-      if (data.estimatedSolutionTime !== undefined) updateData.estimated_solution_time = data.estimatedSolutionTime;
-      if (data.isTemplate !== undefined) updateData.is_template = data.isTemplate;
-      if (data.isPublished !== undefined) updateData.is_published = data.isPublished;
-      
-      updateData.updated_by = user.data.user.id;
-      if (data.content) updateData.version = newVersion;
-
-      const { data: result, error } = await supabase
+      // Obtener el documento actualizado
+      console.log('📡 [useUpdateSolutionDocument] Obteniendo documento actualizado');
+      const { data: result, error: fetchError } = await supabase
         .from('solution_documents')
-        .update(updateData)
-        .eq('id', id)
         .select('*')
+        .eq('id', id)
         .single();
 
-      if (error) throw error;
+      if (fetchError) {
+        console.error('❌ [useUpdateSolutionDocument] Error al obtener documento actualizado:', fetchError);
+        throw fetchError;
+      }
       
+      console.log('✅ [useUpdateSolutionDocument] Documento actualizado obtenido:', result);
+
       // Mapear campos snake_case a camelCase
-      return {
+      const mappedResult = {
         ...result,
         caseId: result.case_id,
         createdBy: result.created_by,
@@ -491,6 +558,9 @@ export const useUpdateSolutionDocument = () => {
         createdAt: result.created_at,
         updatedAt: result.updated_at
       };
+
+      console.log('🔄 [useUpdateSolutionDocument] Documento mapeado final:', mappedResult);
+      return mappedResult;
     },
     onSuccess: (data, variables) => {
       // Invalidar queries específicas
@@ -517,12 +587,21 @@ export const useDeleteSolutionDocument = () => {
   
   return useMutation({
     mutationFn: async (id: string): Promise<void> => {
-      const { error } = await supabase
-        .from('solution_documents')
-        .delete()
-        .eq('id', id);
+      console.log('🗑️ [useDeleteSolutionDocument] Iniciando eliminación de documento');
+      console.log('📋 [useDeleteSolutionDocument] ID del documento:', id);
 
-      if (error) throw error;
+      // Usar la función SQL que maneja eliminaciones con validación de permisos
+      console.log('📡 [useDeleteSolutionDocument] Llamando función SQL delete_solution_document');
+      const { error } = await supabase.rpc('delete_solution_document', {
+        p_document_id: id
+      });
+
+      if (error) {
+        console.error('❌ [useDeleteSolutionDocument] Error en función SQL:', error);
+        throw error;
+      }
+
+      console.log('✅ [useDeleteSolutionDocument] Documento eliminado con éxito');
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.documents] });

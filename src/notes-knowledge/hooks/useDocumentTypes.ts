@@ -9,7 +9,7 @@
  */
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { DocumentTypesService, type DocumentType, type CreateDocumentTypeRequest, type UpdateDocumentTypeRequest } from '../services/documentTypesService';
+import { DocumentTypesService, type CreateDocumentTypeRequest, type UpdateDocumentTypeRequest } from '../services/documentTypesService';
 
 // ===== QUERY KEYS =====
 const QUERY_KEYS = {
