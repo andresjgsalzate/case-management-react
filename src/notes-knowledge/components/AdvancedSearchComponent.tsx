@@ -110,7 +110,7 @@ export const AdvancedSearchComponent: React.FC<AdvancedSearchProps> = ({
     } else {
       setSuggestions([]);
       setQuickResults([]);
-      setShowSuggestions(false);
+      setShowSuggestions(true); // Mostrar para búsquedas recientes
       setShowQuickResults(false);
     }
   };
@@ -187,7 +187,7 @@ export const AdvancedSearchComponent: React.FC<AdvancedSearchProps> = ({
     
     return parts.map((part, index) => 
       regex.test(part) ? (
-        <span key={index} className="bg-yellow-200 font-semibold">
+        <span key={index} className="bg-yellow-200 dark:bg-yellow-600 font-semibold">
           {part}
         </span>
       ) : part
@@ -209,13 +209,13 @@ export const AdvancedSearchComponent: React.FC<AdvancedSearchProps> = ({
           onChange={handleInputChange}
           onKeyDown={handleKeyDown}
           onFocus={() => {
-            if (value.trim()) {
-              setShowSuggestions(true);
-              if (quickResults.length > 0) setShowQuickResults(true);
+            setShowSuggestions(true);
+            if (value.trim() && quickResults.length > 0) {
+              setShowQuickResults(true);
             }
           }}
           placeholder={placeholder}
-          className="block w-full pl-10 pr-12 py-3 border border-gray-300 rounded-xl text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white shadow-sm transition-all duration-200"
+          className="block w-full pl-10 pr-12 py-3 border border-gray-300 dark:border-gray-600 rounded-xl text-sm text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-800 shadow-sm transition-all duration-200"
         />
         
         {/* Botones de acción */}
@@ -223,7 +223,7 @@ export const AdvancedSearchComponent: React.FC<AdvancedSearchProps> = ({
           {value && (
             <button
               onClick={handleClear}
-              className="p-1 text-gray-400 hover:text-gray-600 transition-colors"
+              className="p-1 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
             >
               <X className="h-4 w-4" />
             </button>
@@ -231,7 +231,7 @@ export const AdvancedSearchComponent: React.FC<AdvancedSearchProps> = ({
           
           <button
             onClick={() => setIsExpanded(!isExpanded)}
-            className="p-1 text-gray-400 hover:text-blue-600 transition-colors"
+            className="p-1 text-gray-400 dark:text-gray-500 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
           >
             <Filter className="h-4 w-4" />
           </button>
@@ -240,12 +240,12 @@ export const AdvancedSearchComponent: React.FC<AdvancedSearchProps> = ({
 
       {/* Dropdown con sugerencias y resultados */}
       {(showSuggestions || showQuickResults) && (
-        <div className="absolute z-50 w-full mt-2 bg-white border border-gray-200 rounded-xl shadow-lg max-h-96 overflow-hidden">
+        <div className="absolute z-50 w-full mt-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg max-h-96 overflow-hidden">
           
           {/* Búsquedas recientes (cuando no hay input) */}
-          {!value && recentSearches.length > 0 && (
-            <div className="p-3 border-b border-gray-100">
-              <div className="flex items-center text-xs font-medium text-gray-500 mb-2">
+          {!value.trim() && recentSearches.length > 0 && (
+            <div className="p-3 border-b border-gray-100 dark:border-gray-700">
+              <div className="flex items-center text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">
                 <Clock className="h-3 w-3 mr-1" />
                 Búsquedas recientes
               </div>
@@ -254,7 +254,7 @@ export const AdvancedSearchComponent: React.FC<AdvancedSearchProps> = ({
                   <button
                     key={index}
                     onClick={() => handleSuggestionSelect(search)}
-                    className="block w-full text-left px-2 py-1 text-sm text-gray-700 hover:bg-gray-50 rounded"
+                    className="block w-full text-left px-2 py-1 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 rounded"
                   >
                     {search}
                   </button>
@@ -265,8 +265,8 @@ export const AdvancedSearchComponent: React.FC<AdvancedSearchProps> = ({
 
           {/* Sugerencias de autocompletado */}
           {showSuggestions && suggestions.length > 0 && (
-            <div className="p-3 border-b border-gray-100">
-              <div className="flex items-center text-xs font-medium text-gray-500 mb-2">
+            <div className="p-3 border-b border-gray-100 dark:border-gray-700">
+              <div className="flex items-center text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">
                 <Hash className="h-3 w-3 mr-1" />
                 Sugerencias
               </div>
@@ -275,10 +275,10 @@ export const AdvancedSearchComponent: React.FC<AdvancedSearchProps> = ({
                   <button
                     key={index}
                     onClick={() => handleSuggestionSelect(item.suggestion)}
-                    className="flex items-center justify-between w-full text-left px-2 py-1 text-sm text-gray-700 hover:bg-gray-50 rounded"
+                    className="flex items-center justify-between w-full text-left px-2 py-1 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 rounded"
                   >
                     <span>{highlightMatch(item.suggestion, value)}</span>
-                    <span className="text-xs text-gray-400">
+                    <span className="text-xs text-gray-400 dark:text-gray-500">
                       {item.frequency} docs
                     </span>
                   </button>
@@ -291,7 +291,7 @@ export const AdvancedSearchComponent: React.FC<AdvancedSearchProps> = ({
           {showQuickResults && (
             <div className="max-h-64 overflow-y-auto">
               <div className="p-3">
-                <div className="flex items-center text-xs font-medium text-gray-500 mb-2">
+                <div className="flex items-center text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">
                   <Zap className="h-3 w-3 mr-1" />
                   Resultados rápidos
                   {isLoading && (
@@ -303,7 +303,7 @@ export const AdvancedSearchComponent: React.FC<AdvancedSearchProps> = ({
                   {quickResults.map((result) => (
                     <div
                       key={result.id}
-                      className="p-2 hover:bg-gray-50 rounded-lg cursor-pointer border border-gray-100"
+                      className="p-2 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg cursor-pointer border border-gray-100 dark:border-gray-600"
                       onClick={() => {
                         // Cerrar sugerencias
                         setShowSuggestions(false);
@@ -319,20 +319,20 @@ export const AdvancedSearchComponent: React.FC<AdvancedSearchProps> = ({
                     >
                       <div className="flex items-start justify-between">
                         <div className="flex-1 min-w-0">
-                          <h4 className="text-sm font-medium text-gray-900 truncate">
+                          <h4 className="text-sm font-medium text-gray-900 dark:text-white truncate">
                             {highlightMatch(result.title, value)}
                           </h4>
                           
                           {result.matched_content && (
-                            <p className="text-xs text-gray-600 mt-1 line-clamp-2">
+                            <p className="text-xs text-gray-600 dark:text-gray-400 mt-1 line-clamp-2">
                               {highlightMatch(result.matched_content, value)}
                             </p>
                           )}
                           
-                          <div className="flex items-center mt-1 text-xs text-gray-500">
+                          <div className="flex items-center mt-1 text-xs text-gray-500 dark:text-gray-400">
                             <BookOpen className="h-3 w-3 mr-1" />
                             <span>{result.category}</span>
-                            <span className="ml-2 bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded">
+                            <span className="ml-2 bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 px-1.5 py-0.5 rounded">
                               {Math.round(result.relevance_score * 10) / 10}
                             </span>
                           </div>
@@ -346,8 +346,8 @@ export const AdvancedSearchComponent: React.FC<AdvancedSearchProps> = ({
           )}
 
           {/* Indicador de ayuda */}
-          <div className="p-3 bg-gray-50 border-t border-gray-100">
-            <p className="text-xs text-gray-500">
+          <div className="p-3 bg-gray-50 dark:bg-gray-700 border-t border-gray-100 dark:border-gray-600">
+            <p className="text-xs text-gray-500 dark:text-gray-400">
               💡 Puedes buscar por títulos, contenido, etiquetas, números de caso, códigos, fragmentos de texto, etc.
             </p>
           </div>

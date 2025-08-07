@@ -626,17 +626,25 @@ export class DocumentationService {
     }
 
     try {
-      const { data, error } = await supabase.rpc('get_search_suggestions', {
+      // Usar la función RPC corregida que bypasea RLS
+      const { data: rpcData, error: rpcError } = await supabase.rpc('get_search_suggestions', {
         partial_term: partialTerm.trim(),
         suggestion_limit: limit
       });
 
-      if (error) {
-        console.warn('Error al obtener sugerencias:', error.message);
+      if (rpcError) {
+        console.warn('Error en función RPC get_search_suggestions:', rpcError.message);
         return [];
       }
 
-      return data || [];
+      if (!rpcData) {
+        return [];
+      }
+
+      // La función devuelve JSON, parseamos si es necesario
+      const suggestions = Array.isArray(rpcData) ? rpcData : (typeof rpcData === 'string' ? JSON.parse(rpcData) : []);
+      
+      return suggestions || [];
     } catch (error) {
       console.warn('Error al obtener sugerencias:', error);
       return [];
@@ -659,38 +667,27 @@ export class DocumentationService {
     }
 
     try {
-      const { data, error } = await supabase.rpc('search_docs_v2', {
-        search_text: searchTerm.trim()
+      // Usar la función RPC corregida que bypasea RLS y maneja jsonb correctamente
+      const { data: rpcData, error: rpcError } = await supabase.rpc('search_docs_v2', {
+        search_term: searchTerm.trim(),
+        doc_limit: limit
       });
 
-      if (error) {
-        throw new Error(`Error en búsqueda rápida: ${error.message}`);
+      if (rpcError) {
+        console.error('Error en función RPC search_docs_v2:', rpcError.message);
+        return [];
+      }
+
+      if (!rpcData) {
+        return [];
       }
 
       // La función devuelve JSON, parseamos si es necesario
-      const results = Array.isArray(data) ? data : (data ? JSON.parse(data) : []);
+      const results = Array.isArray(rpcData) ? rpcData : (typeof rpcData === 'string' ? JSON.parse(rpcData) : []);
       
-      // Procesar resultados para incluir etiquetas y mapear datos
-      const processedResults = await Promise.all(
-        results.slice(0, limit).map(async (doc: any) => {
-          let tags = doc.tags;
-          if (!tags || tags.length === 0) {
-            tags = await SolutionTagsService.getDocumentTags(doc.id);
-          }
-          
-          return {
-            id: doc.id,
-            title: doc.title,
-            matched_content: doc.matched_content || '',
-            relevance_score: doc.relevance_score || 0,
-            category: doc.solution_type || 'Sin categoría',
-            tags: tags
-          };
-        })
-      );
-
-      return processedResults;
+      return results || [];
     } catch (error) {
+      console.error('Error en búsqueda rápida:', error);
       return [];
     }
   }
