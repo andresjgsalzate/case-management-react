@@ -10,11 +10,22 @@ export const useUsers = () => {
       const { data, error } = await supabase
         .from('user_profiles')
         .select(`
-          *,
-          role:roles (
+          id,
+          email,
+          full_name,
+          role_id,
+          role_name,
+          is_active,
+          last_login_at,
+          created_at,
+          updated_at,
+          role:roles(
             id,
             name,
-            description
+            description,
+            is_active,
+            created_at,
+            updated_at
           )
         `)
         .order('created_at', { ascending: false });
@@ -30,6 +41,7 @@ export const useUsers = () => {
         email: user.email,
         fullName: user.full_name,
         roleId: user.role_id,
+        roleName: user.role_name,
         isActive: user.is_active,
         lastLoginAt: user.last_login_at,
         createdAt: user.created_at,
@@ -55,8 +67,16 @@ export const useUser = (userId: string) => {
       const { data, error } = await supabase
         .from('user_profiles')
         .select(`
-          *,
-          role:roles (*)
+          id,
+          email,
+          full_name,
+          role_id,
+          role_name,
+          is_active,
+          last_login_at,
+          created_at,
+          updated_at,
+          role:roles(*)
         `)
         .eq('id', userId)
         .single();
@@ -67,22 +87,25 @@ export const useUser = (userId: string) => {
       }
 
       // Mapear de snake_case a camelCase
+      const roleData = Array.isArray(data.role) ? data.role[0] : data.role;
+      
       return {
         id: data.id,
         email: data.email,
         fullName: data.full_name,
         roleId: data.role_id,
+        roleName: data.role_name,
         isActive: data.is_active,
         lastLoginAt: data.last_login_at,
         createdAt: data.created_at,
         updatedAt: data.updated_at,
-        role: data.role ? {
-          id: data.role.id,
-          name: data.role.name,
-          description: data.role.description,
-          isActive: data.role.is_active,
-          createdAt: data.role.created_at,
-          updatedAt: data.role.updated_at,
+        role: roleData ? {
+          id: roleData.id,
+          name: roleData.name,
+          description: roleData.description,
+          isActive: roleData.is_active,
+          createdAt: roleData.created_at,
+          updatedAt: roleData.updated_at,
         } : undefined
       };
     },
@@ -96,27 +119,35 @@ export const useUpdateUser = () => {
 
   return useMutation({
     mutationFn: async ({ id, userData }: { id: string; userData: Partial<UserFormData> }): Promise<UserProfile> => {
-      // Actualizar directamente la tabla user_profiles
+      // Usar la función SQL que garantiza la sincronización del role_name
+      const { error: functionError } = await supabase
+        .rpc('update_user_with_role_sync', {
+          user_id: id,
+          new_email: userData.email || null,
+          new_full_name: userData.fullName || null,
+          new_role_id: userData.roleId || null,
+          new_is_active: userData.isActive ?? null
+        });
+
+      if (functionError) {
+        console.error('Error updating user with role sync:', functionError);
+        throw functionError;
+      }
+
+      // La función devuelve los datos básicos, ahora obtenemos los datos completos con relaciones
       const { data, error } = await supabase
         .from('user_profiles')
-        .update({
-          email: userData.email!,
-          full_name: userData.fullName!,
-          role_id: userData.roleId!,
-          is_active: userData.isActive ?? true,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', id)
         .select(`
           id,
           email,
           full_name,
           role_id,
+          role_name,
           is_active,
           last_login_at,
           created_at,
           updated_at,
-          role:roles!inner(
+          role:roles(
             id,
             name,
             description,
@@ -125,6 +156,7 @@ export const useUpdateUser = () => {
             updated_at
           )
         `)
+        .eq('id', id)
         .single();
 
       if (error) {
@@ -140,6 +172,7 @@ export const useUpdateUser = () => {
         email: data.email,
         fullName: data.full_name,
         roleId: data.role_id,
+        roleName: data.role_name,
         isActive: data.is_active,
         lastLoginAt: data.last_login_at,
         createdAt: data.created_at,

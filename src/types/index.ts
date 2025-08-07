@@ -63,6 +63,7 @@ export interface UserProfile {
   email: string;
   fullName?: string;
   roleId?: string;
+  roleName?: string;  // Flexible to store any role name
   isActive: boolean;
   lastLoginAt?: string;
   createdAt: string;
