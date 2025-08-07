@@ -277,12 +277,18 @@ export const useDeleteCase = () => {
         throw new Error('No tiene permisos para eliminar este caso');
       }
       
-      const { error } = await supabase
-        .from('cases')
-        .delete()
-        .eq('id', id);
+      // Usar la función de base de datos que maneja la eliminación en cascada
+      const { data, error } = await supabase
+        .rpc('delete_case', {
+          p_case_id: id,
+          p_user_id: userProfile.id
+        });
 
       if (error) throw error;
+      
+      if (!data) {
+        throw new Error('Error al eliminar el caso');
+      }
     },
     onSuccess: () => {
       // Invalidar queries de casos
