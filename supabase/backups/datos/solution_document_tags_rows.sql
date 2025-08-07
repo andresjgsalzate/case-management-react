@@ -1,1 +1,0 @@
-INSERT INTO "public"."solution_document_tags" ("id", "document_id", "tag_id", "created_at") VALUES ('4937651e-469b-419c-bc10-944fd314cd94', '2a84d812-1cf4-4b7e-93f9-feb294f02f54', '8e8b6460-f2cd-4f0d-aa6a-df0c43ae03a5', '2025-08-05 18:19:33.209826+00');
