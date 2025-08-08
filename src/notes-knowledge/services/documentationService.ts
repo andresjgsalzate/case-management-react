@@ -280,36 +280,49 @@ export class DocumentationService {
 
   // ===== OBTENER DOCUMENTO POR ID =====
   static async getDocumentById(id: string): Promise<SolutionDocument> {
-    const { data, error } = await supabase
-      .from('solution_documents')
-      .select('*')
-      .eq('id', id)
-      .single();
+    try {
+      const { data, error } = await supabase
+        .from('solution_documents')
+        .select('*')
+        .eq('id', id)
+        .single();
 
-    if (error || !data) {
-      throw new Error('Documento no encontrado');
+      if (error) {
+        console.error('Error obteniendo documento:', error);
+        if (error.code === 'PGRST301') {
+          throw new Error('No tienes permisos para acceder a este documento');
+        }
+        throw new Error(`Error al obtener documento: ${error.message}`);
+      }
+
+      if (!data) {
+        throw new Error('Documento no encontrado');
+      }
+
+      // Obtener etiquetas del documento
+      const tags = await SolutionTagsService.getDocumentTags(id);
+
+      // Obtener perfil del usuario creador
+      const userProfile = await this.getUserProfile(data.created_by);
+
+      // Obtener información del caso si existe
+      let caseInfo = null;
+      if (data.case_id) {
+        caseInfo = await this.getCaseInfo(data.case_id, false); // Caso activo
+      } else if (data.archived_case_id) {
+        caseInfo = await this.getCaseInfo(data.archived_case_id, true); // Caso archivado
+      }
+
+      return {
+        ...data,
+        tags,
+        created_by_profile: userProfile,
+        case_info: caseInfo // Agregar información del caso
+      } as any; // Casting temporal mientras se actualiza la interface
+    } catch (error) {
+      console.error('Error en getDocumentById:', error);
+      throw error;
     }
-
-    // Obtener etiquetas del documento
-    const tags = await SolutionTagsService.getDocumentTags(id);
-
-    // Obtener perfil del usuario creador
-    const userProfile = await this.getUserProfile(data.created_by);
-
-    // Obtener información del caso si existe
-    let caseInfo = null;
-    if (data.case_id) {
-      caseInfo = await this.getCaseInfo(data.case_id, false); // Caso activo
-    } else if (data.archived_case_id) {
-      caseInfo = await this.getCaseInfo(data.archived_case_id, true); // Caso archivado
-    }
-
-    return {
-      ...data,
-      tags,
-      created_by_profile: userProfile,
-      case_info: caseInfo // Agregar información del caso
-    } as any; // Casting temporal mientras se actualiza la interface
   }
 
   // ===== BUSCAR DOCUMENTOS CON BÚSQUEDA AVANZADA =====
@@ -335,7 +348,7 @@ export class DocumentationService {
       // La función devuelve JSON, parseamos si es necesario
       const allResults = Array.isArray(data) ? data : (data ? JSON.parse(data) : []);
       
-      // Procesar resultados para obtener etiquetas si no las tienen
+      // Procesar resultados para obtener etiquetas, perfiles de usuario e información del caso si no las tienen
       const processedResults = await Promise.all(
         allResults.map(async (doc: any) => {
           let tags = doc.tags;
@@ -351,13 +364,22 @@ export class DocumentationService {
             userProfile = await this.getUserProfile(doc.created_by);
           }
           
+          // Obtener información del caso si existe
+          let caseInfo = null;
+          if (doc.case_id) {
+            caseInfo = await this.getCaseInfo(doc.case_id, false); // Caso activo
+          } else if (doc.archived_case_id) {
+            caseInfo = await this.getCaseInfo(doc.archived_case_id, true); // Caso archivado
+          }
+          
           return { 
             ...doc, 
             tags,
             created_by_profile: userProfile || {
               full_name: doc.created_by_name,
               email: doc.created_by_email
-            }
+            },
+            case_info: caseInfo // Agregar información del caso
           };
         })
       );
@@ -469,7 +491,7 @@ export class DocumentationService {
       throw new Error(`Error al buscar documentos: ${error.message}`);
     }
 
-    // Procesar resultados para incluir etiquetas y perfiles de usuario
+    // Procesar resultados para incluir etiquetas, perfiles de usuario e información del caso
     const documents = await Promise.all(
       (data || []).map(async (doc: any) => {
         // Obtener etiquetas del documento
@@ -478,10 +500,19 @@ export class DocumentationService {
         // Obtener perfil del usuario que creó el documento
         const userProfile = await this.getUserProfile(doc.created_by);
         
+        // Obtener información del caso si existe
+        let caseInfo = null;
+        if (doc.case_id) {
+          caseInfo = await this.getCaseInfo(doc.case_id, false); // Caso activo
+        } else if (doc.archived_case_id) {
+          caseInfo = await this.getCaseInfo(doc.archived_case_id, true); // Caso archivado
+        }
+        
         return { 
           ...doc, 
           tags,
-          created_by_profile: userProfile
+          created_by_profile: userProfile,
+          case_info: caseInfo // Agregar información del caso
         };
       })
     );

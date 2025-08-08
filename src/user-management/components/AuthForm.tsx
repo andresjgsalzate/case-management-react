@@ -42,13 +42,10 @@ export const AuthForm: React.FC = () => {
   });
 
   const onLoginSubmit = async (data: LoginForm) => {
-    console.log('🔑 Iniciando login para:', data.email);
     try {
       await signIn.mutateAsync(data);
-      console.log('✅ Login exitoso');
       // No mostramos notificación aquí porque el hook ya lo hace
     } catch (error: any) {
-      console.error('❌ Error en login:', error);
       // No mostramos notificación de error aquí porque el hook ya lo hace
     }
   };
@@ -62,7 +59,6 @@ export const AuthForm: React.FC = () => {
         name: data.name,
       });
       
-      console.log('✅ Registro exitoso');
       // No mostramos notificación aquí porque el hook ya lo hace
       
       // Mostrar modal de verificación de email después del registro exitoso

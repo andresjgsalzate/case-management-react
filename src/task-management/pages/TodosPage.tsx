@@ -144,6 +144,9 @@ export default function TodosPage() {
 
   // Aplicar filtros
   const filteredTodos = todos.filter(todo => {
+    // Solo excluir TODOs completados si explícitamente se establece showCompleted como false
+    if (filters.showCompleted === false && todo.isCompleted) return false;
+    
     if (filters.priorityId && todo.priorityId !== filters.priorityId) return false;
     if (filters.assignedUserId && todo.assignedUserId !== filters.assignedUserId) return false;
     if (filters.statusId && todo.control?.statusId !== filters.statusId) return false;
@@ -254,6 +257,7 @@ export default function TodosPage() {
   const handleCompleteTodo = async (controlId: string) => {
     try {
       const success = await completeTodo(controlId);
+      
       if (success) {
         showSuccess('TODO completado');
         await fetchTodos();

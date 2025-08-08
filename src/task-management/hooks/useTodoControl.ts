@@ -380,61 +380,44 @@ export const useTodoControl = () => {
     try {
       setError(null);
 
+      // Obtener el control desde la base de datos para asegurar que tenemos el todoId correcto
+      const { data: controlData, error: controlError } = await supabase
+        .from('todo_control')
+        .select('todo_id, is_timer_active')
+        .eq('id', controlId)
+        .single();
+
+      if (controlError) throw controlError;
+      if (!controlData) throw new Error('Control de TODO no encontrado');
+
       // Si el timer está activo, pausarlo primero
-      const control = controls.find(c => c.id === controlId);
-      if (control?.isTimerActive) {
+      if (controlData.is_timer_active) {
         await pauseTimer(controlId);
       }
 
-      // Obtener estado "TERMINADA"
-      const { data: completedStatus } = await supabase
-        .from('case_status_control')
-        .select('id')
-        .eq('name', 'TERMINADA')
-        .single();
+      // Usar la nueva función de base de datos para completar el TODO
+      const { data: result, error: functionError } = await supabase
+        .rpc('complete_todo', {
+          p_todo_id: controlData.todo_id,
+          p_control_id: controlId
+        });
 
-      if (!completedStatus) {
-        throw new Error('Estado "TERMINADA" no encontrado');
-      }
+      if (functionError) throw functionError;
 
-      const now = new Date().toISOString();
-
-      // Actualizar el control de TODO
-      const { error: updateError } = await supabase
-        .from('todo_control')
-        .update({
-          status_id: completedStatus.id,
-          completed_at: now,
-          is_timer_active: false,
-          timer_start_at: null,
-          updated_at: now
-        })
-        .eq('id', controlId);
-
-      if (updateError) throw updateError;
-
-      // CORRECCIÓN: Actualizar el campo is_completed en la tabla todos
-      if (control?.todoId) {
-        const { error: todoUpdateError } = await supabase
-          .from('todos')
-          .update({
-            is_completed: true,
-            updated_at: now
-          })
-          .eq('id', control.todoId);
-
-        if (todoUpdateError) {
-          console.error('Error updating todo is_completed status:', todoUpdateError);
-          throw new Error('Error al actualizar el estado de completado del TODO');
-        }
+      // Verificar el resultado de la función
+      if (!result?.success) {
+        throw new Error(result?.error || 'Error desconocido al completar TODO');
       }
 
       await fetchControls();
       
       // Invalidar queries relacionadas para actualizar la interfaz
-      queryClient.invalidateQueries({ queryKey: ['todos'] });
-      queryClient.invalidateQueries({ queryKey: ['todoMetrics'] });
-      queryClient.invalidateQueries({ queryKey: ['dashboardMetrics'] });
+      await queryClient.invalidateQueries({ queryKey: ['todos'] });
+      await queryClient.invalidateQueries({ queryKey: ['todoMetrics'] });
+      await queryClient.invalidateQueries({ queryKey: ['dashboardMetrics'] });
+      
+      // Forzar refetch inmediato
+      await queryClient.refetchQueries({ queryKey: ['todos'] });
       
       return true;
     } catch (err) {
@@ -449,46 +432,28 @@ export const useTodoControl = () => {
     try {
       setError(null);
 
-      // Obtener estado "PENDIENTE"
-      const { data: pendingStatus } = await supabase
-        .from('case_status_control')
-        .select('id')
-        .eq('name', 'PENDIENTE')
+      // Obtener el control desde la base de datos para asegurar que tenemos el todoId correcto
+      const { data: controlData, error: controlError } = await supabase
+        .from('todo_control')
+        .select('todo_id')
+        .eq('id', controlId)
         .single();
 
-      if (!pendingStatus) {
-        throw new Error('Estado "PENDIENTE" no encontrado');
-      }
+      if (controlError) throw controlError;
+      if (!controlData) throw new Error('Control de TODO no encontrado');
 
-      const now = new Date().toISOString();
-      const control = controls.find(c => c.id === controlId);
+      // Usar la nueva función de base de datos para reactivar el TODO
+      const { data: result, error: functionError } = await supabase
+        .rpc('reactivate_todo', {
+          p_todo_id: controlData.todo_id,
+          p_control_id: controlId
+        });
 
-      // Actualizar el control de TODO
-      const { error: updateError } = await supabase
-        .from('todo_control')
-        .update({
-          status_id: pendingStatus.id,
-          completed_at: null,
-          updated_at: now
-        })
-        .eq('id', controlId);
+      if (functionError) throw functionError;
 
-      if (updateError) throw updateError;
-
-      // Actualizar el campo is_completed en la tabla todos
-      if (control?.todoId) {
-        const { error: todoUpdateError } = await supabase
-          .from('todos')
-          .update({
-            is_completed: false,
-            updated_at: now
-          })
-          .eq('id', control.todoId);
-
-        if (todoUpdateError) {
-          console.error('Error updating todo is_completed status:', todoUpdateError);
-          throw new Error('Error al actualizar el estado de completado del TODO');
-        }
+      // Verificar el resultado de la función
+      if (!result?.success) {
+        throw new Error(result?.error || 'Error desconocido al reactivar TODO');
       }
 
       await fetchControls();

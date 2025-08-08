@@ -46,7 +46,7 @@ const TemplateModal: React.FC<TemplateModalProps> = ({ isOpen, onClose, template
   });
 
   const { createTemplate, updateTemplate } = useEmailTemplates();
-  const { showSuccess, showError } = useNotification();
+  const { showError } = useNotification();
 
   const templateTypes = [
     'confirmation',

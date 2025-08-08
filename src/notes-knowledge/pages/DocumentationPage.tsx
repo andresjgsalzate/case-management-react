@@ -277,9 +277,14 @@ export const DocumentationPage: React.FC = () => {
                               Obsoleto
                             </span>
                           )}
-                          {doc.case_id && (
+                          {(doc.case_id || doc.archived_case_id) && doc.case_info && (
                             <span className="px-2 py-1 bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200 rounded text-xs">
-                              Caso: {doc.case_id}
+                              Caso: {doc.case_info.numero_caso}
+                            </span>
+                          )}
+                          {(doc.case_id || doc.archived_case_id) && !doc.case_info && (
+                            <span className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded text-xs">
+                              Caso: {doc.case_id || doc.archived_case_id} (sin info)
                             </span>
                           )}
                         </div>

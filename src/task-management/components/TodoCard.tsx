@@ -1,8 +1,9 @@
 import { TodoItem } from '@/types';
 import { useTodoPriorities } from '@/task-management/hooks/useTodoPriorities';
 import { useRealTimeTimer } from '@/time-control/hooks/useActiveTimer';
+import { useTodoControl } from '@/task-management/hooks/useTodoControl';
 import { TodoControlDetailsModal } from './TodoControlDetailsModal';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   ClockIcon, 
   PlayIcon, 
@@ -36,13 +37,50 @@ export function TodoCard({
   showActions = true 
 }: TodoCardProps) {
   const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [realTotalTime, setRealTotalTime] = useState(todo.control?.totalTimeMinutes || 0);
   const { getPriorityColor, getPriorityName } = useTodoPriorities();
+  const { getTimeEntries, getManualTimeEntries } = useTodoControl();
 
   // Hook para el contador en tiempo real
   const realTimeDisplay = useRealTimeTimer({
     isActive: todo.control?.isTimerActive || false,
     startedAt: todo.control?.timerStartAt
   });
+
+  // Función para calcular el tiempo total real (automático + manual)
+  const calculateRealTotalTime = async () => {
+    if (!todo.control?.id) {
+      setRealTotalTime(0);
+      return;
+    }
+
+    try {
+      const [timeEntries, manualTimeEntries] = await Promise.all([
+        getTimeEntries(todo.control.id),
+        getManualTimeEntries(todo.control.id)
+      ]);
+
+      const totalAutoMinutes = timeEntries.reduce((sum: number, entry: any) => {
+        return sum + (entry.duration_minutes || 0);
+      }, 0);
+      
+      const totalManualMinutes = manualTimeEntries.reduce((sum: number, entry: any) => {
+        return sum + (entry.duration_minutes || 0);
+      }, 0);
+
+      const totalMinutes = totalAutoMinutes + totalManualMinutes;
+      setRealTotalTime(totalMinutes);
+    } catch (error) {
+      console.error('Error calculating real total time:', error);
+      // En caso de error, usar el valor de la base de datos
+      setRealTotalTime(todo.control?.totalTimeMinutes || 0);
+    }
+  };
+
+  // Cargar el tiempo real cuando el componente se monta o cuando cambia el control
+  useEffect(() => {
+    calculateRealTotalTime();
+  }, [todo.control?.id, todo.control?.totalTimeMinutes]);
 
   const priorityColor = getPriorityColor(todo.priorityId);
   const priorityName = getPriorityName(todo.priorityId);
@@ -153,7 +191,7 @@ export function TodoCard({
             <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
               <ClockIcon className="w-4 h-4 mr-2" />
               <span>
-                {formatTime(todo.control.totalTimeMinutes)}
+                {formatTime(realTotalTime)}
                 {todo.estimatedMinutes && (
                   <span className="text-xs ml-1">
                     / {formatTime(todo.estimatedMinutes)} estimado
@@ -296,7 +334,11 @@ export function TodoCard({
       {todo.control && (
         <TodoControlDetailsModal 
           isOpen={showDetailsModal} 
-          onClose={() => setShowDetailsModal(false)} 
+          onClose={() => {
+            setShowDetailsModal(false);
+            // Recalcular el tiempo real cuando se cierre el modal
+            calculateRealTotalTime();
+          }} 
           todoControl={todo.control}
         />
       )}

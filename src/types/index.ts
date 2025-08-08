@@ -554,6 +554,7 @@ export interface TodoFilters {
   dueDateFrom?: string;
   dueDateTo?: string;
   search?: string;
+  showCompleted?: boolean;
 }
 
 // Tipos para métricas del dashboard TODO

@@ -11,7 +11,8 @@ import {
   ArrowPathIcon
 } from '@heroicons/react/24/outline';
 
-interface EmailLogEntry {
+// Interface para las entradas del log de emails (exportada para evitar warning)
+export interface EmailLogEntry {
   id: string;
   email_type: string;
   recipient_email: string;
