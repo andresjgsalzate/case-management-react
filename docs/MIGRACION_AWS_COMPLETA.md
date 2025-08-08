@@ -31,13 +31,17 @@ Esta guía te llevará paso a paso para migrar tu aplicación de gestión de cas
 - **Email**: Railway SMTP
 
 ### Estado Objetivo - AWS
-- **Frontend**: Amazon S3 + CloudFront + Route 53
+- **Frontend**: React + Vite + TypeScript (MISMO CÓDIGO) → Hosting en S3 + CloudFront + Route 53
 - **Backend**: Node.js/Express en AWS (ECS/Fargate o EC2) + RDS PostgreSQL
 - **API Gateway**: AWS API Gateway + Application Load Balancer
 - **Auth**: Amazon Cognito
 - **Storage**: Amazon S3
 - **Email**: Amazon SES
 - **CI/CD**: AWS CodePipeline + CodeBuild + CodeDeploy
+
+> **🎯 IMPORTANTE**: Tu aplicación React se mantiene EXACTAMENTE igual. Solo cambia DÓNDE se hospeda:
+> - **Antes**: Netlify hosting
+> - **Después**: AWS S3 + CloudFront (hosting estático optimizado)
 
 ---
 
@@ -284,15 +288,25 @@ aws rds create-db-instance-read-replica \
 
 ---
 
-## 💻 Fase 3: Migración del Frontend
+## 💻 Fase 3: Migración del Frontend (React se mantiene igual)
 
-### 3.1 Configurar S3 para Hosting Estático
+> **🚨 ACLARACIÓN IMPORTANTE**: 
+> Tu aplicación **React + Vite + TypeScript se mantiene EXACTAMENTE igual**. 
+> Solo cambiamos el hosting de Netlify → AWS S3 + CloudFront.
+> **NO hay cambios en el código React**, solo en la infraestructura de hosting.
+
+### 3.1 Configurar S3 para Hosting de React
+
+**Lo que hace S3:**
+- Hostea los archivos estáticos generados por `npm run build`
+- Sirve tu `index.html`, archivos JS, CSS, imágenes
+- Reemplaza exactamente lo que hace Netlify
 
 ```bash
-# Crear bucket para el sitio web
+# Crear bucket para tu app React
 aws s3 mb s3://case-management-frontend-prod
 
-# Configurar como sitio web estático
+# Configurar como sitio web estático (igual que Netlify)
 aws s3 website s3://case-management-frontend-prod \
     --index-document index.html \
     --error-document index.html
@@ -318,7 +332,28 @@ aws s3api put-bucket-policy \
     --policy file://bucket-policy.json
 ```
 
-### 3.2 Configurar CloudFront
+### 3.2 Tu Aplicación React NO Cambia
+
+**Proceso de desarrollo sigue igual:**
+```bash
+# Desarrollo local (IGUAL que ahora)
+npm run dev
+
+# Build para producción (IGUAL que ahora)
+npm run build
+
+# Solo cambia el destino del deploy:
+# Antes: netlify deploy --prod
+# Después: aws s3 sync dist/ s3://case-management-frontend-prod
+```
+
+### 3.3 Configurar CloudFront (CDN Global)
+
+**Lo que hace CloudFront:**
+- CDN global (más rápido que Netlify)
+- HTTPS automático
+- Caché inteligente
+- Mejor rendimiento mundial
 
 ```bash
 # Crear distribución CloudFront
@@ -329,8 +364,8 @@ aws cloudfront create-distribution \
 Archivo `cloudfront-config.json`:
 ```json
 {
-    "CallerReference": "case-management-2024",
-    "Comment": "Case Management Frontend Distribution",
+    "CallerReference": "case-management-react-2024",
+    "Comment": "React App Distribution - Same as Netlify but faster",
     "DefaultRootObject": "index.html",
     "Origins": {
         "Quantity": 1,
@@ -357,41 +392,167 @@ Archivo `cloudfront-config.json`:
                 "Forward": "none"
             }
         },
-        "MinTTL": 0
+        "MinTTL": 0,
+        "Compress": true
+    },
+    "CustomErrorResponses": {
+        "Quantity": 1,
+        "Items": [
+            {
+                "ErrorCode": 404,
+                "ResponsePagePath": "/index.html",
+                "ResponseCode": "200",
+                "ErrorCachingMinTTL": 300
+            }
+        ]
     },
     "Enabled": true,
     "PriceClass": "PriceClass_100"
 }
 ```
 
-### 3.3 Actualizar Variables de Entorno
+### 3.4 Actualizar Variables de Entorno (Solo URLs cambian)
+
+**Tu código React NO cambia**, solo actualizas las URLs de los servicios:
 
 Crear nuevo archivo `.env.production`:
 ```env
-# AWS Configuration
+# URLs de AWS (lo único que cambia)
 VITE_AWS_REGION=us-east-1
-VITE_API_GATEWAY_URL=https://your-api-id.execute-api.us-east-1.amazonaws.com/prod
+VITE_API_URL=https://your-alb-url.us-east-1.elb.amazonaws.com/api
 VITE_COGNITO_USER_POOL_ID=us-east-1_xxxxxxxxx
 VITE_COGNITO_CLIENT_ID=xxxxxxxxxxxxxxxxxxxxxxxxxx
 VITE_S3_BUCKET=case-management-storage-prod
 VITE_CLOUDFRONT_URL=https://d1234567890abc.cloudfront.net
 
-# Eliminar variables de Supabase
+# Ya no necesitas estas (reemplazadas por AWS)
 # VITE_SUPABASE_URL=
 # VITE_SUPABASE_ANON_KEY=
 ```
 
-### 3.4 Actualizar Configuración de Build
+**Tus componentes React siguen funcionando igual:**
+```typescript
+// Ejemplo: Tu código React NO cambia
+// src/hooks/useCases.ts - SIGUE IGUAL
+const { data: cases } = useQuery({
+    queryKey: ['cases'],
+    queryFn: async () => {
+        // Solo cambia la URL base, la lógica es igual
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/cases`);
+        return response.json();
+    }
+});
+```
 
-Modificar `package.json`:
+### 3.5 Build y Deploy (Proceso Mejorado)
+
+Modificar `package.json` (solo scripts de deploy):
 ```json
 {
   "scripts": {
-    "build:aws": "tsc && vite build --mode production",
-    "deploy:aws": "npm run build:aws && aws s3 sync dist/ s3://case-management-frontend-prod --delete"
+    "dev": "vite",                                    // ✅ IGUAL
+    "build": "tsc && vite build",                     // ✅ IGUAL  
+    "preview": "vite preview",                        // ✅ IGUAL
+    "build:aws": "tsc && vite build --mode production", // 🆕 NUEVO
+    "deploy:aws": "npm run build:aws && aws s3 sync dist/ s3://case-management-frontend-prod --delete && aws cloudfront create-invalidation --distribution-id YOUR_DIST_ID --paths '/*'"
   }
 }
 ```
+
+**Comparación del proceso:**
+
+| Paso | Antes (Netlify) | Después (AWS) |
+|------|-----------------|---------------|
+| **Desarrollo** | `npm run dev` | `npm run dev` ✅ |
+| **Build** | `npm run build` | `npm run build` ✅ |
+| **Deploy** | `netlify deploy --prod` | `npm run deploy:aws` |
+| **Resultado** | App en Netlify | App en CloudFront (más rápido) |
+
+---
+
+## 🔍 ACLARACIÓN IMPORTANTE: REACT SE MANTIENE 100%
+
+### ❓ **"¿Puedo seguir usando React?"**
+### ✅ **¡SÍ! React se mantiene EXACTAMENTE igual**
+
+**Lo que NO cambia:**
+- ✅ Tu código React + TypeScript
+- ✅ Componentes, hooks, páginas
+- ✅ Vite como bundler
+- ✅ Estructura de carpetas
+- ✅ Package.json dependencies
+- ✅ Proceso de desarrollo (`npm run dev`)
+- ✅ Lógica de negocio
+
+**Lo que SÍ cambia (solo infraestructura):**
+- 🔄 **Hosting**: Netlify → AWS S3 + CloudFront
+- 🔄 **API calls**: URLs de Supabase → URLs de tu backend AWS
+- 🔄 **Autenticación**: Supabase Auth → AWS Cognito
+- 🔄 **Storage**: Supabase Storage → AWS S3
+
+### 📊 Comparación Visual:
+
+```
+ANTES (Supabase + Netlify):
+[React App] → [Netlify Hosting] → [Supabase Backend]
+
+DESPUÉS (100% AWS):
+[React App] → [S3 + CloudFront] → [Node.js Backend en ECS] → [RDS PostgreSQL]
+    ↑              ↑                        ↑                      ↑
+ MISMO CÓDIGO   MEJOR HOSTING          MISMO LENGUAJE        MISMA BASE DE DATOS
+```
+
+### 🎯 **Tu Aplicación React:**
+
+#### **Estructura que se mantiene igual:**
+```
+src/
+├── App.tsx                     ✅ IGUAL
+├── main.tsx                    ✅ IGUAL
+├── case-management/           ✅ IGUAL
+│   ├── components/            ✅ IGUAL
+│   ├── hooks/                 ✅ IGUAL
+│   ├── pages/                 ✅ IGUAL
+│   └── services/              🔄 Solo URLs cambian
+├── shared/                    ✅ IGUAL
+│   ├── components/            ✅ IGUAL
+│   ├── hooks/                 ✅ IGUAL
+│   └── lib/                   🔄 Solo config de servicios
+└── ...resto de módulos        ✅ IGUAL
+```
+
+#### **Ejemplo de cambio mínimo en servicios:**
+```typescript
+// ANTES - con Supabase
+const { data } = await supabase
+    .from('cases')
+    .select('*');
+
+// DESPUÉS - con tu backend AWS (React sigue igual)
+const { data } = await fetch(`${VITE_API_URL}/cases`, {
+    headers: { 'Authorization': `Bearer ${token}` }
+}).then(res => res.json());
+```
+
+### 🚀 **Ventajas de Mantener React + AWS:**
+
+| Aspecto | Beneficio |
+|---------|-----------|
+| **Código existente** | ✅ Se reutiliza 95% |
+| **Equipo** | ✅ No necesita reentrenamiento |
+| **Funcionalidades** | ✅ Todas se mantienen |
+| **Performance** | ⬆️ Mejora con CloudFront |
+| **Escalabilidad** | ⬆️ Mejor con AWS |
+| **Costo** | ⬇️ Más predecible |
+
+### 🛠️ **Resumen: Lo Que Realmente Haces**
+
+1. **Mantienes** tu aplicación React exactamente como está
+2. **Cambias** solo las URLs de servicios (environment variables)
+3. **Subes** los archivos build a S3 en lugar de Netlify
+4. **Obtienes** mejor rendimiento y control total
+
+**¡Es como cambiar de casa manteniendo todos tus muebles!** 🏠➡️🏢
 
 ---
 
