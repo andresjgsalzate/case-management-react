@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/shared/lib/supabase';
 import { User, AuthError } from '@supabase/supabase-js';
 import { useNotification } from '@/shared/components/notifications/NotificationSystem';
+import { sendCustomPasswordReset } from '@/shared/services/customPasswordReset';
 
 interface AuthState {
   user: User | null;
@@ -221,25 +222,26 @@ const { error } = await supabase.auth.signOut({
     },
   });
 
-  // Mutation para reset password
+  // Mutation para reset password - USANDO SISTEMA PERSONALIZADO
   const resetPassword = useMutation({
     mutationFn: async (email: string) => {
-const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/reset-password`,
-      });
-
-      if (error) {
-        console.error('❌ Error reset password:', error);
-        throw error;
+      console.log('🔐 Usando sistema personalizado de recuperación para:', email);
+      
+      const result = await sendCustomPasswordReset({ email });
+      
+      if (!result.success) {
+        throw new Error(result.message);
       }
-
-},
-    onSuccess: () => {
-      showSuccess('Correo de recuperación enviado. Revisa tu bandeja de entrada.');
+      
+      return result;
     },
-    onError: (error: AuthError) => {
-      console.error('❌ Error en reset password:', error);
-      showError(getAuthErrorMessage(error));
+    onSuccess: (result) => {
+      console.log('✅ Recuperación personalizada exitosa:', result.logId);
+      showSuccess('Email de recuperación enviado', result.message);
+    },
+    onError: (error: any) => {
+      console.error('❌ Error en recuperación personalizada:', error);
+      showError('Error al enviar email', error.message);
     },
   });
 

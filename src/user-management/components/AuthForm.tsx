@@ -4,6 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useAuth } from '@/shared/hooks/useAuth';
 import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
+import { EmailVerificationModal } from '@/shared/components/email/EmailVerificationModal';
 
 const loginSchema = z.object({
   email: z.string().email('Email inválido'),
@@ -26,8 +27,11 @@ type SignUpForm = z.infer<typeof signUpSchema>;
 export const AuthForm: React.FC = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
-  const [showForgotPassword, setShowForgotPassword] = useState(false);
-  const { signIn, signUp, resetPassword } = useAuth();
+  const [showEmailVerificationModal, setShowEmailVerificationModal] = useState(false);
+  const [verificationEmail, setVerificationEmail] = useState('');
+  const [verificationType, setVerificationType] = useState<'signup' | 'recovery' | 'email_change' | 'email'>('signup');
+  
+  const { signIn, signUp } = useAuth();
 
   const loginForm = useForm<LoginForm>({
     resolver: zodResolver(loginSchema),
@@ -38,88 +42,39 @@ export const AuthForm: React.FC = () => {
   });
 
   const onLoginSubmit = async (data: LoginForm) => {
-    await signIn.mutateAsync(data);
+    console.log('🔑 Iniciando login para:', data.email);
+    try {
+      await signIn.mutateAsync(data);
+      console.log('✅ Login exitoso');
+      // No mostramos notificación aquí porque el hook ya lo hace
+    } catch (error: any) {
+      console.error('❌ Error en login:', error);
+      // No mostramos notificación de error aquí porque el hook ya lo hace
+    }
   };
 
   const onSignUpSubmit = async (data: SignUpForm) => {
+    console.log('📝 Iniciando registro para:', data.email);
     try {
       await signUp.mutateAsync({
         email: data.email,
         password: data.password,
         name: data.name,
       });
-      // Mostrar mensaje de éxito específico para registro
-      if (!import.meta.env.VITE_SUPABASE_EMAIL_CONFIRMATIONS) {
-        // Si las confirmaciones están desactivadas, el usuario puede iniciar sesión inmediatamente
-}
-    } catch (error) {
+      
+      console.log('✅ Registro exitoso');
+      // No mostramos notificación aquí porque el hook ya lo hace
+      
+      // Mostrar modal de verificación de email después del registro exitoso
+      setVerificationEmail(data.email);
+      setVerificationType('signup');
+      setShowEmailVerificationModal(true);
+      
+    } catch (error: any) {
       console.error('❌ Error en registro:', error);
+      // No mostramos notificación de error aquí porque el hook ya lo hace
     }
   };
-
-  const onForgotPassword = async () => {
-    const email = loginForm.getValues('email');
-    if (!email) {
-      loginForm.setError('email', { message: 'Ingresa tu email primero' });
-      return;
-    }
-    await resetPassword.mutateAsync(email);
-    setShowForgotPassword(false);
-  };
-
-  if (showForgotPassword) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-md w-full space-y-8">
-          <div>
-            <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900 dark:text-white">
-              Recuperar Contraseña
-            </h2>
-            <p className="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
-              Ingresa tu email para recibir un enlace de recuperación
-            </p>
-          </div>
-
-          <form className="mt-8 space-y-6" onSubmit={loginForm.handleSubmit(() => onForgotPassword())}>
-            <div>
-              <label htmlFor="email" className="sr-only">
-                Email
-              </label>
-              <input
-                {...loginForm.register('email')}
-                type="email"
-                required
-                className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white bg-white dark:bg-gray-800 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                placeholder="Email"
-              />
-              {loginForm.formState.errors.email && (
-                <p className="mt-1 text-sm text-red-600 dark:text-red-400">
-                  {loginForm.formState.errors.email.message}
-                </p>
-              )}
-            </div>
-
-            <div className="flex space-x-4">
-              <button
-                type="button"
-                onClick={() => setShowForgotPassword(false)}
-                className="group relative w-full flex justify-center py-2 px-4 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-              >
-                Cancelar
-              </button>
-              <button
-                type="submit"
-                disabled={resetPassword.isPending}
-                className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
-              >
-                {resetPassword.isPending ? 'Enviando...' : 'Enviar Email'}
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
@@ -184,16 +139,6 @@ export const AuthForm: React.FC = () => {
               </div>
             </div>
 
-            <div className="flex items-center justify-between">
-              <button
-                type="button"
-                onClick={() => setShowForgotPassword(true)}
-                className="text-sm text-blue-600 hover:text-blue-500"
-              >
-                ¿Olvidaste tu contraseña?
-              </button>
-            </div>
-
             <div>
               <button
                 type="submit"
@@ -202,6 +147,12 @@ export const AuthForm: React.FC = () => {
               >
                 {signIn.isPending ? 'Iniciando sesión...' : 'Iniciar Sesión'}
               </button>
+            </div>
+
+            <div className="text-center mt-2">
+              <span className="text-xs text-gray-500 dark:text-gray-400">
+                ¿Olvidaste tu contraseña? Contacta al administrador
+              </span>
             </div>
 
             <div className="text-center">
@@ -340,6 +291,14 @@ export const AuthForm: React.FC = () => {
           </form>
         )}
       </div>
+
+      {/* Modales */}
+      <EmailVerificationModal
+        isOpen={showEmailVerificationModal}
+        onClose={() => setShowEmailVerificationModal(false)}
+        email={verificationEmail}
+        verificationType={verificationType}
+      />
     </div>
   );
 };

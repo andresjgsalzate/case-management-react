@@ -15,9 +15,11 @@ import { CasesPage } from '@/case-management/pages/CasesPage';
 import { NewCasePage } from '@/case-management/pages/NewCasePage';
 import ViewCasePage from '@/case-management/pages/ViewCasePage';
 import { ResetPasswordPage } from '@/user-management/pages/ResetPassword';
+import { EmailCallbackPage } from '@/shared/components/email/EmailCallbackPage';
 import { AuthTestPage } from '@/user-management/pages/AuthTestPage';
 import DataTestPage from '@/user-management/pages/DataTestPage';
 import { UsersPage } from '@/user-management/pages/admin/UsersPage';
+import EmailConfigPage from '@/user-management/pages/admin/EmailConfigPage';
 import { ConfigurationPage } from '@/user-management/pages/admin/ConfigurationPage';
 import { TagsPage } from '@/notes-knowledge/pages/admin/TagsPage';
 import { DocumentTypesAdmin } from '@/notes-knowledge/components/admin/DocumentTypesAdmin';
@@ -30,6 +32,7 @@ import { TestDocumentationPage } from '@/notes-knowledge/pages/TestDocumentation
 import { ArchivePage } from '@/archive-management/pages/ArchivePage';
 import { DisposicionScriptsPage } from '@/disposicion-scripts/pages/DisposicionScriptsPage';
 import { RolesPage, PermissionsPage, RolePermissionsPage } from '@/user-management';
+import { EmailTestPage } from '@/user-management/pages/EmailTestPage';
 
 function App() {
   const [isSupabaseConfigured, setIsSupabaseConfigured] = useState(false);
@@ -60,6 +63,7 @@ function App() {
         <Routes>
           {/* Rutas públicas (sin autenticación) */}
           <Route path="/reset-password" element={<ResetPasswordPage />} />
+          <Route path="/auth/callback" element={<EmailCallbackPage />} />
           
           {/* Rutas protegidas */}
           <Route path="/*" element={
@@ -146,6 +150,11 @@ function AppContent() {
             <UsersPage />
           </AdminPermissionGuard>
         } />
+        <Route path="/admin/email-config" element={
+          <AdminPermissionGuard permission="canReadUsers">
+            <EmailConfigPage />
+          </AdminPermissionGuard>
+        } />
         <Route path="/admin/config" element={
           <AdminPermissionGuard permission="canReadConfig">
             <ConfigurationPage />
@@ -182,6 +191,7 @@ function AppContent() {
         {/* Test Routes */}
         <Route path="/auth-test" element={<AdminOnlyRoute><AuthTestPage /></AdminOnlyRoute>} />
         <Route path="/data-test" element={<AdminOnlyRoute><DataTestPage /></AdminOnlyRoute>} />
+        <Route path="/email-test" element={<AdminOnlyRoute><EmailTestPage /></AdminOnlyRoute>} />
         
         <Route path="*" element={<div>Página no encontrada</div>} />
       </Routes>

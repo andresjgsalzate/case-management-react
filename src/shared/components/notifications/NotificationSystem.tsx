@@ -101,6 +101,13 @@ interface NotificationContextType {
 
 const NotificationContext = React.createContext<NotificationContextType | undefined>(undefined);
 
+// Generador de ID único para notificaciones
+let notificationIdCounter = 0;
+const generateNotificationId = () => {
+  notificationIdCounter += 1;
+  return `notification-${Date.now()}-${notificationIdCounter}`;
+};
+
 export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [notifications, setNotifications] = React.useState<Notification[]>([]);
 
@@ -109,7 +116,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
   };
 
   const showNotification = (notification: Omit<NotificationProps, 'onClose'>) => {
-    const id = Date.now().toString();
+    const id = generateNotificationId();
     const newNotification: Notification = {
       ...notification,
       id,
@@ -117,6 +124,12 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     };
 
     setNotifications(prev => [...prev, newNotification]);
+
+    // Auto-cerrar después de 5 segundos (excepto para errores que pueden necesitar más tiempo)
+    const autoCloseTime = notification.type === 'error' ? 8000 : 5000;
+    setTimeout(() => {
+      removeNotification(id);
+    }, autoCloseTime);
   };
 
   const showSuccess = (title: string, message?: string) => {

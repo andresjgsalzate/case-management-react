@@ -19,7 +19,8 @@ import {
   ChatBubbleLeftRightIcon,
   DocumentArrowUpIcon,
   BookOpenIcon,
-  TagIcon
+  TagIcon,
+  EnvelopeIcon
 } from '@heroicons/react/24/outline';
 import { VersionDisplay } from '@/shared/components/version/VersionDisplay';
 import { VersionModal } from '@/shared/components/version/VersionModal';
@@ -120,6 +121,15 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
       });
     }
 
+    // Configuración de Emails - solo para admins con permisos de usuarios
+    if (adminPermissions.hasPermission('users.admin_all') || adminPermissions.hasPermission('users.read_all')) {
+      userManagement.push({
+        name: 'Configuración de Emails',
+        href: '/admin/email-config',
+        icon: EnvelopeIcon
+      });
+    }
+
     // Agregar gestión de roles y permisos para admins reales
     if (adminPermissions.canReadRoles && adminPermissions.hasPermission('roles.read_all')) {
       userManagement.push({
@@ -211,6 +221,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
       items: [
         { name: 'Test Auth', href: '/auth-test', icon: UserIcon },
         { name: 'Test Datos', href: '/data-test', icon: DocumentTextIcon },
+        { name: 'Test Email', href: '/email-test', icon: EnvelopeIcon },
       ]
     };
   }, [userProfile, adminPermissions]);

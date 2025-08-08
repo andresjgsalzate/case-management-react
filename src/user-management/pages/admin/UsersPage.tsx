@@ -6,6 +6,7 @@ import {
   MagnifyingGlassIcon,
   CheckCircleIcon,
   ClockIcon,
+  UserPlusIcon,
 } from '@heroicons/react/24/outline';
 import { useUsers, useUpdateUser, useDeleteUser } from '@/user-management/hooks/useUsers';
 import { useRoles } from '../../hooks/useRoles';
@@ -19,6 +20,7 @@ import { Select } from '@/shared/components/ui/Select';
 import { PageWrapper } from '@/shared/components/layout/PageWrapper';
 import { ConfirmationModal } from '@/shared/components/ui/ConfirmationModal';
 import { useNotification } from '@/shared/components/notifications/NotificationSystem';
+import { EmailActions, InviteNewUserModal } from '@/user-management/components';
 
 interface UserModalProps {
   isOpen: boolean;
@@ -152,6 +154,7 @@ export const UsersPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<UserProfile | undefined>();
+  const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
   
   // Estado para modal de confirmación de eliminación
   const [deleteModal, setDeleteModal] = useState<{
@@ -267,6 +270,15 @@ export const UsersPage: React.FC = () => {
             Administra los usuarios registrados y sus roles. Los usuarios se registran por su cuenta y tú los activas.
           </p>
         </div>
+        {canManageUsers() && (
+          <Button
+            onClick={() => setIsInviteModalOpen(true)}
+            className="bg-blue-600 hover:bg-blue-700 text-white"
+          >
+            <UserPlusIcon className="h-4 w-4 mr-2" />
+            Invitar Nuevo Usuario
+          </Button>
+        )}
       </div>
 
       {/* Search */}
@@ -303,6 +315,9 @@ export const UsersPage: React.FC = () => {
               </th>
               <th className="px-4 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                 Creado
+              </th>
+              <th className="px-4 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                Emails
               </th>
               <th className="px-4 lg:px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                 Acciones
@@ -388,6 +403,13 @@ export const UsersPage: React.FC = () => {
                 <td className="px-4 lg:px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                   {new Date(user.createdAt).toLocaleDateString()}
                 </td>
+                <td className="px-4 lg:px-6 py-4 whitespace-nowrap">
+                  {canManageUsers() ? (
+                    <EmailActions user={user} />
+                  ) : (
+                    <span className="text-gray-400 text-xs">No disponible</span>
+                  )}
+                </td>
                 <td className="px-4 lg:px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                   <div className="flex justify-end space-x-2">
                     {canManageUsers() && (
@@ -435,6 +457,12 @@ export const UsersPage: React.FC = () => {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         user={selectedUser}
+      />
+
+      {/* Modal de Invitación de Nuevo Usuario */}
+      <InviteNewUserModal
+        isOpen={isInviteModalOpen}
+        onClose={() => setIsInviteModalOpen(false)}
       />
 
       {/* Modal de Confirmación de Eliminación */}
