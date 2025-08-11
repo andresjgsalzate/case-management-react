@@ -113,6 +113,7 @@ export interface BlockNoteDocument {
   solution_type?: string;
   estimated_solution_time?: number;
   case_reference?: string;
+  caseNumber?: string; // ✅ AGREGAR NÚMERO DE CASO PARA PDF
 }
 
 // Metadatos para el PDF

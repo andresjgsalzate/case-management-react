@@ -192,6 +192,7 @@ export const DocumentEditPage: React.FC = () => {
                       archived_case_id: document.archived_case_id,
                       case_reference_type: document.case_reference_type,
                       case_info: document.case_info,
+                      caseNumber: document.caseNumber, // ✅ AGREGAR NÚMERO DE CASO
                       category: document.solution_type,
                       tags: document.tags?.map(tag => tag.name) || [],
                       difficulty_level: document.difficulty_level,

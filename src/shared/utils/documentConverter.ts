@@ -12,9 +12,27 @@ import { BlockNoteDocument } from '../../types/blocknotePdf';
 
 // Convertidor mejorado de documentos
 export const convertToBlockNoteDocument = (data: any): BlockNoteDocument => {
+  console.log('🔄 [Converter] Datos recibidos:', JSON.stringify(data, null, 2));
+  
   // Si ya es un documento válido, devolverlo
   if (data && data.content && Array.isArray(data.content)) {
-    return {
+    // EXTRAER NÚMERO DE CASO DE MÚLTIPLES FUENTES
+    let caseNumber = data.caseNumber || 
+                     data.case_number || 
+                     data.numero_caso;
+    
+    // Si no se encuentra, extraer del título
+    if (!caseNumber && data.title) {
+      const titleMatch = data.title.match(/^([A-Z]{2}\d+)/);
+      if (titleMatch) {
+        caseNumber = titleMatch[1];
+        console.log('🔄 [Converter] Caso extraído del título:', caseNumber);
+      }
+    }
+    
+    console.log('🔄 [Converter] Caso final:', caseNumber);
+    
+    const convertedDoc = {
       id: data.id || 'unknown',
       title: data.title || 'Documento sin título',
       content: data.content,
@@ -27,7 +45,14 @@ export const convertToBlockNoteDocument = (data: any): BlockNoteDocument => {
       solution_type: data.solution_type,
       estimated_solution_time: data.estimated_solution_time,
       case_reference: data.case_id || data.archived_case_id,
+      // ✅ MÚLTIPLES INTENTOS PARA NÚMERO DE CASO
+      caseNumber: caseNumber,
+      case_number: caseNumber, // Backup
+      numero_caso: caseNumber, // Backup
     };
+    
+    console.log('🔄 [Converter] Documento convertido:', JSON.stringify(convertedDoc, null, 2));
+    return convertedDoc;
   }
   
   // Si es texto plano, crear estructura básica

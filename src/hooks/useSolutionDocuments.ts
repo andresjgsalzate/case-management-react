@@ -237,13 +237,55 @@ export const useSolutionDocument = (id: string) => {
   return useQuery({
     queryKey: [QUERY_KEYS.document, id],
     queryFn: async (): Promise<SolutionDocument> => {
+      console.log('🔍 [useSolutionDocument] Obteniendo documento con etiquetas:', id);
+      
+      // Obtener documento principal con información del caso
       const { data, error } = await supabase
         .from('solution_documents')
-        .select('*')
+        .select(`
+          *,
+          cases:case_id (
+            numero_caso
+          )
+        `)
         .eq('id', id)
         .single();
 
       if (error) throw error;
+      
+      // Obtener etiquetas relacionadas
+      console.log('🏷️ [useSolutionDocument] Obteniendo etiquetas para documento:', id);
+      const { data: tagsData, error: tagsError } = await supabase
+        .from('solution_document_tags')
+        .select(`
+          solution_tags:tag_id (
+            id,
+            name,
+            color,
+            category
+          )
+        `)
+        .eq('document_id', id);
+      
+      if (tagsError) {
+        console.error('❌ [useSolutionDocument] Error obteniendo etiquetas:', tagsError);
+      }
+      
+      // Procesar etiquetas
+      const documentTags = tagsData?.map(tagRelation => {
+        const tag = (tagRelation as any).solution_tags;
+        return tag ? tag.name : null;
+      }).filter(Boolean) || [];
+      
+      console.log('🏷️ [useSolutionDocument] Etiquetas procesadas:', documentTags);
+      
+      // También verificar etiquetas en el campo tags (array directo)
+      const directTags = Array.isArray(data.tags) ? data.tags : [];
+      console.log('🏷️ [useSolutionDocument] Etiquetas directas:', directTags);
+      
+      // Combinar ambas fuentes de etiquetas
+      const allTags = [...new Set([...documentTags, ...directTags])];
+      console.log('🏷️ [useSolutionDocument] Etiquetas finales:', allTags);
       
       // Obtener feedback separadamente si es necesario para el rating
       let avgRating = null;
@@ -266,10 +308,15 @@ export const useSolutionDocument = (id: string) => {
       }
       
       // Mapear campos snake_case a camelCase
+      console.log('🔍 [useSolutionDocument] Datos obtenidos:', JSON.stringify(data, null, 2));
+      console.log('🔍 [useSolutionDocument] Cases data:', data.cases);
+      
       return { 
         ...data, 
         avgRating,
+        tags: allTags, // Usar las etiquetas combinadas
         caseId: data.case_id,
+        caseNumber: data.cases?.numero_caso || data.cases?.numero_caso || null, // ✅ NÚMERO DEL CASO
         createdBy: data.created_by,
         updatedBy: data.updated_by,
         difficultyLevel: data.difficulty_level,
@@ -371,6 +418,24 @@ export const useCreateSolutionDocument = () => {
         throw new Error('Usuario no autenticado');
       }
 
+      // 🏷️ CONVERTIR IDs DE TAGS A NOMBRES DE TAGS
+      let tagNames: string[] = [];
+      if (data.tags && Array.isArray(data.tags) && data.tags.length > 0) {
+        console.log('🏷️ [useCreateSolutionDocument] Convirtiendo IDs de tags a nombres:', data.tags);
+        
+        const { data: tagsData, error: tagsError } = await supabase
+          .from('solution_tags')
+          .select('name')
+          .in('id', data.tags);
+        
+        if (tagsError) {
+          console.error('❌ [useCreateSolutionDocument] Error obteniendo nombres de tags:', tagsError);
+        } else {
+          tagNames = tagsData?.map(tag => tag.name) || [];
+          console.log('✅ [useCreateSolutionDocument] Nombres de tags obtenidos:', tagNames);
+        }
+      }
+
       // Usar la función SQL completa con todos los parámetros
       console.log('📡 [useCreateSolutionDocument] Llamando función SQL create_solution_document_final');
       
@@ -386,10 +451,12 @@ export const useCreateSolutionDocument = () => {
         p_prerequisites: null,
         p_estimated_solution_time: data.estimatedSolutionTime || null,
         p_is_template: data.isTemplate || false,
-        p_is_published: data.isPublished || false
+        p_is_published: data.isPublished || false,
+        p_tags: tagNames // ✅ USAR NOMBRES DE TAGS EN LUGAR DE IDs
       };
       
       console.log('📝 [useCreateSolutionDocument] Parámetros SQL:', params);
+      console.log('🏷️ [useCreateSolutionDocument] Tags a guardar:', data.tags);
 
       const { data: documentId, error } = await supabase.rpc('create_solution_document_final', params);
 
@@ -470,8 +537,30 @@ export const useUpdateSolutionDocument = () => {
         throw new Error('Usuario no autenticado');
       }
 
+      // 🏷️ CONVERTIR IDs DE TAGS A NOMBRES DE TAGS (si se proporcionaron)
+      let tagNames: string[] | null = null;
+      if (data.tags && Array.isArray(data.tags) && data.tags.length > 0) {
+        console.log('🏷️ [useUpdateSolutionDocument] Convirtiendo IDs de tags a nombres:', data.tags);
+        
+        const { data: tagsData, error: tagsError } = await supabase
+          .from('solution_tags')
+          .select('name')
+          .in('id', data.tags);
+        
+        if (tagsError) {
+          console.error('❌ [useUpdateSolutionDocument] Error obteniendo nombres de tags:', tagsError);
+        } else {
+          tagNames = tagsData?.map(tag => tag.name) || [];
+          console.log('✅ [useUpdateSolutionDocument] Nombres de tags obtenidos:', tagNames);
+        }
+      } else if (data.tags && Array.isArray(data.tags) && data.tags.length === 0) {
+        // Si se pasa un array vacío, significa que se quieren eliminar todos los tags
+        tagNames = [];
+        console.log('🏷️ [useUpdateSolutionDocument] Eliminando todos los tags');
+      }
+
       // Usar la función SQL completa para actualización
-      if (data.content || data.title || data.category || data.difficultyLevel || data.isPublished || data.isTemplate) {
+      if (data.content || data.title || data.category || data.difficultyLevel || data.isPublished || data.isTemplate || data.tags) {
         console.log('📡 [useUpdateSolutionDocument] Llamando función SQL update_solution_document_final');
         
         const params = {
@@ -487,19 +576,22 @@ export const useUpdateSolutionDocument = () => {
           p_prerequisites: null,
           p_estimated_solution_time: data.estimatedSolutionTime || null,
           p_is_template: data.isTemplate !== undefined ? data.isTemplate : null,
-          p_is_published: data.isPublished !== undefined ? data.isPublished : null
+          p_is_published: data.isPublished !== undefined ? data.isPublished : null,
+          p_tags: tagNames // ✅ USAR NOMBRES DE TAGS EN LUGAR DE IDs
         };
         
         console.log('📝 [useUpdateSolutionDocument] === PARÁMETROS RECIBIDOS EN HOOK ===');
         console.log('🎯 [useUpdateSolutionDocument] data.category (mapped to solution_type):', data.category);
         console.log('⭐ [useUpdateSolutionDocument] data.difficultyLevel:', data.difficultyLevel);
         console.log('📄 [useUpdateSolutionDocument] data.title:', data.title);
+        console.log('🏷️ [useUpdateSolutionDocument] p_tags:', params.p_tags);
         console.log('📝 [useUpdateSolutionDocument] data completo:', data);
         
         console.log('📝 [useUpdateSolutionDocument] === PARÁMETROS SQL FINALES ===');
         console.log('🎯 [useUpdateSolutionDocument] p_solution_type:', params.p_solution_type);
         console.log('⭐ [useUpdateSolutionDocument] p_difficulty_level:', params.p_difficulty_level);
         console.log('📄 [useUpdateSolutionDocument] p_title:', params.p_title);
+        console.log('🏷️ [useUpdateSolutionDocument] p_tags:', params.p_tags);
         console.log('🔧 [useUpdateSolutionDocument] params completos:', params);
 
         const { error } = await supabase.rpc('update_solution_document_final', params);
@@ -543,9 +635,44 @@ export const useUpdateSolutionDocument = () => {
       
       console.log('✅ [useUpdateSolutionDocument] Documento actualizado obtenido:', result);
 
+      // Obtener etiquetas relacionadas
+      console.log('🏷️ [useUpdateSolutionDocument] Obteniendo etiquetas para documento:', id);
+      const { data: tagsData, error: tagsError } = await supabase
+        .from('solution_document_tags')
+        .select(`
+          solution_tags:tag_id (
+            id,
+            name,
+            color,
+            category
+          )
+        `)
+        .eq('document_id', id);
+      
+      if (tagsError) {
+        console.error('❌ [useUpdateSolutionDocument] Error obteniendo etiquetas:', tagsError);
+      }
+      
+      // Procesar etiquetas
+      const documentTags = tagsData?.map(tagRelation => {
+        const tag = (tagRelation as any).solution_tags;
+        return tag ? tag.name : null;
+      }).filter(Boolean) || [];
+      
+      console.log('🏷️ [useUpdateSolutionDocument] Etiquetas procesadas:', documentTags);
+      
+      // También verificar etiquetas en el campo tags (array directo)
+      const directTags = Array.isArray(result.tags) ? result.tags : [];
+      console.log('🏷️ [useUpdateSolutionDocument] Etiquetas directas:', directTags);
+      
+      // Combinar ambas fuentes de etiquetas
+      const allTags = [...new Set([...documentTags, ...directTags])];
+      console.log('🏷️ [useUpdateSolutionDocument] Etiquetas finales:', allTags);
+
       // Mapear campos snake_case a camelCase
       const mappedResult = {
         ...result,
+        tags: allTags, // Usar las etiquetas combinadas
         caseId: result.case_id,
         createdBy: result.created_by,
         updatedBy: result.updated_by,

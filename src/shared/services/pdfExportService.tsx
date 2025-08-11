@@ -13,6 +13,7 @@ import { pdf, Document, Page, Text, View, StyleSheet, Image } from '@react-pdf/r
 import { saveAs } from 'file-saver';
 import { supabase } from '../lib/supabase';
 import { BlockNoteDocument, PDFContentBlock, PDFExportOptions } from '../../types/blocknotePdf';
+import { codeToHtml } from 'shiki';
 
 // =================== FUNCIONES DE UTILIDAD ===================
 
@@ -102,6 +103,162 @@ const enrichDocumentData = async (document: BlockNoteDocument): Promise<BlockNot
   }
 };
 
+/**
+ * Estructura para representar texto con colores
+ */
+interface ColoredTextToken {
+  text: string;
+  color?: string;
+  backgroundColor?: string;
+  fontWeight?: string;
+  fontStyle?: string;
+}
+
+/**
+ * Procesa código fuente con syntax highlighting usando Shiki
+ */
+const processCodeWithSyntaxHighlighting = async (
+  code: string, 
+  language: string
+): Promise<ColoredTextToken[]> => {
+  try {
+    // Mapeo de lenguajes comunes
+    const languageMap: { [key: string]: string } = {
+      'js': 'javascript',
+      'ts': 'typescript',
+      'py': 'python',
+      'rb': 'ruby',
+      'php': 'php',
+      'java': 'java',
+      'cs': 'csharp',
+      'cpp': 'cpp',
+      'c': 'c',
+      'go': 'go',
+      'rust': 'rust',
+      'swift': 'swift',
+      'kotlin': 'kotlin',
+      'scala': 'scala',
+      'sh': 'bash',
+      'bash': 'bash',
+      'zsh': 'bash',
+      'powershell': 'powershell',
+      'sql': 'sql',
+      'html': 'html',
+      'css': 'css',
+      'scss': 'scss',
+      'sass': 'sass',
+      'less': 'less',
+      'json': 'json',
+      'xml': 'xml',
+      'yaml': 'yaml',
+      'yml': 'yaml',
+      'toml': 'toml',
+      'ini': 'ini',
+      'dockerfile': 'dockerfile',
+      'makefile': 'makefile',
+      'r': 'r',
+      'matlab': 'matlab',
+      'lua': 'lua',
+      'perl': 'perl',
+      'dart': 'dart',
+      'vue': 'vue',
+      'svelte': 'svelte',
+      'jsx': 'jsx',
+      'tsx': 'tsx'
+    };
+
+    const normalizedLanguage = languageMap[language.toLowerCase()] || language.toLowerCase();
+
+    // Generar HTML con syntax highlighting usando tema claro para PDF
+    const html = await codeToHtml(code, {
+      lang: normalizedLanguage,
+      theme: 'github-light'
+    });
+
+    // Extraer los tokens del HTML generado
+    const tokens = parseShikiHtmlToTokens(html);
+    return tokens;
+
+  } catch (error) {
+    console.warn('⚠️ Error en syntax highlighting, usando texto plano:', error);
+    // Fallback: retornar el código como texto plano
+    return [{ text: code, color: '#1F2937' }];
+  }
+};
+
+/**
+ * Parsea el HTML generado por Shiki y extrae tokens con colores
+ */
+const parseShikiHtmlToTokens = (html: string): ColoredTextToken[] => {
+  const tokens: ColoredTextToken[] = [];
+  
+  try {
+    // Remover el wrapper HTML y extraer solo el contenido del <pre><code>
+    const codeMatch = html.match(/<code[^>]*>([\s\S]*?)<\/code>/);
+    if (!codeMatch) {
+      return [{ text: html, color: '#1F2937' }];
+    }
+
+    const codeContent = codeMatch[1];
+    
+    // Usar regex para extraer spans con estilos
+    const spanRegex = /<span[^>]*style="([^"]*)"[^>]*>([\s\S]*?)<\/span>/g;
+    let lastIndex = 0;
+    let match;
+
+    while ((match = spanRegex.exec(codeContent)) !== null) {
+      // Agregar texto antes del span si existe
+      if (match.index > lastIndex) {
+        const plainText = codeContent.slice(lastIndex, match.index);
+        if (plainText) {
+          tokens.push({ text: cleanHtmlEntities(plainText), color: '#1F2937' });
+        }
+      }
+
+      // Extraer color del estilo
+      const styleAttr = match[1];
+      const colorMatch = styleAttr.match(/color:\s*([^;]+)/);
+      const color = colorMatch ? colorMatch[1].trim() : '#1F2937';
+      
+      // Agregar el texto del span
+      const spanText = cleanHtmlEntities(match[2]);
+      if (spanText) {
+        tokens.push({ text: spanText, color });
+      }
+
+      lastIndex = spanRegex.lastIndex;
+    }
+
+    // Agregar texto restante
+    if (lastIndex < codeContent.length) {
+      const remainingText = codeContent.slice(lastIndex);
+      if (remainingText) {
+        tokens.push({ text: cleanHtmlEntities(remainingText), color: '#1F2937' });
+      }
+    }
+
+    return tokens.length > 0 ? tokens : [{ text: html, color: '#1F2937' }];
+
+  } catch (error) {
+    console.warn('⚠️ Error parseando HTML de Shiki:', error);
+    return [{ text: html, color: '#1F2937' }];
+  }
+};
+
+/**
+ * Limpia entidades HTML básicas
+ */
+const cleanHtmlEntities = (text: string): string => {
+  return text
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&amp;/g, '&')
+    .replace(/&quot;/g, '"')
+    .replace(/&#x27;/g, "'")
+    .replace(/&#x2F;/g, '/')
+    .replace(/<[^>]*>/g, ''); // Remover cualquier tag HTML restante
+};
+
 // =================== ESTILOS PDF ===================
 
 const styles = StyleSheet.create({
@@ -132,35 +289,38 @@ const styles = StyleSheet.create({
     backgroundColor: '#F9FAFB',
     border: '1pt solid #D1D5DB',
     borderRadius: 8,
-    padding: 16,
-    marginBottom: 20
+    padding: 18, // ✅ Reducido de 20 a 18 para menos espacio interno
+    marginBottom: 24 // ✅ Mantener separación externa
   },
   
   infoTitle: {
     fontSize: 14,
     fontWeight: 'bold',
-    marginBottom: 12,
+    marginBottom: 12, // ✅ Reducido de 16 a 12 para menos espacio después del título
     color: '#374151'
   },
   
   metadataRow: {
     flexDirection: 'row',
-    marginBottom: 6,
-    alignItems: 'center'
+    marginBottom: 5, // ✅ Reducido de 8 a 5 para menos espacio entre líneas
+    alignItems: 'flex-start', // ✅ Mejor alineación para textos largos
+    minHeight: 14 // ✅ Reducido de 16 a 14 para menos altura
   },
   
   metadataLabel: {
     fontSize: 11,
     fontWeight: 'bold',
     color: '#6B7280',
-    width: 80,
-    marginRight: 8
+    width: 120, // ✅ Aumentado de 80 a 120 para más espacio
+    marginRight: 12, // ✅ Más separación entre label y valor
+    flexShrink: 0 // ✅ Evita que se comprima
   },
   
   metadataValue: {
     fontSize: 11,
     color: '#111827',
-    flex: 1
+    flex: 1,
+    lineHeight: 1.3 // ✅ Reducido de 1.4 a 1.3 para menos espacio de línea
   },
   
   // Contenido principal
@@ -448,6 +608,33 @@ const styles = StyleSheet.create({
 
 // =================== RENDERIZADO DE BLOQUES ===================
 
+/**
+ * Extrae texto plano del contenido de un bloque
+ */
+const extractTextFromContent = (content: any): string => {
+  if (typeof content === 'string') {
+    return content;
+  }
+  
+  if (Array.isArray(content)) {
+    return content.map(item => {
+      if (typeof item === 'string') {
+        return item;
+      }
+      if (item && typeof item === 'object' && item.text) {
+        return item.text;
+      }
+      return '';
+    }).join('');
+  }
+  
+  if (content && typeof content === 'object' && content.text) {
+    return content.text;
+  }
+  
+  return String(content || '');
+};
+
 const renderBlock = (block: PDFContentBlock, index: number, numberedListCounter?: { value: number }): React.ReactElement => {
   switch (block.type) {
     case 'paragraph':
@@ -497,7 +684,36 @@ const renderBlock = (block: PDFContentBlock, index: number, numberedListCounter?
       );
       
     case 'codeBlock':
-      const language = block.props?.language || '';
+      const language = (block.props as any)?.language || '';
+      const blockAny = block as any;
+      
+      // Verificar si el bloque tiene tokens de syntax highlighting
+      if (blockAny.syntaxTokens && blockAny.isProcessed) {
+        return (
+          <View key={index} style={styles.codeBlock}>
+            {language && (
+              <Text style={styles.codeLanguage}>
+                {language.toUpperCase()}
+              </Text>
+            )}
+            <Text style={styles.codeText}>
+              {blockAny.syntaxTokens.map((token: ColoredTextToken, tokenIndex: number) => (
+                <Text 
+                  key={tokenIndex}
+                  style={[
+                    styles.codeText,
+                    { color: token.color || '#1F2937' }
+                  ]}
+                >
+                  {token.text}
+                </Text>
+              ))}
+            </Text>
+          </View>
+        );
+      }
+      
+      // Fallback: renderizado normal sin syntax highlighting
       return (
         <View key={index} style={styles.codeBlock}>
           {language && (
@@ -775,6 +991,65 @@ const renderImage = (block: PDFContentBlock, index: number): React.ReactElement 
  */
 // =================== COMPONENTE PDF ===================
 
+// =================== PREPROCESAMIENTO DE BLOQUES ===================
+
+/**
+ * Preprocesa el documento completo aplicando syntax highlighting a bloques de código
+ */
+const preprocessDocumentWithSyntaxHighlighting = async (
+  document: BlockNoteDocument
+): Promise<BlockNoteDocument> => {
+  try {
+    console.log('🎨 [PDF] Iniciando preprocesamiento con syntax highlighting...');
+    
+    if (!document.content || !Array.isArray(document.content)) {
+      console.warn('⚠️ [PDF] Documento sin contenido válido');
+      return document;
+    }
+
+    // Procesar todos los bloques de código
+    const processedContent = await Promise.all(
+      document.content.map(async (block: any) => {
+        if (block.type === 'codeBlock') {
+          const language = block.props?.language || '';
+          const codeContent = extractTextFromContent(block.content);
+          
+          if (codeContent.trim()) {
+            try {
+              const syntaxTokens = await processCodeWithSyntaxHighlighting(codeContent, language);
+              
+              // Agregar tokens al bloque
+              return {
+                ...block,
+                syntaxTokens,
+                isProcessed: true
+              };
+            } catch (error) {
+              console.warn('⚠️ [PDF] Error procesando bloque de código:', error);
+              return block; // Retornar bloque original en caso de error
+            }
+          }
+        }
+        
+        return block; // Retornar bloques no-código sin modificar
+      })
+    );
+
+    console.log('✅ [PDF] Preprocesamiento completado');
+    
+    return {
+      ...document,
+      content: processedContent as PDFContentBlock[]
+    };
+    
+  } catch (error) {
+    console.error('❌ [PDF] Error en preprocesamiento:', error);
+    return document; // Retornar documento original en caso de error
+  }
+};
+
+// =================== COMPONENTE PDF ===================
+
 interface PDFDocumentProps {
   document: BlockNoteDocument;
   attachments?: any[];
@@ -782,6 +1057,21 @@ interface PDFDocumentProps {
 }
 
 const PDFDocument: React.FC<PDFDocumentProps> = ({ document, attachments = [] }) => {
+  // Debug: Verificar estructura del documento
+  console.log('📋 [PDF Debug] Estructura del documento:', {
+    title: document.title,
+    hasTags: !!document.tags,
+    tagsLength: Array.isArray(document.tags) ? document.tags.length : 'No es array',
+    tagsContent: document.tags,
+    tagsType: typeof document.tags,
+    category: document.category,
+    difficulty_level: (document as any).difficulty_level,
+    solution_type: (document as any).solution_type,
+    estimated_solution_time: (document as any).estimated_solution_time,
+    case_reference: (document as any).case_reference,
+    allKeys: Object.keys(document || {})
+  });
+
   const formatComplexity = (complexity: number): string => {
     const stars = '*'.repeat(complexity);
     return `${stars} (${complexity}/5)`;
@@ -794,6 +1084,21 @@ const PDFDocument: React.FC<PDFDocumentProps> = ({ document, attachments = [] })
     const hours = Math.floor(time / 60);
     const minutes = time % 60;
     return minutes > 0 ? `${hours}h ${minutes}min` : `${hours} horas`;
+  };
+
+  /**
+   * Función auxiliar para obtener valor de un campo que puede estar en diferentes formatos
+   */
+  const getFieldValue = (fieldName: string): string | null => {
+    const value = (document as any)[fieldName];
+    if (!value) return null;
+    
+    if (typeof value === 'string') return value;
+    if (typeof value === 'number') return String(value);
+    if (typeof value === 'object' && value.name) return value.name;
+    if (typeof value === 'object' && value.label) return value.label;
+    
+    return String(value);
   };
 
   // Filtrar adjuntos para obtener solo documentos (no imágenes)
@@ -835,6 +1140,57 @@ const PDFDocument: React.FC<PDFDocumentProps> = ({ document, attachments = [] })
               <Text style={styles.metadataValue}>{document.category}</Text>
             </View>
           )}
+
+          {/* Número de caso relacionado */}
+          {(() => {
+            const caseNumber = (document as any).caseNumber || 
+                             (document as any).case_number || 
+                             (document as any).numero_caso ||
+                             (document as any).case_reference;
+            
+            // Fallback: Extraer del título si empieza con código de caso
+            let finalCaseNumber = caseNumber;
+            if (!finalCaseNumber && document.title) {
+              const titleMatch = document.title.match(/^([A-Z]{2}\d+)/);
+              if (titleMatch) {
+                finalCaseNumber = titleMatch[1];
+              }
+            }
+            
+            if (finalCaseNumber) {
+              return (
+                <View style={styles.metadataRow}>
+                  <Text style={styles.metadataLabel}>Caso Relacionado:</Text>
+                  <Text style={styles.metadataValue}>{finalCaseNumber}</Text>
+                </View>
+              );
+            }
+            
+            return null;
+          })()}
+
+          {getFieldValue('estimated_solution_time') && (
+            <View style={styles.metadataRow}>
+              <Text style={styles.metadataLabel}>Tiempo Estimado:</Text>
+              <Text style={styles.metadataValue}>
+                {formatEstimatedTime(Number(getFieldValue('estimated_solution_time')))} 
+              </Text>
+            </View>
+          )}
+
+          {getFieldValue('status') && (
+            <View style={styles.metadataRow}>
+              <Text style={styles.metadataLabel}>Estado:</Text>
+              <Text style={styles.metadataValue}>{getFieldValue('status')}</Text>
+            </View>
+          )}
+
+          {getFieldValue('priority') && (
+            <View style={styles.metadataRow}>
+              <Text style={styles.metadataLabel}>Prioridad:</Text>
+              <Text style={styles.metadataValue}>{getFieldValue('priority')}</Text>
+            </View>
+          )}
           
           {(document as any).complexity && (
             <View style={styles.metadataRow}>
@@ -850,18 +1206,48 @@ const PDFDocument: React.FC<PDFDocumentProps> = ({ document, attachments = [] })
             </View>
           )}
           
-          {document.tags && document.tags.length > 0 && (
-            <View style={styles.metadataRow}>
-              <Text style={styles.metadataLabel}>Etiquetas:</Text>
-              <Text style={styles.metadataValue}>
-                {Array.isArray(document.tags) 
-                  ? document.tags.map(tag => typeof tag === 'string' ? tag : (tag as any).name || (tag as any).label || '').filter(Boolean).join(', ')
-                  : String(document.tags)
+          {/* Renderizado de etiquetas mejorado */}
+          {(() => {
+            const tags = document.tags;
+            let tagsToDisplay: string[] = [];
+            
+            if (tags) {
+              if (Array.isArray(tags)) {
+                tagsToDisplay = tags.map(tag => {
+                  if (typeof tag === 'string') return tag;
+                  if (typeof tag === 'object' && tag !== null) {
+                    return (tag as any).name || (tag as any).label || (tag as any).text || '';
+                  }
+                  return String(tag);
+                }).filter(Boolean);
+              } else if (typeof tags === 'string') {
+                // Si es string, puede ser JSON o separado por comas
+                try {
+                  const parsed = JSON.parse(tags);
+                  if (Array.isArray(parsed)) {
+                    tagsToDisplay = parsed.map(t => String(t)).filter(Boolean);
+                  } else {
+                    tagsToDisplay = [String(tags)];
+                  }
+                } catch {
+                  // Si no es JSON, asumir que es separado por comas
+                  tagsToDisplay = String(tags).split(',').map((t: string) => t.trim()).filter(Boolean);
                 }
-              </Text>
-            </View>
-          )}
-          
+              }
+            }
+            
+            console.log('🏷️ [PDF Debug] Etiquetas procesadas:', tagsToDisplay);
+            
+            return tagsToDisplay.length > 0 ? (
+              <View style={styles.metadataRow}>
+                <Text style={styles.metadataLabel}>Etiquetas:</Text>
+                <Text style={styles.metadataValue}>
+                  {tagsToDisplay.join(', ')}
+                </Text>
+              </View>
+            ) : null;
+          })()}
+
           {document.created_at && (
             <View style={styles.metadataRow}>
               <Text style={styles.metadataLabel}>Fecha:</Text>
@@ -958,11 +1344,18 @@ export const downloadPDF = async (
   options: PDFExportOptions = {}
 ): Promise<void> => {
   try {
+    console.log('📄 [PDF] Iniciando generación PDF con syntax highlighting...');
+    
+    // Preprocesar documento con syntax highlighting
+    const preprocessedDocument = await preprocessDocumentWithSyntaxHighlighting(document);
+    
     // Enriquecer documento con nombres de usuario
-    const enrichedDocument = await enrichDocumentData(document);
+    const enrichedDocument = await enrichDocumentData(preprocessedDocument);
     
     // Obtener adjuntos del documento
     const attachments = document.id ? await getDocumentAttachments(document.id) : [];
+    
+    console.log('🔄 [PDF] Generando blob PDF...');
     
     // Generar PDF
     const blob = await pdf(<PDFDocument document={enrichedDocument} attachments={attachments} options={options} />).toBlob();
@@ -970,6 +1363,8 @@ export const downloadPDF = async (
     // Determinar nombre del archivo
     const filename = options.fileName || 
                     (enrichedDocument.title ? `${enrichedDocument.title}.pdf` : 'documento.pdf');
+    
+    console.log('✅ [PDF] PDF generado correctamente:', filename);
     
     // Descargar
     saveAs(blob, filename);
@@ -1020,7 +1415,12 @@ export const getPDFPreview = async (
   options: PDFExportOptions = {}
 ): Promise<string> => {
   try {
-    const enrichedDocument = await enrichDocumentData(document);
+    console.log('👁️ [PDF Preview] Generando vista previa con syntax highlighting...');
+    
+    // Preprocesar documento con syntax highlighting
+    const preprocessedDocument = await preprocessDocumentWithSyntaxHighlighting(document);
+    
+    const enrichedDocument = await enrichDocumentData(preprocessedDocument);
     
     // Obtener adjuntos del documento
     const attachments = document.id ? await getDocumentAttachments(document.id) : [];
@@ -1038,4 +1438,10 @@ export default {
   downloadPDF,
   createFallbackPDF,
   getPDFPreview
+};
+
+// Exportaciones adicionales para debugging y testing
+export {
+  processCodeWithSyntaxHighlighting,
+  preprocessDocumentWithSyntaxHighlighting
 };

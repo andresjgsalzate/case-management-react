@@ -63,6 +63,7 @@ export interface SolutionDocument {
   title: string;
   content: ContentBlock[];
   caseId?: string;
+  caseNumber?: string; // ✅ AGREGAR NÚMERO DE CASO
   createdBy: string;
   updatedBy?: string;
   tags: string[];
