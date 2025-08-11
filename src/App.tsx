@@ -33,6 +33,7 @@ import { ArchivePage } from '@/archive-management/pages/ArchivePage';
 import { DisposicionScriptsPage } from '@/disposicion-scripts/pages/DisposicionScriptsPage';
 import { RolesPage, PermissionsPage, RolePermissionsPage } from '@/user-management';
 import { EmailTestPage } from '@/user-management/pages/EmailTestPage';
+import TestBlockNoteModes from '@/notes-knowledge/components/documentation/editor/test-blocknote-modes';
 
 function App() {
   const [isSupabaseConfigured, setIsSupabaseConfigured] = useState(false);
@@ -192,6 +193,7 @@ function AppContent() {
         <Route path="/auth-test" element={<AdminOnlyRoute><AuthTestPage /></AdminOnlyRoute>} />
         <Route path="/data-test" element={<AdminOnlyRoute><DataTestPage /></AdminOnlyRoute>} />
         <Route path="/email-test" element={<AdminOnlyRoute><EmailTestPage /></AdminOnlyRoute>} />
+        <Route path="/test-blocknote" element={<AdminOnlyRoute><TestBlockNoteModes /></AdminOnlyRoute>} />
         
         <Route path="*" element={<div>Página no encontrada</div>} />
       </Routes>

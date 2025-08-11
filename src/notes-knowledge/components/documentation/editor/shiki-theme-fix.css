@@ -1,0 +1,37 @@
+/**
+ * =================================================================
+ * DEBUG Y VERIFICACIÓN DE TEMA PARA SYNTAX HIGHLIGHTING
+ * =================================================================
+ * Descripción: Debug específico para verificar que el tema se aplique
+ * Versión: 3.0
+ * Fecha: 11 de Agosto, 2025
+ * =================================================================
+ */
+
+/* ===== DEBUG: VERIFICAR QUE EL TEMA SE ESTÉ APLICANDO ===== */
+
+/* Indicador visual para modo readonly con tema dark */
+[data-theme="dark"][data-readonly="true"] {
+  /* Border temporal para debug */
+  outline: 2px solid #22c55e !important;
+}
+
+/* Indicador visual para modo readonly con tema light */
+[data-theme="light"][data-readonly="true"] {
+  /* Border temporal para debug */
+  outline: 2px solid #3b82f6 !important;
+}
+
+/* Asegurar que BlockNote use su CSS nativo sin interferencias */
+/* NO agregar reglas que puedan interferir con el theming nativo */
+
+/* Solo bordes para visualizar los bloques */
+[data-theme="dark"] .blocknote-readonly .bn-code-block {
+  border: 1px solid #374151 !important;
+  border-radius: 6px !important;
+}
+
+[data-theme="light"] .blocknote-readonly .bn-code-block {
+  border: 1px solid #e5e7eb !important;
+  border-radius: 6px !important;
+}

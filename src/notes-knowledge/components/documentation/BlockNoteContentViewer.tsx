@@ -22,10 +22,15 @@ export const BlockNoteContentViewer: React.FC<BlockNoteContentViewerProps> = ({
   className = "",
   documentId
 }) => {
+  // Convertir contenido y validar que existe
+  const convertedContent = React.useMemo(() => {
+    return convertFromLegacyToBlockNote(content);
+  }, [content]);
+
   return (
     <div className={`blocknote-viewer ${className}`}>
       <BlockNoteDocumentEditor
-        value={convertFromLegacyToBlockNote(content)}
+        value={convertedContent}
         onChange={() => {}} // No-op para modo solo lectura
         readOnly={true}
         className="w-full"

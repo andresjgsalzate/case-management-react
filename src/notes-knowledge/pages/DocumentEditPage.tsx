@@ -275,7 +275,7 @@ export const DocumentEditPage: React.FC = () => {
                       <BlockNoteContentViewer 
                         content={document.content}
                         documentId={document.id}
-                        className="prose dark:prose-invert max-w-none"
+                        className="max-w-none"
                       />
                     ) : (
                       <p className="text-gray-500 dark:text-gray-400 italic">

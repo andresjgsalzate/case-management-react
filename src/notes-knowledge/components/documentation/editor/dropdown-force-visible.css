@@ -1,0 +1,192 @@
+/**
+ * =================================================================
+ * ESTILOS CRÍTICOS PARA DROPDOWN BLOCKNOTE
+ * =================================================================
+ * Descripción: Solución definitiva para dropdown invisible
+ * Versión: 2.0
+ * Fecha: 11 de Agosto, 2025
+ * =================================================================
+ */
+
+/* ===== MEJORAR VISIBILIDAD DEL SELECTOR DE LENGUAJE EN MODO EDICIÓN ===== */
+
+/* Estilos para el selector de lenguaje de código en modo edición */
+.bn-editor[data-editable="true"] .bn-code-block .mantine-Select-root,
+.bn-editor[data-editable="true"] .bn-code-block .mantine-Combobox-root {
+  position: relative !important;
+  z-index: 1000 !important;
+  background: #ffffff !important;
+  border: 1px solid #d1d5db !important;
+  border-radius: 6px !important;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1) !important;
+  margin: 4px 0 !important;
+}
+
+[data-mantine-color-scheme="dark"] .bn-editor[data-editable="true"] .bn-code-block .mantine-Select-root,
+[data-mantine-color-scheme="dark"] .bn-editor[data-editable="true"] .bn-code-block .mantine-Combobox-root {
+  background: #1f2937 !important;
+  border-color: #374151 !important;
+}
+
+/* Estilo para el input del selector */
+.bn-editor[data-editable="true"] .bn-code-block .mantine-Select-input,
+.bn-editor[data-editable="true"] .bn-code-block .mantine-Combobox-input {
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  color: #374151 !important;
+  padding: 4px 8px !important;
+  min-height: 28px !important;
+  height: 28px !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+}
+
+[data-mantine-color-scheme="dark"] .bn-editor[data-editable="true"] .bn-code-block .mantine-Select-input,
+[data-mantine-color-scheme="dark"] .bn-editor[data-editable="true"] .bn-code-block .mantine-Combobox-input {
+  color: #e5e7eb !important;
+}
+
+/* SOLUCIÓN CRÍTICA: Forzar visibilidad de todos los dropdowns de Mantine */
+.mantine-Select-dropdown,
+.mantine-Combobox-dropdown,
+[data-floating-ui-portal] .mantine-Select-dropdown,
+[data-floating-ui-portal] .mantine-Combobox-dropdown,
+.bn-editor .mantine-Select-dropdown,
+.bn-editor .mantine-Combobox-dropdown {
+  /* Posicionamiento y z-index máximo */
+  z-index: 2147483647 !important; /* Máximo z-index posible */
+  position: fixed !important;
+  
+  /* Fondo y bordes visibles */
+  background-color: #ffffff !important;
+  border: 1px solid #d1d5db !important;
+  border-radius: 8px !important;
+  
+  /* Sombra para destacar */
+  box-shadow: 
+    0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04),
+    0 0 0 1px rgba(0, 0, 0, 0.05) !important;
+  
+  /* Dimensiones */
+  min-width: 180px !important;
+  max-height: 250px !important;
+  
+  /* Scroll */
+  overflow-y: auto !important;
+  
+  /* Opacidad completa */
+  opacity: 1 !important;
+  visibility: visible !important;
+  
+  /* Para debugging - remover si no necesitas */
+  /* outline: 3px solid #10b981 !important;
+  outline-offset: 2px !important; */
+}
+
+/* Dark mode */
+[data-mantine-color-scheme="dark"] .mantine-Select-dropdown,
+[data-mantine-color-scheme="dark"] .mantine-Combobox-dropdown,
+[data-mantine-color-scheme="dark"] [data-floating-ui-portal] .mantine-Select-dropdown,
+[data-mantine-color-scheme="dark"] [data-floating-ui-portal] .mantine-Combobox-dropdown {
+  background-color: #1f2937 !important;
+  border-color: #374151 !important;
+  color: #f9fafb !important;
+}
+
+/* Items del dropdown */
+.mantine-Select-option,
+.mantine-Combobox-option,
+.bn-editor .mantine-Select-option,
+.bn-editor .mantine-Combobox-option {
+  /* Visibilidad */
+  opacity: 1 !important;
+  visibility: visible !important;
+  display: block !important;
+  
+  /* Padding y tipografía */
+  padding: 10px 16px !important;
+  font-size: 14px !important;
+  line-height: 1.4 !important;
+  color: #374151 !important;
+  
+  /* Cursor */
+  cursor: pointer !important;
+  
+  /* Transición */
+  transition: background-color 0.15s ease !important;
+}
+
+/* Dark mode para items */
+[data-mantine-color-scheme="dark"] .mantine-Select-option,
+[data-mantine-color-scheme="dark"] .mantine-Combobox-option {
+  color: #f3f4f6 !important;
+}
+
+/* Hover para items */
+.mantine-Select-option:hover,
+.mantine-Combobox-option:hover,
+.mantine-Select-option[data-combobox-selected],
+.mantine-Combobox-option[data-combobox-selected] {
+  background-color: #f3f4f6 !important;
+  color: #1f2937 !important;
+}
+
+[data-mantine-color-scheme="dark"] .mantine-Select-option:hover,
+[data-mantine-color-scheme="dark"] .mantine-Combobox-option:hover,
+[data-mantine-color-scheme="dark"] .mantine-Select-option[data-combobox-selected],
+[data-mantine-color-scheme="dark"] .mantine-Combobox-option[data-combobox-selected] {
+  background-color: #374151 !important;
+  color: #f9fafb !important;
+}
+
+/* FORZAR PORTALES A SER VISIBLES */
+[data-floating-ui-portal] {
+  z-index: 2147483647 !important;
+  position: fixed !important;
+}
+
+/* ASEGURAR QUE EL CONTENEDOR NO OCULTE NADA */
+.blocknote-editor-wrapper,
+.bn-editor {
+  overflow: visible !important;
+  contain: none !important;
+}
+
+.bn-editor .bn-block-content,
+.bn-editor .bn-block-outer,
+.bn-editor .bn-code-block {
+  overflow: visible !important;
+  contain: none !important;
+}
+
+/* RESETEAR CUALQUIER CONTAINER QUERY O ISOLATION */
+* {
+  container: none !important;
+}
+
+.blocknote-editor-wrapper {
+  isolation: auto !important;
+}
+
+/* ===== ESTILOS ADICIONALES PARA MEJORAR LA EXPERIENCIA ===== */
+
+/* Mejora del botón de flecha del dropdown */
+.bn-editor[data-editable="true"] .bn-code-block .mantine-Select-rightSection,
+.bn-editor[data-editable="true"] .bn-code-block .mantine-Combobox-rightSection {
+  width: 24px !important;
+  pointer-events: all !important;
+}
+
+/* Estilo para el botón cuando está enfocado */
+.bn-editor[data-editable="true"] .bn-code-block .mantine-Select-root:focus-within,
+.bn-editor[data-editable="true"] .bn-code-block .mantine-Combobox-root:focus-within {
+  border-color: #3b82f6 !important;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
+}
+
+[data-mantine-color-scheme="dark"] .bn-editor[data-editable="true"] .bn-code-block .mantine-Select-root:focus-within,
+[data-mantine-color-scheme="dark"] .bn-editor[data-editable="true"] .bn-code-block .mantine-Combobox-root:focus-within {
+  border-color: #60a5fa !important;
+  box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.1) !important;
+}

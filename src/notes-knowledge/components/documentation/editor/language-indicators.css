@@ -1,0 +1,174 @@
+/**
+ * =================================================================
+ * ESTILOS ADICIONALES PARA INDICADORES DE LENGUAJE
+ * =================================================================
+ * Descripción: CSS adicional para asegurar indicadores permanentes
+ * Versión: 1.0
+ * Fecha: 11 de Agosto, 2025
+ * =================================================================
+ */
+
+/* ===== CONFIGURACIÓN INICIAL DE LENGUAJES POR DEFECTO ===== */
+
+/* Aplicar lenguaje por defecto basado en contenido del bloque */
+.bn-code-block[data-language=""]::before,
+.bn-code-block:not([data-language])::before {
+  content: "TEXT" !important;
+}
+
+/* Lenguajes específicos con colores distintivos */
+.bn-code-block[data-language="TYPESCRIPT"]::before,
+.bn-code-block[data-language="TS"]::before {
+  content: "TS" !important;
+  background: rgba(49, 120, 198, 0.1) !important;
+  color: #3178c6 !important;
+  border-color: rgba(49, 120, 198, 0.3) !important;
+}
+
+.bn-code-block[data-language="JAVASCRIPT"]::before,
+.bn-code-block[data-language="JS"]::before {
+  content: "JS" !important;
+  background: rgba(240, 219, 79, 0.1) !important;
+  color: #f0db4f !important;
+  border-color: rgba(240, 219, 79, 0.3) !important;
+}
+
+.bn-code-block[data-language="PYTHON"]::before,
+.bn-code-block[data-language="PY"]::before {
+  content: "PY" !important;
+  background: rgba(55, 118, 171, 0.1) !important;
+  color: #3776ab !important;
+  border-color: rgba(55, 118, 171, 0.3) !important;
+}
+
+.bn-code-block[data-language="SQL"]::before {
+  content: "SQL" !important;
+  background: rgba(0, 116, 217, 0.1) !important;
+  color: #0074d9 !important;
+  border-color: rgba(0, 116, 217, 0.3) !important;
+}
+
+.bn-code-block[data-language="HTML"]::before {
+  content: "HTML" !important;
+  background: rgba(227, 76, 38, 0.1) !important;
+  color: #e34c26 !important;
+  border-color: rgba(227, 76, 38, 0.3) !important;
+}
+
+.bn-code-block[data-language="CSS"]::before {
+  content: "CSS" !important;
+  background: rgba(21, 114, 182, 0.1) !important;
+  color: #1572b6 !important;
+  border-color: rgba(21, 114, 182, 0.3) !important;
+}
+
+.bn-code-block[data-language="JSON"]::before {
+  content: "JSON" !important;
+  background: rgba(41, 128, 185, 0.1) !important;
+  color: #2980b9 !important;
+  border-color: rgba(41, 128, 185, 0.3) !important;
+}
+
+.bn-code-block[data-language="JAVA"]::before {
+  content: "JAVA" !important;
+  background: rgba(237, 90, 67, 0.1) !important;
+  color: #ed5a43 !important;
+  border-color: rgba(237, 90, 67, 0.3) !important;
+}
+
+.bn-code-block[data-language="MARKDOWN"]::before,
+.bn-code-block[data-language="MD"]::before {
+  content: "MD" !important;
+  background: rgba(51, 51, 51, 0.1) !important;
+  color: #333 !important;
+  border-color: rgba(51, 51, 51, 0.3) !important;
+}
+
+/* ===== DARK MODE PARA COLORES ESPECÍFICOS ===== */
+
+[data-mantine-color-scheme="dark"] .bn-code-block[data-language="TYPESCRIPT"]::before,
+[data-mantine-color-scheme="dark"] .bn-code-block[data-language="TS"]::before {
+  background: rgba(49, 120, 198, 0.2) !important;
+  color: #5ba7f7 !important;
+}
+
+[data-mantine-color-scheme="dark"] .bn-code-block[data-language="JAVASCRIPT"]::before,
+[data-mantine-color-scheme="dark"] .bn-code-block[data-language="JS"]::before {
+  background: rgba(240, 219, 79, 0.2) !important;
+  color: #f7df1e !important;
+}
+
+[data-mantine-color-scheme="dark"] .bn-code-block[data-language="PYTHON"]::before,
+[data-mantine-color-scheme="dark"] .bn-code-block[data-language="PY"]::before {
+  background: rgba(55, 118, 171, 0.2) !important;
+  color: #4b9adb !important;
+}
+
+[data-mantine-color-scheme="dark"] .bn-code-block[data-language="SQL"]::before {
+  background: rgba(0, 116, 217, 0.2) !important;
+  color: #3498db !important;
+}
+
+[data-mantine-color-scheme="dark"] .bn-code-block[data-language="HTML"]::before {
+  background: rgba(227, 76, 38, 0.2) !important;
+  color: #ff6b47 !important;
+}
+
+[data-mantine-color-scheme="dark"] .bn-code-block[data-language="CSS"]::before {
+  background: rgba(21, 114, 182, 0.2) !important;
+  color: #3498db !important;
+}
+
+[data-mantine-color-scheme="dark"] .bn-code-block[data-language="JSON"]::before {
+  background: rgba(41, 128, 185, 0.2) !important;
+  color: #5dade2 !important;
+}
+
+[data-mantine-color-scheme="dark"] .bn-code-block[data-language="JAVA"]::before {
+  background: rgba(237, 90, 67, 0.2) !important;
+  color: #ff7b5a !important;
+}
+
+[data-mantine-color-scheme="dark"] .bn-code-block[data-language="MARKDOWN"]::before,
+[data-mantine-color-scheme="dark"] .bn-code-block[data-language="MD"]::before {
+  background: rgba(169, 169, 169, 0.2) !important;
+  color: #a9a9a9 !important;
+}
+
+/* ===== ANIMACIÓN PARA APARICIÓN DEL INDICADOR ===== */
+
+.bn-code-block::before {
+  animation: fadeInIndicator 0.3s ease-in-out !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+@keyframes fadeInIndicator {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ===== OVERRIDE PARA ASEGURAR VISIBILIDAD ===== */
+
+.bn-code-block::before {
+  display: block !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  position: absolute !important;
+  z-index: 100 !important;
+}
+
+/* ===== COMPATIBILIDAD CON HOVER STATES ===== */
+
+.bn-code-block:hover::before {
+  opacity: 1 !important;
+  visibility: visible !important;
+  transform: scale(1.05) !important;
+  transition: all 0.2s ease !important;
+}

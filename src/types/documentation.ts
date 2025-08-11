@@ -20,22 +20,37 @@ import { Case, User } from './index';
  */
 export interface ContentBlock {
   id: string;
-  type: 'heading' | 'paragraph' | 'code' | 'list' | 'image' | 'divider' | 'callout' | 'table';
+  type: 'heading' | 'paragraph' | 'code' | 'list' | 'image' | 'divider' | 'callout' | 'table' | 'file' | 'video' | 'audio';
   content: string;
   metadata?: {
     level?: number; // Para headings (1-6)
     language?: string; // Para code blocks
-    listType?: 'bullet' | 'numbered'; // Para listas
+    listType?: 'bullet' | 'numbered' | 'checklist' | 'toggle'; // Para listas
     items?: Array<{
       id: string;
       content: string;
       level: number;
+      checked?: boolean;
+      collapsed?: boolean;
+      children?: Array<{
+        id: string;
+        content: string;
+        level: number;
+      }>;
     }>; // Para elementos de lista
     calloutType?: 'info' | 'warning' | 'error' | 'success';
     imageUrl?: string; // Para imágenes
     imageAlt?: string;
     tableHeaders?: string[];
     tableRows?: string[][];
+    // Nuevos campos para archivos y multimedia
+    fileName?: string;
+    fileUrl?: string;
+    fileSize?: string;
+    fileType?: string;
+    caption?: string;
+    previewWidth?: number;
+    showPreview?: boolean;
   };
   children?: ContentBlock[];
 }

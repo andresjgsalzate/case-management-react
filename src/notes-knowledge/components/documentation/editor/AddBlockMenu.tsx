@@ -19,7 +19,10 @@ import {
   ExclamationTriangleIcon,
   PhotoIcon,
   MinusIcon,
-  TableCellsIcon
+  TableCellsIcon,
+  DocumentIcon,
+  VideoCameraIcon,
+  MusicalNoteIcon
 } from '@heroicons/react/24/outline';
 
 interface AddBlockMenuProps {
@@ -51,13 +54,13 @@ const BLOCK_TYPES: BlockType[] = [
   {
     type: 'code',
     label: 'Código',
-    description: 'Bloque de código',
+    description: 'Bloque de código con highlighting',
     icon: CodeBracketIcon
   },
   {
     type: 'list',
-    label: 'Lista',
-    description: 'Lista con viñetas',
+    label: 'Lista Simple',
+    description: 'Lista básica con viñetas',
     icon: ListBulletIcon
   },
   {
@@ -69,7 +72,7 @@ const BLOCK_TYPES: BlockType[] = [
   {
     type: 'image',
     label: 'Imagen',
-    description: 'Imagen o archivo',
+    description: 'Imagen con caption',
     icon: PhotoIcon
   },
   {
@@ -81,8 +84,27 @@ const BLOCK_TYPES: BlockType[] = [
   {
     type: 'table',
     label: 'Tabla',
-    description: 'Tabla editable',
+    description: 'Tabla editable avanzada',
     icon: TableCellsIcon
+  },
+  // ===== NUEVOS BLOQUES MULTIMEDIA =====
+  {
+    type: 'file',
+    label: 'Archivo',
+    description: 'Adjuntar cualquier archivo',
+    icon: DocumentIcon
+  },
+  {
+    type: 'video',
+    label: 'Video',
+    description: 'Video con controles',
+    icon: VideoCameraIcon
+  },
+  {
+    type: 'audio',
+    label: 'Audio',
+    description: 'Archivo de audio',
+    icon: MusicalNoteIcon
   }
 ];
 

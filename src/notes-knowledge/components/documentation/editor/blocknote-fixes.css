@@ -1,0 +1,255 @@
+/**
+ * =================================================================
+ * ESTILOS PERSONALIZADOS PARA BLOCKNOTE
+ * =================================================================
+ * Descripción: Correcciones de CSS para problemas de visualización
+ * Versión: 4.0
+ * Fecha: 11 de Agosto, 2025
+ * =================================================================
+ */
+
+/* ===== CONFIGURACIÓN BASE PARA TODOS LOS EDITORES ===== */
+
+.bn-editor {
+  /* NO forzar colores - dejar que BlockNote maneje el theming */
+  background: transparent !important;
+}
+
+/* NO sobrescribir colores de texto - BlockNote los maneja automáticamente */
+/* Eliminar todas las reglas de color forzadas para que BlockNote funcione nativamente */
+
+/* NO interferir con syntax highlighting - eliminar cualquier override */
+
+/* ===== INDICADORES DE LENGUAJE PERMANENTES ===== */
+
+/* Crear indicador de lenguaje permanente para bloques de código */
+.bn-code-block {
+  position: relative !important;
+}
+
+/* Indicador permanente para modo edición */
+.bn-editor[data-editable="true"] .bn-code-block::before {
+  content: attr(data-language) !important;
+  position: absolute !important;
+  top: 8px !important;
+  right: 12px !important;
+  font-size: 11px !important;
+  color: #6b7280 !important;
+  text-transform: uppercase !important;
+  font-weight: 600 !important;
+  background: rgba(229, 231, 235, 0.95) !important;
+  padding: 4px 8px !important;
+  border-radius: 4px !important;
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace !important;
+  letter-spacing: 0.05em !important;
+  z-index: 10 !important;
+  backdrop-filter: blur(4px) !important;
+  border: 1px solid rgba(209, 213, 219, 0.5) !important;
+  pointer-events: none !important;
+  user-select: none !important;
+}
+
+/* Indicador permanente para modo vista/readonly */
+.bn-editor[data-editable="false"] .bn-code-block::before {
+  content: attr(data-language) !important;
+  position: absolute !important;
+  top: 8px !important;
+  right: 12px !important;
+  font-size: 11px !important;
+  color: #6b7280 !important;
+  text-transform: uppercase !important;
+  font-weight: 600 !important;
+  background: rgba(229, 231, 235, 0.95) !important;
+  padding: 4px 8px !important;
+  border-radius: 4px !important;
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace !important;
+  letter-spacing: 0.05em !important;
+  z-index: 10 !important;
+  backdrop-filter: blur(4px) !important;
+  border: 1px solid rgba(209, 213, 219, 0.5) !important;
+  pointer-events: none !important;
+  user-select: none !important;
+}
+
+/* Dark mode para indicadores de lenguaje */
+[data-mantine-color-scheme="dark"] .bn-editor .bn-code-block::before {
+  color: #9ca3af !important;
+  background: rgba(55, 65, 81, 0.95) !important;
+  border-color: rgba(75, 85, 99, 0.5) !important;
+}
+
+/* Asegurar que el indicador aparezca sobre el código */
+.bn-code-block pre {
+  padding-top: 40px !important;
+}
+
+/* Fallback si no hay atributo data-language */
+.bn-code-block:not([data-language])::before {
+  content: "CODE" !important;
+}
+
+/* ===== CORRECCIÓN CRÍTICA PARA DROPDOWN DE SELECTOR DE LENGUAJE ===== */
+
+/* Asegurar que todos los dropdowns tengan z-index alto */
+.bn-editor .mantine-Select-dropdown,
+.bn-editor .mantine-Combobox-dropdown,
+.bn-editor .bn-dropdown-menu,
+.bn-editor [data-floating-ui-portal],
+.mantine-Select-dropdown,
+.mantine-Combobox-dropdown {
+  z-index: 999999 !important;
+  position: fixed !important;
+  background: white !important;
+  border: 1px solid #e5e7eb !important;
+  border-radius: 6px !important;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
+  max-height: 200px !important;
+  overflow-y: auto !important;
+  min-width: 150px !important;
+}
+
+/* Dark mode para dropdown */
+[data-mantine-color-scheme="dark"] .bn-editor .mantine-Select-dropdown,
+[data-mantine-color-scheme="dark"] .bn-editor .mantine-Combobox-dropdown,
+[data-mantine-color-scheme="dark"] .mantine-Select-dropdown,
+[data-mantine-color-scheme="dark"] .mantine-Combobox-dropdown,
+.bn-editor[data-color-scheme="dark"] .bn-dropdown-menu {
+  background: #1f2937 !important;
+  border-color: #374151 !important;
+  color: white !important;
+}
+
+/* Items del dropdown */
+.bn-editor .mantine-Select-option,
+.bn-editor .mantine-Combobox-option,
+.mantine-Select-option,
+.mantine-Combobox-option,
+.bn-editor .bn-dropdown-item {
+  padding: 8px 12px !important;
+  cursor: pointer !important;
+  font-size: 14px !important;
+  transition: background-color 0.15s ease !important;
+  color: #374151 !important;
+}
+
+[data-mantine-color-scheme="dark"] .bn-editor .mantine-Select-option,
+[data-mantine-color-scheme="dark"] .bn-editor .mantine-Combobox-option,
+[data-mantine-color-scheme="dark"] .mantine-Select-option,
+[data-mantine-color-scheme="dark"] .mantine-Combobox-option {
+  color: #f3f4f6 !important;
+}
+
+/* Hover states */
+.bn-editor .mantine-Select-option:hover,
+.bn-editor .mantine-Combobox-option:hover,
+.mantine-Select-option:hover,
+.mantine-Combobox-option:hover,
+.bn-editor .bn-dropdown-item:hover {
+  background-color: #f3f4f6 !important;
+}
+
+[data-mantine-color-scheme="dark"] .bn-editor .mantine-Select-option:hover,
+[data-mantine-color-scheme="dark"] .bn-editor .mantine-Combobox-option:hover,
+[data-mantine-color-scheme="dark"] .mantine-Select-option:hover,
+[data-mantine-color-scheme="dark"] .mantine-Combobox-option:hover {
+  background-color: #374151 !important;
+}
+
+/* Selected states */
+.bn-editor .mantine-Select-option[data-selected],
+.bn-editor .mantine-Combobox-option[data-selected],
+.mantine-Select-option[data-selected],
+.mantine-Combobox-option[data-selected] {
+  background-color: #dbeafe !important;
+  color: #1d4ed8 !important;
+}
+
+[data-mantine-color-scheme="dark"] .bn-editor .mantine-Select-option[data-selected],
+[data-mantine-color-scheme="dark"] .bn-editor .mantine-Combobox-option[data-selected],
+[data-mantine-color-scheme="dark"] .mantine-Select-option[data-selected],
+[data-mantine-color-scheme="dark"] .mantine-Combobox-option[data-selected] {
+  background-color: #1e40af !important;
+  color: #dbeafe !important;
+}
+
+/* ===== CORRECCIÓN PARA PORTALES DE MANTINE ===== */
+[data-floating-ui-portal] {
+  z-index: 999999 !important;
+}
+
+[data-floating-ui-portal] .mantine-Select-dropdown,
+[data-floating-ui-portal] .mantine-Combobox-dropdown {
+  z-index: 999999 !important;
+}
+
+/* ===== CORRECCIÓN ESPECÍFICA PARA CODE BLOCK ===== */
+.bn-editor .bn-code-block {
+  position: relative;
+  z-index: 1;
+}
+
+.bn-editor .bn-code-block-toolbar {
+  z-index: 2 !important;
+  position: relative !important;
+}
+
+.bn-editor .bn-code-block .mantine-Select-root {
+  z-index: 3 !important;
+  position: relative !important;
+}
+
+/* ===== ASEGURAR VISIBILIDAD EN CONTENEDORES ===== */
+.blocknote-editor-wrapper {
+  position: relative !important;
+  z-index: 1 !important;
+  isolation: isolate !important;
+}
+
+.bn-editor {
+  position: relative !important;
+  z-index: 1 !important;
+}
+
+/* ===== CORRECCIÓN PARA OVERFLOW HIDDEN ===== */
+.bn-editor .bn-block-content,
+.bn-editor .bn-block-outer {
+  overflow: visible !important;
+}
+
+/* ===== CORRECCIÓN ADICIONAL PARA SELECTORES ===== */
+.bn-editor .mantine-Select-root,
+.bn-editor .mantine-Combobox-root {
+  z-index: 10 !important;
+  position: relative !important;
+}
+
+.bn-editor .mantine-Select-input,
+.bn-editor .mantine-Combobox-input {
+  z-index: 11 !important;
+  position: relative !important;
+}
+
+/* ===== DEBUGGING TEMPORAL - QUITAR EN PRODUCCIÓN ===== */
+.mantine-Select-dropdown {
+  border: 2px solid #10b981 !important;
+  outline: 3px solid rgba(16, 185, 129, 0.3) !important;
+}
+
+/* ===== FALLBACK PARA CUALQUIER DROPDOWN ===== */
+[role="listbox"],
+[role="combobox"] + [role="listbox"],
+.mantine-Select-dropdown,
+.mantine-Combobox-dropdown {
+  z-index: 999999 !important;
+  position: fixed !important;
+}
+
+/* ===== FORZAR VISIBILIDAD GLOBAL ===== */
+* [class*="dropdown"],
+* [class*="Dropdown"],
+* [class*="select"],
+* [class*="Select"],
+* [class*="combobox"],
+* [class*="Combobox"] {
+  z-index: 999999 !important;
+}

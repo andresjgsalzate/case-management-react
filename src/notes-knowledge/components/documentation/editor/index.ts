@@ -3,7 +3,7 @@
  * ÍNDICE DE COMPONENTES DEL EDITOR DE DOCUMENTACIÓN
  * =================================================================
  * Descripción: Exporta todos los componentes de edición BlockNote
- * Fecha: 4 de Agosto, 2025
+ * Fecha: 11 de Agosto, 2025
  * =================================================================
  */
 
@@ -12,6 +12,9 @@ export { EnhancedDocumentationEditor } from './EnhancedDocumentationEditor';
 
 // Editor principal BlockNote
 export { BlockNoteDocumentEditor, createEmptyBlockNoteContent, convertFromLegacyToBlockNote } from './BlockNoteDocumentEditor';
+
+// Provider de estilos globales
+export { BlockNoteStylesProvider } from './BlockNoteStylesProvider';
 
 // Editor intermedio - DocumentationEditor original (si lo necesitas)
 export { DocumentationEditor } from './DocumentationEditor';

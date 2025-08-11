@@ -1,0 +1,109 @@
+/**
+ * =================================================================
+ * ESTILOS PARA MODO SOLO LECTURA - BLOCKNOTE (MINIMALISTA)
+ * =================================================================
+ * Descripción: CSS mínimo para deshabilitar interactividad sin interferir theming
+ * Versión: 5.0 (MINIMALISTA)
+ * Fecha: 11 de Agosto, 2025
+ * =================================================================
+ */
+
+/* ===== OCULTAR SOLO CONTROLES INTERACTIVOS EN MODO READONLY ===== */
+
+/* Ocultar COMPLETAMENTE el selector de lenguaje en modo readonly */
+.bn-editor[data-editable="false"] .mantine-Select-root,
+.bn-editor[data-editable="false"] .mantine-Combobox-root,
+.bn-editor[data-editable="false"] .bn-code-block .mantine-Select-root,
+.bn-editor[data-editable="false"] .bn-code-block .mantine-Combobox-root,
+.bn-editor[data-editable="false"] .mantine-Select-input,
+.bn-editor[data-editable="false"] .mantine-Combobox-input,
+.bn-editor[data-editable="false"] .mantine-Select-root button,
+.bn-editor[data-editable="false"] .mantine-Combobox-root button {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+  opacity: 0 !important;
+}
+
+/* Ocultar otros controles pero mantener funcionalidad de syntax highlighting */
+.bn-editor[data-editable="false"] .bn-formatting-toolbar,
+.bn-editor[data-editable="false"] .bn-slash-menu,
+.bn-editor[data-editable="false"] .bn-drag-handle,
+.bn-editor[data-editable="false"] .bn-resize-handle,
+.bn-editor[data-editable="false"] .bn-block-handle {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+/* Deshabilitar COMPLETAMENTE la edición y interacción */
+.bn-editor[data-editable="false"] {
+  cursor: default !important;
+  pointer-events: auto !important; /* Permitir selección de texto */
+}
+
+.bn-editor[data-editable="false"] * {
+  cursor: default !important;
+  user-select: text !important;
+}
+
+/* Deshabilitar específicamente inputs y selectores en bloques de código */
+.bn-editor[data-editable="false"] .bn-code-block input,
+.bn-editor[data-editable="false"] .bn-code-block select,
+.bn-editor[data-editable="false"] .bn-code-block button,
+.bn-editor[data-editable="false"] .bn-code-block [role="combobox"],
+.bn-editor[data-editable="false"] .bn-code-block [role="button"] {
+  pointer-events: none !important;
+  cursor: default !important;
+  user-select: none !important;
+  display: none !important;
+}
+
+/* NO ocultar el contenido, solo deshabilitar edición */
+.bn-editor[data-editable="false"] [contenteditable] {
+  cursor: default !important;
+  user-select: text !important;
+}
+
+/* Remover outline en modo readonly */
+.bn-editor[data-editable="false"] *:focus,
+.bn-editor[data-editable="false"] *:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* Mantener estilos de tabla readonly */
+.bn-editor[data-editable="false"] table,
+.bn-editor[data-editable="false"] td,
+.bn-editor[data-editable="false"] th {
+  pointer-events: none !important;
+  user-select: text !important;
+}
+
+/* Ocultar controles de tabla */
+.bn-editor[data-editable="false"] .bn-table-controls,
+.bn-editor[data-editable="false"] .bn-table-handle {
+  display: none !important;
+}
+
+/* ===== DESHABILITAR COMPLETAMENTE DROPDOWNS Y PORTALES ===== */
+
+/* Asegurar que ningún dropdown aparezca desde elementos readonly */
+.bn-editor[data-editable="false"] ~ [data-floating-ui-portal],
+.bn-editor[data-editable="false"] ~ .mantine-Select-dropdown,
+.bn-editor[data-editable="false"] ~ .mantine-Combobox-dropdown {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+/* Deshabilitar globalmente cualquier dropdown de Mantine cuando esté en readonly */
+.blocknote-readonly [data-floating-ui-portal],
+.blocknote-readonly .mantine-Select-dropdown,
+.blocknote-readonly .mantine-Combobox-dropdown {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+/* ===== NO TOCAR NADA MÁS - DEJAR QUE BLOCKNOTE MANEJE EL THEMING ===== */
