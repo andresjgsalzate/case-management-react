@@ -56,6 +56,15 @@ export interface ContentBlock {
 }
 
 /**
+ * Etiqueta con información de color
+ */
+export interface TagWithColor {
+  name: string;
+  color: string;
+  category?: string;
+}
+
+/**
  * Documento de solución principal
  */
 export interface SolutionDocument {
@@ -66,7 +75,7 @@ export interface SolutionDocument {
   caseNumber?: string; // ✅ AGREGAR NÚMERO DE CASO
   createdBy: string;
   updatedBy?: string;
-  tags: string[];
+  tags: TagWithColor[] | string[]; // ✅ Puede ser array de strings o objetos con color
   category?: string;
   difficultyLevel: number;
   estimatedSolutionTime?: number;

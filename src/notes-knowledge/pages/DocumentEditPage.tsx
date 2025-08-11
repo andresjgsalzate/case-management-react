@@ -194,7 +194,7 @@ export const DocumentEditPage: React.FC = () => {
                       case_info: document.case_info,
                       caseNumber: document.caseNumber, // ✅ AGREGAR NÚMERO DE CASO
                       category: document.solution_type,
-                      tags: document.tags?.map(tag => tag.name) || [],
+                      tags: document.tags || [], // ✅ PRESERVAR ETIQUETAS CON COLORES
                       difficulty_level: document.difficulty_level,
                       estimated_solution_time: document.estimated_solution_time,
                       solution_type: document.solution_type

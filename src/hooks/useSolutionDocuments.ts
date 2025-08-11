@@ -271,21 +271,59 @@ export const useSolutionDocument = (id: string) => {
         console.error('❌ [useSolutionDocument] Error obteniendo etiquetas:', tagsError);
       }
       
-      // Procesar etiquetas
+      // Procesar etiquetas con colores
       const documentTags = tagsData?.map(tagRelation => {
         const tag = (tagRelation as any).solution_tags;
-        return tag ? tag.name : null;
+        return tag ? {
+          name: tag.name,
+          color: tag.color || '#6B7280', // Color por defecto si no tiene
+          category: tag.category
+        } : null;
       }).filter(Boolean) || [];
       
-      console.log('🏷️ [useSolutionDocument] Etiquetas procesadas:', documentTags);
+      console.log('🏷️ [useSolutionDocument] Etiquetas procesadas con colores:', documentTags);
       
       // También verificar etiquetas en el campo tags (array directo)
-      const directTags = Array.isArray(data.tags) ? data.tags : [];
-      console.log('🏷️ [useSolutionDocument] Etiquetas directas:', directTags);
+      const directTagNames = Array.isArray(data.tags) ? data.tags : [];
       
-      // Combinar ambas fuentes de etiquetas
-      const allTags = [...new Set([...documentTags, ...directTags])];
-      console.log('🏷️ [useSolutionDocument] Etiquetas finales:', allTags);
+      // Buscar colores para etiquetas directas en solution_tags
+      let directTagsWithColors: any[] = [];
+      if (directTagNames.length > 0) {
+        const { data: directTagsData, error: directTagsError } = await supabase
+          .from('solution_tags')
+          .select('name, color, category')
+          .in('name', directTagNames);
+          
+        if (directTagsError) {
+          console.error('❌ [useSolutionDocument] Error obteniendo colores para etiquetas directas:', directTagsError);
+        }
+        
+        // Mapear etiquetas directas con sus colores de BD
+        directTagsWithColors = directTagNames.map((tagName: string) => {
+          const tagWithColor = directTagsData?.find(t => t.name === tagName);
+          return {
+            name: tagName,
+            color: tagWithColor?.color || '#6B7280', // Color de BD o por defecto
+            category: tagWithColor?.category || null
+          };
+        });
+      }
+      
+      console.log('🏷️ [useSolutionDocument] Etiquetas directas con colores de BD:', directTagsWithColors);
+      
+      // Combinar etiquetas (priorizar las que vienen de la relación)
+      const tagMap = new Map();
+      
+      // Primero agregar las directas con colores de BD
+      directTagsWithColors.forEach((tag: any) => tagMap.set(tag.name, tag));
+      
+      // Luego sobrescribir con las de la relación (tienen prioridad)
+      documentTags.forEach((tag: any) => {
+        if (tag) tagMap.set(tag.name, tag);
+      });
+      
+      const allTags = Array.from(tagMap.values());
+      console.log('🏷️ [useSolutionDocument] Etiquetas finales con colores:', allTags);
       
       // Obtener feedback separadamente si es necesario para el rating
       let avgRating = null;

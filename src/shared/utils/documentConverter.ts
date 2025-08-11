@@ -40,7 +40,7 @@ export const convertToBlockNoteDocument = (data: any): BlockNoteDocument => {
       created_at: data.created_at,
       updated_at: data.updated_at,
       category: data.category || data.solution_type,
-      tags: data.tags || [],
+      tags: data.tags || [], // ✅ Mantener etiquetas con colores tal como vienen del hook
       difficulty_level: data.difficulty_level,
       solution_type: data.solution_type,
       estimated_solution_time: data.estimated_solution_time,
@@ -50,6 +50,12 @@ export const convertToBlockNoteDocument = (data: any): BlockNoteDocument => {
       case_number: caseNumber, // Backup
       numero_caso: caseNumber, // Backup
     };
+    
+    console.log('🔄 [Converter] Tags preservadas:', data.tags);
+    console.log('🔄 [Converter] Tipo de tags:', typeof data.tags, Array.isArray(data.tags));
+    if (Array.isArray(data.tags) && data.tags.length > 0) {
+      console.log('🔄 [Converter] Primera etiqueta ejemplo:', data.tags[0]);
+    }
     
     console.log('🔄 [Converter] Documento convertido:', JSON.stringify(convertedDoc, null, 2));
     return convertedDoc;

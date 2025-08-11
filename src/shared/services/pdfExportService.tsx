@@ -266,7 +266,8 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     backgroundColor: '#FFFFFF',
     padding: 30,
-    fontFamily: 'Helvetica'
+    fontFamily: 'Helvetica',
+    paddingBottom: 50 // ✅ Espacio extra para el footer con número de página
   },
   
   // Header del documento
@@ -278,10 +279,29 @@ const styles = StyleSheet.create({
   },
   
   title: {
-    fontSize: 24,
-    fontWeight: 'bold',
+    fontSize: 28, // ✅ Aumentado de 24 a 28 para mejor jerarquía
+    fontWeight: 'ultrabold', // ✅ Peso más fuerte
     marginBottom: 8,
-    color: '#111827'
+    color: '#1F2937', // ✅ Color más oscuro y profesional
+    letterSpacing: 0.5
+  },
+  
+  // ✅ NUEVO: Footer con número de página
+  pageFooter: {
+    position: 'absolute',
+    bottom: 30,
+    left: 30,
+    right: 30,
+    textAlign: 'center',
+    borderTopWidth: 1,
+    borderTopColor: '#E5E7EB',
+    paddingTop: 10
+  },
+  
+  pageNumber: {
+    fontSize: 10,
+    color: '#6B7280',
+    fontWeight: 'normal'
   },
   
   // Cuadro de información mejorado
@@ -289,15 +309,16 @@ const styles = StyleSheet.create({
     backgroundColor: '#F9FAFB',
     border: '1pt solid #D1D5DB',
     borderRadius: 8,
-    padding: 18, // ✅ Reducido de 20 a 18 para menos espacio interno
-    marginBottom: 24 // ✅ Mantener separación externa
+    padding: 18,
+    marginBottom: 24
   },
   
   infoTitle: {
-    fontSize: 14,
+    fontSize: 16, // ✅ Aumentado de 14 a 16 para mejor jerarquía
     fontWeight: 'bold',
-    marginBottom: 12, // ✅ Reducido de 16 a 12 para menos espacio después del título
-    color: '#374151'
+    marginBottom: 12,
+    color: '#1F2937', // ✅ Color más fuerte
+    letterSpacing: 0.3 // ✅ Mejor espaciado de letras
   },
   
   metadataRow: {
@@ -308,9 +329,9 @@ const styles = StyleSheet.create({
   },
   
   metadataLabel: {
-    fontSize: 11,
+    fontSize: 12, // ✅ Aumentado de 11 a 12 para mejor jerarquía
     fontWeight: 'bold',
-    color: '#6B7280',
+    color: '#4B5563', // ✅ Color ligeramente más oscuro para mejor contraste
     width: 120, // ✅ Aumentado de 80 a 120 para más espacio
     marginRight: 12, // ✅ Más separación entre label y valor
     flexShrink: 0 // ✅ Evita que se comprima
@@ -321,6 +342,27 @@ const styles = StyleSheet.create({
     color: '#111827',
     flex: 1,
     lineHeight: 1.3 // ✅ Reducido de 1.4 a 1.3 para menos espacio de línea
+  },
+
+  // ✅ NUEVO: Estilos para tags coloreados
+  tagContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 3 // ✅ Reducido de 4 a 3 para más compacto
+  },
+  
+  tag: {
+    paddingHorizontal: 6, // ✅ Reducido de 8 a 6
+    paddingVertical: 2, // ✅ Reducido de 3 a 2
+    borderRadius: 10, // ✅ Reducido de 12 a 10
+    marginRight: 4, // ✅ Reducido de 6 a 4
+    marginBottom: 3 // ✅ Reducido de 4 a 3
+  },
+  
+  tagText: {
+    fontSize: 10, // ✅ Tamaño base - se sobrescribe dinámicamente
+    fontWeight: 'medium',
+    color: '#FFFFFF'
   },
   
   // Contenido principal
@@ -1206,44 +1248,95 @@ const PDFDocument: React.FC<PDFDocumentProps> = ({ document, attachments = [] })
             </View>
           )}
           
-          {/* Renderizado de etiquetas mejorado */}
+          {/* Renderizado de etiquetas con colores reales de BD */}
           {(() => {
             const tags = document.tags;
-            let tagsToDisplay: string[] = [];
+            let tagsToDisplay: Array<{name: string, color: string}> = [];
+            
+            console.log('🏷️ [PDF Debug] Tipo de tags recibido:', typeof tags);
+            console.log('🏷️ [PDF Debug] Tags raw:', tags);
             
             if (tags) {
               if (Array.isArray(tags)) {
                 tagsToDisplay = tags.map(tag => {
-                  if (typeof tag === 'string') return tag;
-                  if (typeof tag === 'object' && tag !== null) {
-                    return (tag as any).name || (tag as any).label || (tag as any).text || '';
+                  console.log('🏷️ [PDF Debug] Procesando tag:', tag, 'tipo:', typeof tag);
+                  // Si es un objeto con color (viene de BD)
+                  if (typeof tag === 'object' && tag !== null && 'name' in tag) {
+                    const tagObj = tag as any;
+                    console.log('🏷️ [PDF Debug] Tag con objeto - name:', tagObj.name, 'color:', tagObj.color);
+                    return {
+                      name: tagObj.name || '',
+                      color: tagObj.color || '#6B7280'
+                    };
                   }
-                  return String(tag);
-                }).filter(Boolean);
+                  // Si es string simple
+                  if (typeof tag === 'string') {
+                    console.log('🏷️ [PDF Debug] Tag string simple:', tag);
+                    return {
+                      name: tag,
+                      color: '#6B7280' // Color por defecto
+                    };
+                  }
+                  return null;
+                }).filter(Boolean) as Array<{name: string, color: string}>;
               } else if (typeof tags === 'string') {
                 // Si es string, puede ser JSON o separado por comas
                 try {
                   const parsed = JSON.parse(tags);
                   if (Array.isArray(parsed)) {
-                    tagsToDisplay = parsed.map(t => String(t)).filter(Boolean);
+                    tagsToDisplay = parsed.map(t => ({
+                      name: String(t),
+                      color: '#6B7280'
+                    }));
                   } else {
-                    tagsToDisplay = [String(tags)];
+                    tagsToDisplay = [{
+                      name: String(tags),
+                      color: '#6B7280'
+                    }];
                   }
                 } catch {
                   // Si no es JSON, asumir que es separado por comas
-                  tagsToDisplay = String(tags).split(',').map((t: string) => t.trim()).filter(Boolean);
+                  tagsToDisplay = String(tags).split(',').map((t: string) => ({
+                    name: t.trim(),
+                    color: '#6B7280'
+                  })).filter(tag => tag.name);
                 }
               }
             }
             
-            console.log('🏷️ [PDF Debug] Etiquetas procesadas:', tagsToDisplay);
+            console.log('🏷️ [PDF Debug] Etiquetas procesadas con colores:', tagsToDisplay);
+            
+            // ✅ Calcular tamaño de fuente dinámico basado en cantidad de etiquetas
+            const getTagFontSize = (tagCount: number) => {
+              if (tagCount <= 2) return 10; // Tamaño normal
+              if (tagCount <= 4) return 9;  // Ligeramente más pequeño
+              if (tagCount <= 6) return 8;  // Más pequeño
+              return 7; // Muy pequeño para muchas etiquetas
+            };
+            
+            const tagFontSize = getTagFontSize(tagsToDisplay.length);
             
             return tagsToDisplay.length > 0 ? (
               <View style={styles.metadataRow}>
                 <Text style={styles.metadataLabel}>Etiquetas:</Text>
-                <Text style={styles.metadataValue}>
-                  {tagsToDisplay.join(', ')}
-                </Text>
+                <View style={styles.tagContainer}>
+                  {tagsToDisplay.map((tag, index) => (
+                    <View 
+                      key={index} 
+                      style={[
+                        styles.tag, 
+                        { backgroundColor: tag.color }
+                      ]}
+                    >
+                      <Text style={[
+                        styles.tagText, 
+                        { fontSize: tagFontSize }
+                      ]}>
+                        {tag.name}
+                      </Text>
+                    </View>
+                  ))}
+                </View>
               </View>
             ) : null;
           })()}
