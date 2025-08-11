@@ -1,0 +1,118 @@
+/**
+ * =================================================================
+ * FUERZA BRUTA PARA DESHABILITAR DROPDOWNS EN READONLY
+ * =================================================================
+ * Descripción: CSS agresivo para eliminar cualquier dropdown en modo readonly
+ * Versión: 2.0 (INTERCEPTOR DE CLICKS)
+ * Fecha: 11 de Agosto, 2025
+ * =================================================================
+ */
+
+/* ===== INTERCEPTAR CLICKS EN CÓDIGO BLOCKS DE READONLY ===== */
+
+/* Crear overlay invisible sobre selectores para interceptar clicks */
+.blocknote-readonly .bn-code-block {
+  position: relative !important;
+}
+
+.blocknote-readonly .bn-code-block::before {
+  content: "" !important;
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  z-index: 999999 !important;
+  pointer-events: auto !important;
+  background: transparent !important;
+  cursor: text !important;
+}
+
+/* Asegurar que el overlay esté por encima de cualquier selector */
+.blocknote-readonly .bn-code-block .mantine-Select-root,
+.blocknote-readonly .bn-code-block .mantine-Combobox-root {
+  position: relative !important;
+  z-index: 1 !important;
+  pointer-events: none !important;
+}
+
+/* ===== FUERZA BRUTA: OCULTAR TODOS LOS DROPDOWNS CUANDO HAY READONLY ===== */
+
+/* Cuando existe un elemento readonly, ocultar TODOS los portales */
+.blocknote-readonly ~ [data-floating-ui-portal],
+.blocknote-readonly + [data-floating-ui-portal],
+.blocknote-readonly [data-floating-ui-portal] {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+  opacity: 0 !important;
+  position: absolute !important;
+  left: -9999px !important;
+  top: -9999px !important;
+  width: 0 !important;
+  height: 0 !important;
+  overflow: hidden !important;
+}
+
+/* Ocultar dropdowns específicos de Mantine */
+body:has(.blocknote-readonly) .mantine-Select-dropdown,
+body:has(.blocknote-readonly) .mantine-Combobox-dropdown,
+body:has(.blocknote-readonly) .mantine-Popover-dropdown,
+body:has(.blocknote-readonly) [role="listbox"],
+body:has(.blocknote-readonly) [role="combobox"][aria-expanded="true"] ~ * {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+  opacity: 0 !important;
+  position: absolute !important;
+  left: -9999px !important;
+  top: -9999px !important;
+  width: 0 !important;
+  height: 0 !important;
+  overflow: hidden !important;
+}
+
+/* Reglas específicas para elementos de BlockNote */
+.blocknote-readonly .bn-code-block .mantine-Select-root,
+.blocknote-readonly .bn-code-block .mantine-Combobox-root,
+.blocknote-readonly .bn-code-block input,
+.blocknote-readonly .bn-code-block select,
+.blocknote-readonly .bn-code-block button,
+.blocknote-readonly .bn-code-block [role="combobox"],
+.blocknote-readonly .bn-code-block [role="button"] {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+  opacity: 0 !important;
+  position: absolute !important;
+  left: -9999px !important;
+  top: -9999px !important;
+  width: 0 !important;
+  height: 0 !important;
+  overflow: hidden !important;
+  user-select: none !important;
+  -webkit-user-select: none !important;
+  -moz-user-select: none !important;
+  -ms-user-select: none !important;
+}
+
+/* Interceptar cualquier elemento que intente ser visible */
+[data-floating-ui-portal] * {
+  display: none !important;
+}
+
+/* Ocultar específicamente dropdowns de código */
+.bn-code-block [data-floating-ui-portal],
+.bn-code-block .mantine-Select-dropdown,
+.bn-code-block .mantine-Combobox-dropdown {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+/* Regla nuclear: si contiene readonly, ocultar todo lo relacionado con dropdowns */
+html:has(.blocknote-readonly) [data-floating-ui-portal],
+html:has(.blocknote-readonly) .mantine-Select-dropdown,
+html:has(.blocknote-readonly) .mantine-Combobox-dropdown {
+  display: none !important;
+}

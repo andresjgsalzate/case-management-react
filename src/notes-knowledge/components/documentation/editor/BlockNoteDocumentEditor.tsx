@@ -24,6 +24,7 @@ import "./blocknote-fixes.css";
 import "./dropdown-force-visible.css";
 import "./readonly-mode-minimal.css";
 import "./language-indicators.css";
+import "./force-readonly.css"; // CSS agresivo para readonly
 // import "./shiki-theme-fix.css"; // Temporalmente deshabilitado para debug
 
 interface BlockNoteDocumentEditorProps {
@@ -62,7 +63,7 @@ export const BlockNoteDocumentEditor: React.FC<BlockNoteDocumentEditorProps> = (
   // ===== CREAR EDITOR =====
   const editor = useCreateBlockNote({
     initialContent: value && value.length > 0 ? value : undefined,
-    // ===== CONFIGURACIÓN DE CODE BLOCKS (siempre habilitada para syntax highlighting) =====
+    // ===== CONFIGURACIÓN DE CODE BLOCKS =====
     codeBlock: {
       indentLineWithTab: !readOnly, // Solo en modo editable
       defaultLanguage: "typescript",
@@ -255,73 +256,101 @@ export const BlockNoteDocumentEditor: React.FC<BlockNoteDocumentEditorProps> = (
   React.useEffect(() => {
     if (!readOnly) return;
 
-    // Función para deshabilitar dropdowns en modo readonly
-    const disableDropdowns = () => {
-      const editorContainer = document.querySelector('.blocknote-readonly');
-      if (!editorContainer) return;
-
-      // Deshabilitar todos los selectores dentro del editor readonly
-      const selectors = editorContainer.querySelectorAll(
-        '.mantine-Select-root, .mantine-Combobox-root, input, select, button'
-      );
+    // Función agresiva para interceptar TODOS los clicks en readonly
+    const interceptAllClicks = (e: Event) => {
+      const target = e.target as HTMLElement;
+      const isInReadonly = target.closest('.blocknote-readonly');
       
-      selectors.forEach((element: any) => {
-        // Verificar si el elemento está dentro de un bloque de código
-        const isInCodeBlock = element.closest('.bn-code-block');
+      if (isInReadonly) {
+        // Verificar si es cualquier elemento dentro de un code block
+        const isInCodeBlock = target.closest('.bn-code-block');
+        
         if (isInCodeBlock) {
-          element.style.pointerEvents = 'none';
-          element.style.display = 'none';
-          element.disabled = true;
-          element.setAttribute('tabindex', '-1');
+          // INTERCEPTAR CUALQUIER CLICK en code blocks de readonly
+          e.preventDefault();
+          e.stopPropagation();
+          e.stopImmediatePropagation();
           
-          // Prevenir eventos de click
-          const preventClick = (e: Event) => {
-            e.preventDefault();
-            e.stopPropagation();
-            e.stopImmediatePropagation();
-            return false;
-          };
+          // Log para debug
+          console.log('🚫 Click interceptado en code block readonly:', target);
           
-          element.addEventListener('click', preventClick, true);
-          element.addEventListener('mousedown', preventClick, true);
-          element.addEventListener('keydown', preventClick, true);
+          return false;
         }
+      }
+    };
+
+    // Función para eliminar físicamente dropdowns
+    const nukeDropdowns = () => {
+      // Eliminar TODOS los portales
+      const portals = document.querySelectorAll('[data-floating-ui-portal]');
+      portals.forEach((portal) => {
+        portal.remove();
       });
 
-      // También ocultar cualquier dropdown que pueda estar abierto
+      // Eliminar dropdowns específicos
       const dropdowns = document.querySelectorAll(
-        '[data-floating-ui-portal] .mantine-Select-dropdown, [data-floating-ui-portal] .mantine-Combobox-dropdown'
+        '.mantine-Select-dropdown, .mantine-Combobox-dropdown, [role="listbox"], .mantine-Popover-dropdown'
       );
-      dropdowns.forEach((dropdown: any) => {
-        dropdown.style.display = 'none';
-        dropdown.style.visibility = 'hidden';
+      dropdowns.forEach((dropdown) => {
+        dropdown.remove();
+      });
+
+      // Ocultar y deshabilitar selectores en readonly
+      const selectors = document.querySelectorAll(
+        '.blocknote-readonly .bn-code-block .mantine-Select-root, .blocknote-readonly .bn-code-block .mantine-Combobox-root'
+      );
+      selectors.forEach((selector: any) => {
+        selector.style.display = 'none';
+        selector.style.pointerEvents = 'none';
+        selector.remove(); // Eliminar completamente
       });
     };
 
-    // Ejecutar inmediatamente
-    disableDropdowns();
-
-    // Ejecutar después de un delay para asegurar que BlockNote haya renderizado
-    const timer = setTimeout(disableDropdowns, 500);
-
-    // Observer para detectar cambios en el DOM
-    const observer = new MutationObserver(() => {
-      if (readOnly) {
-        setTimeout(disableDropdowns, 100);
-      }
+    // Interceptors más agresivos
+    const events = ['click', 'mousedown', 'mouseup', 'keydown', 'keyup', 'focus', 'focusin'];
+    
+    events.forEach(eventType => {
+      document.addEventListener(eventType, interceptAllClicks, true);
     });
 
-    const editorContainer = document.querySelector('.blocknote-readonly');
-    if (editorContainer) {
-      observer.observe(editorContainer, { 
-        childList: true, 
-        subtree: true 
+    // Ejecutar nukeo inmediato
+    nukeDropdowns();
+    
+    // Nukeo periódico
+    const nukeInterval = setInterval(nukeDropdowns, 500);
+
+    // Observer del body para nukear nuevos portales
+    const bodyObserver = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.type === 'childList') {
+          mutation.addedNodes.forEach((node: any) => {
+            if (node.nodeType === 1) { // Element node
+              // Si es un portal, eliminarlo inmediatamente
+              if (node.hasAttribute && node.hasAttribute('data-floating-ui-portal')) {
+                node.remove();
+              }
+              // Si contiene portales, eliminarlos
+              if (node.querySelectorAll) {
+                const innerPortals = node.querySelectorAll('[data-floating-ui-portal]');
+                innerPortals.forEach((portal: any) => portal.remove());
+              }
+            }
+          });
+        }
       });
-    }
+    });
+
+    bodyObserver.observe(document.body, {
+      childList: true,
+      subtree: true
+    });
 
     return () => {
-      clearTimeout(timer);
-      observer.disconnect();
+      events.forEach(eventType => {
+        document.removeEventListener(eventType, interceptAllClicks, true);
+      });
+      clearInterval(nukeInterval);
+      bodyObserver.disconnect();
     };
   }, [readOnly]);
   // ===== EFFECT ADICIONAL PARA INTERVALO DE ACTUALIZACIÓN =====
@@ -330,17 +359,36 @@ export const BlockNoteDocumentEditor: React.FC<BlockNoteDocumentEditorProps> = (
     const interval = setInterval(() => {
       updateLanguageIndicators();
       
-      // Si es readonly, también ejecutar deshabilitación de dropdowns
+      // Si es readonly, ejecutar deshabilitación agresiva de dropdowns
       if (readOnly) {
+        // Ocultar selectores
         const selectors = document.querySelectorAll(
-          '.blocknote-readonly .mantine-Select-root, .blocknote-readonly .mantine-Combobox-root'
+          '.blocknote-readonly .mantine-Select-root, .blocknote-readonly .mantine-Combobox-root, .blocknote-readonly input, .blocknote-readonly select, .blocknote-readonly button'
         );
         selectors.forEach((element: any) => {
-          element.style.display = 'none';
-          element.style.pointerEvents = 'none';
+          const isInCodeBlock = element.closest('.bn-code-block');
+          if (isInCodeBlock) {
+            element.style.display = 'none !important';
+            element.style.pointerEvents = 'none !important';
+            element.style.visibility = 'hidden !important';
+          }
+        });
+
+        // Ocultar portales globales
+        const portals = document.querySelectorAll('[data-floating-ui-portal]');
+        portals.forEach((portal: any) => {
+          portal.style.display = 'none !important';
+          portal.remove();
+        });
+
+        // Ocultar dropdowns específicos
+        const dropdowns = document.querySelectorAll('.mantine-Select-dropdown, .mantine-Combobox-dropdown, [role="listbox"]');
+        dropdowns.forEach((dropdown: any) => {
+          dropdown.style.display = 'none !important';
+          dropdown.remove();
         });
       }
-    }, 2000);
+    }, 1000); // Reducido a 1 segundo para ser más agresivo
 
     return () => clearInterval(interval);
   }, [readOnly]);

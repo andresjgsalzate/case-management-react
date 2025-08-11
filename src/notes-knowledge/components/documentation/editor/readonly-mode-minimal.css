@@ -106,4 +106,20 @@
   pointer-events: none !important;
 }
 
+/* REGLAS GLOBALES AGRESIVAS - Ocultar portales que puedan aparecer */
+body:has(.blocknote-readonly) [data-floating-ui-portal] {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+/* Ocultar cualquier dropdown de Mantine que aparezca cuando hay un readonly activo */
+body:has(.blocknote-readonly) .mantine-Select-dropdown,
+body:has(.blocknote-readonly) .mantine-Combobox-dropdown,
+body:has(.blocknote-readonly) [role="listbox"] {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
 /* ===== NO TOCAR NADA MÁS - DEJAR QUE BLOCKNOTE MANEJE EL THEMING ===== */
