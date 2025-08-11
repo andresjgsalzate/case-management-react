@@ -192,7 +192,7 @@ export const DocumentEditPage: React.FC = () => {
                       archived_case_id: document.archived_case_id,
                       case_reference_type: document.case_reference_type,
                       case_info: document.case_info,
-                      caseNumber: document.caseNumber, // ✅ AGREGAR NÚMERO DE CASO
+                      caseNumber: (document as any).caseNumber, // ✅ AGREGAR NÚMERO DE CASO (temporal)
                       category: document.solution_type,
                       tags: document.tags || [], // ✅ PRESERVAR ETIQUETAS CON COLORES
                       difficulty_level: document.difficulty_level,
