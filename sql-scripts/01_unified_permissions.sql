@@ -148,6 +148,9 @@ INSERT INTO permissions (name, description, resource, action, scope, is_active) 
 ('archive.view_own', 'Ver archivo propio', 'archive', 'view', 'own', true),
 ('archive.view_team', 'Ver archivo del equipo', 'archive', 'view', 'team', true),
 ('archive.view_all', 'Ver todo el archivo', 'archive', 'view', 'all', true),
+('archive.create_own', 'Archivar elementos propios', 'archive', 'create', 'own', true),
+('archive.create_team', 'Archivar elementos del equipo', 'archive', 'create', 'team', true),
+('archive.create_all', 'Archivar cualquier elemento', 'archive', 'create', 'all', true),
 ('archive.restore_own', 'Restaurar elementos propios', 'archive', 'restore', 'own', true),
 ('archive.restore_team', 'Restaurar elementos del equipo', 'archive', 'restore', 'team', true),
 ('archive.restore_all', 'Restaurar cualquier elemento', 'archive', 'restore', 'all', true),
@@ -240,7 +243,7 @@ WHERE scope = 'all' OR name IN (
     'users.read_all', 'users.create_all', 'users.update_all', 'users.delete_all', 'users.assign_roles',
     'system.read_configs', 'system.update_configs', 'system.backup', 'system.restore',
     'dashboard.view_all_metrics', 'reports.generate_all', 'reports.export',
-    'archive.view_all', 'archive.restore_all', 'search.global',
+    'archive.view_all', 'archive.create_all', 'archive.restore_all', 'search.global',
     'emails.configure'
 );
 
